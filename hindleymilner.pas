@@ -5,38 +5,59 @@ unit HindleyMilner;
 interface
 
 type
-   ISyntaxNode = interface
-      function ToString: String;
+   TSyntaxNode = class abstract
+      function ToStr: String; virtual; abstract;
    end;
 
-   TLambda = class(TInterfacedObject, ISyntaxNode)
+   TLambda = class(TSyntaxNode)
    private
       Variable: String;
-      Body: ISyntaxNode;
+      Body: TSyntaxNode;
    public
-      function ToStr: String;
-      constructor Create(v: String; b: ISyntaxNode);
+      function ToStr: String; override;
+      constructor Create(v: String; b: TSyntaxNode);
    end;
 
-   TIdent = class(TInterfacedObject, ISyntaxNode)
-      function ToStr: String;
+   TIdent = class(TSyntaxNode)
+   private
+      Name: String;
+   public
+      function ToStr: String; override;
+      constructor Create(n: String);
    end;
 
-   TApply = class(TInterfacedObject, ISyntaxNode)
-      function ToStr: String;
+   TApply = class(TSyntaxNode)
+   private
+      Fun: TSyntaxNode;
+      Argument: TSyntaxNode;
+   public
+      function ToStr: String; override;
+      constructor Create(fn: TSyntaxNode; arg: TSyntaxNode);
    end;
 
-   TLet = class(TInterfacedObject, ISyntaxNode)
-      function ToStr: String;
+   TLet = class(TSyntaxNode)
+   private
+      Variable: String;
+      Definition: TSyntaxNode;
+      Body: TSyntaxNode;
+   public
+      function ToStr: String; override;
+      constructor Create(v: String; defn: TSyntaxNode; b: TSyntaxNode);
    end;
 
-   TLetRec = class(TInterfacedObject, ISyntaxNode)
-      function ToStr: String;
+   TLetRec = class(TSyntaxNode)
+   private
+      Variable: String;
+      Definition: TSyntaxNode;
+      Body: TSyntaxNode;
+   public
+      function ToStr: String; override;
+      constructor Create(v: String; defn: TSyntaxNode; b: TSyntaxNode);
    end;
 
 implementation
 
-constructor TLambda.Create(v: String; b: ISyntaxNode);
+constructor TLambda.Create(v: String; b: TSyntaxNode);
 begin
    Self.Variable := v;
    Self.Body := b;
@@ -44,30 +65,57 @@ begin
 end;
 
 function TLambda.ToStr: String;
-var BodyStr: String;
 begin
-   //BodyStr := Self.Body.ToStr;
-   Result := 'fn' + Self.Variable + ' => ' + '<unknown>';
+   Result := '(fn' + Self.Variable + ' => ' + Self.Body.ToStr + ')';
+end;
+
+constructor TIdent.Create(n: String);
+begin
+   Self.Name := n;
+   inherited Create;
 end;
 
 function TIdent.ToStr: String;
 begin
-   Result := 'ident';
+   Result := Self.Name;
+end;
+
+constructor TApply.Create(fn, arg: TSyntaxNode);
+begin
+   Self.Fun := fn;
+   Self.Argument := arg;
+   inherited Create;
 end;
 
 function TApply.ToStr: String;
 begin
-   Result := 'apply';
+   Result := '(' + Self.Fun.ToStr + ' ' + Self.Argument.ToStr + ')';
+end;
+
+constructor TLet.Create(v: String; defn, b: TSyntaxNode);
+begin
+   Self.Variable := v;
+   Self.Definition := defn;
+   Self.Body := b;
+   inherited Create;
 end;
 
 function TLet.ToStr: String;
 begin
-   Result := 'let';
+   Result := '(' + 'let ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
+end;
+
+constructor TLetRec.Create(v: String; defn, b: TSyntaxNode);
+begin
+   Self.Variable := v;
+   Self.Definition := defn;
+   Self.Body := b;
+   inherited Create;
 end;
 
 function TLetRec.ToStr: String;
 begin
-   Result := 'letrec';
+   Result := '(' + 'letrec ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
 end;
 
 initialization
