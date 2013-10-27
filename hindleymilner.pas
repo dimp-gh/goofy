@@ -54,7 +54,9 @@ type
       function ToStr: String; override;
       constructor Create(v: String; defn: TSyntaxNode; b: TSyntaxNode);
    end;
-
+   
+   TSyntaxNodeClass = Class of TSyntaxNode;
+   
 implementation
 
 constructor TLambda.Create(v: String; b: TSyntaxNode);
@@ -66,7 +68,7 @@ end;
 
 function TLambda.ToStr: String;
 begin
-   Result := '(fn' + Self.Variable + ' => ' + Self.Body.ToStr + ')';
+   Result := '(fn ' + Self.Variable + ' => ' + Self.Body.ToStr + ')';
 end;
 
 constructor TIdent.Create(n: String);
