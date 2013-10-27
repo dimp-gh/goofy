@@ -1,8 +1,11 @@
 unit HindleyMilner;
-
 {$mode objfpc}{$H+}
 
+
 interface
+
+
+uses SysUtils;
 
 type
    TSyntaxNode = class abstract
@@ -56,8 +59,41 @@ type
    end;
    
    TSyntaxNodeClass = Class of TSyntaxNode;
+
+   ETypeError = class(Exception);
+   EParseError = class(Exception);
+
+   TType = class abstract
+      function ToStr: String; virtual; abstract;
+   end;
+      
+   TVariable = class(TType)
+   private
+      Id: Integer;
+      Name: String;
+      Instance: TType;
+      IsDefined: Boolean;
+   public
+      constructor Create(id_: Integer);
+      function ToStr: String; override;
+      procedure SetInstance(inst: TType);
+      function GetInstance: TType;
+   end;
+   
+   TOper = class(TType)
+   private
+      Name: String;
+      Args: array of TType;
+   public
+      function ToStr: String; override;
+      constructor Create(n: String; a: array of TType);
+   end;
+   
+   function FunType(from: TType; into: TType): TOper;
+   
    
 implementation
+
 
 constructor TLambda.Create(v: String; b: TSyntaxNode);
 begin
@@ -120,6 +156,68 @@ begin
    Result := '(' + 'letrec ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
 end;
 
-initialization
+constructor TVariable.Create(id_: Integer);
+begin
+   Self.Id := id_;
+   Self.Name := 'random name'; // TODO: include next name generator here
+   Self.IsDefined := False;
+   inherited Create;
+end;
 
+function TVariable.ToStr: String;
+begin
+   if Self.IsDefined then
+      Result := Self.Instance.ToStr
+   else
+      Result := Self.Name;
+end;
+
+procedure TVariable.SetInstance(inst: TType);
+begin
+   Self.Instance := inst;
+   Self.IsDefined := True;
+end;
+
+function TVariable.GetInstance: TType;
+begin
+   Result := Self.Instance;
+end;
+
+function TOper.ToStr: String;
+var
+   i, len: Integer;
+   acc: String;
+begin
+   len := Length(Self.Args);
+   if len = 0 then
+      Result := Self.Name
+   else if len = 2 then
+      Result := '(' + Self.Args[0].ToStr + ' ' + Self.Name + ' ' + Self.Args[1].ToStr + ')'
+   else
+      Result := 'something long'; // TODO: join args into one string
+end;
+
+constructor TOper.Create(n: String; a: array of TType);
+var i: Integer;
+begin
+   Self.Name := n;
+   SetLength(Self.Args, Length(a));
+   for i := 1 to Length(a) do
+      Self.Args[i] := a[i];
+end;
+
+function FunType(from: TType; into: TType): TOper;
+var
+   args: array of TType;
+begin
+   SetLength(args, 2);
+   args[1] := from;
+   args[2] := into;
+   Result := Toper.Create('->', args);
+end;
+
+
+initialization
+   
+   
 end.
