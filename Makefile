@@ -1,7 +1,7 @@
-.PHONY = all
+.PHONY = clean all
 
 all:
 	lazbuild typechecker.lpr
 
 clean:
-	rm -r lib typechecker
+	rm -rf lib typechecker
