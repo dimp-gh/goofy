@@ -1,7 +1,5 @@
 program typechecker;
 
-{$mode objfpc}{$H+}
-
 uses
    {$IFDEF UNIX}{$IFDEF UseCThreads}
    cthreads,
@@ -54,9 +52,17 @@ type
    procedure TMyApplication.Main;
    var
       ast: TSyntaxNode;
+      tpe: TType;
+      namegen: TNameGenerator;
    begin
       ast := TLet.Create('f', TLambda.Create('x', TIdent.Create('x')), TApply.Create(TIdent.Create('f'), TIdent.Create('5')));
-      writeln(ast.ToStr);
+      writeln('ast printing: ', ast.ToStr);
+
+      namegen := TNameGenerator.Create('a');
+      //tpe := CreateFunType(TVariable.Create(1, namegen), TVariable.Create(2, namegen));
+      //writeln('type printing: ', tpe.ToStr);
+      
+      foo(namegen.GenerateName, namegen.GenerateName, namegen.GenerateName);
    end;
 
    constructor TMyApplication.Create(TheOwner: TComponent);

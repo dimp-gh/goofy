@@ -1,5 +1,5 @@
 unit HindleyMilner;
-{$mode objfpc}{$H+}
+{$mode delphi}{$H+}
 
 
 interface
@@ -62,10 +62,18 @@ type
 
    ETypeError = class(Exception);
    EParseError = class(Exception);
+   
+   TNameGenerator = class
+   private
+      NextVariableName: Char;
+   public
+      constructor Create(initialValue: Char = 'a');
+      function GenerateName: String;
+   end;
 
    TType = class abstract
       function ToStr: String; virtual; abstract;
-   end;
+   end;   
       
    TVariable = class(TType)
    private
@@ -74,7 +82,7 @@ type
       Instance: TType;
       IsDefined: Boolean;
    public
-      constructor Create(id_: Integer);
+      constructor Create(id_: Integer; namegen: TNameGenerator);
       function ToStr: String; override;
       procedure SetInstance(inst: TType);
       function GetInstance: TType;
@@ -89,9 +97,10 @@ type
       constructor Create(n: String; a: array of TType);
    end;
    
-   function FunType(from: TType; into: TType): TOper;
-   
-   
+   function CreateFunType(from: TType; into: TType): TOper;
+
+   procedure foo(s1,s2,s3: String);
+      
 implementation
 
 
@@ -156,10 +165,21 @@ begin
    Result := '(' + 'letrec ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
 end;
 
-constructor TVariable.Create(id_: Integer);
+constructor TNameGenerator.Create(initialValue: Char = 'a');
+begin
+   Self.NextVariableName := initialValue;
+end;
+
+function TNameGenerator.GenerateName: String;
+begin
+   Result := Self.NextVariableName;
+   Self.NextVariableName := Char(Integer(Self.NextVariableName) + 1);
+end;
+
+constructor TVariable.Create(id_: Integer; namegen: TNameGenerator);
 begin
    Self.Id := id_;
-   Self.Name := 'random name'; // TODO: include next name generator here
+   Self.Name := namegen.GenerateName; // TODO: include next name generator here
    Self.IsDefined := False;
    inherited Create;
 end;
@@ -185,14 +205,15 @@ end;
 
 function TOper.ToStr: String;
 var
-   i, len: Integer;
-   acc: String;
+   len: Integer;
 begin
    len := Length(Self.Args);
    if len = 0 then
       Result := Self.Name
    else if len = 2 then
-      Result := '(' + Self.Args[0].ToStr + ' ' + Self.Name + ' ' + Self.Args[1].ToStr + ')'
+   begin
+      Result := '(' + Self.Args[0].ToStr + ' ' + Self.Name + ' ' + Self.Args[1].ToStr + ')';
+   end
    else
       Result := 'something long'; // TODO: join args into one string
 end;
@@ -202,20 +223,28 @@ var i: Integer;
 begin
    Self.Name := n;
    SetLength(Self.Args, Length(a));
-   for i := 1 to Length(a) do
+   for i := 0 to Length(Self.Args) - 1 do
+   begin
       Self.Args[i] := a[i];
+   end;
 end;
 
-function FunType(from: TType; into: TType): TOper;
+function CreateFunType(from: TType; into: TType): TOper;
 var
    args: array of TType;
 begin
    SetLength(args, 2);
-   args[1] := from;
-   args[2] := into;
+   args[0] := from;
+   args[1] := into;
    Result := Toper.Create('->', args);
 end;
 
+procedure foo(s1: String; s2: String; s3: String);
+begin
+   writeln(s1);
+   writeln(s2);
+   writeln(s3);
+end;
 
 initialization
    

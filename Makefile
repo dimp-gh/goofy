@@ -4,4 +4,4 @@ all:
 	lazbuild typechecker.lpr
 
 clean:
-	rm -rf lib typechecker
+	rm -rf lib typechecker *.bak
