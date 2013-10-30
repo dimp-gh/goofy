@@ -59,10 +59,9 @@ type
       writeln('ast printing: ', ast.ToStr);
 
       namegen := TNameGenerator.Create('a');
-      //tpe := CreateFunType(TVariable.Create(1, namegen), TVariable.Create(2, namegen));
-      //writeln('type printing: ', tpe.ToStr);
+      tpe := CreateFunType(TVariable.Create(1, @namegen), TVariable.Create(2, @namegen));
+      writeln('type printing: ', tpe.ToStr);
       
-      foo(namegen.GenerateName, namegen.GenerateName, namegen.GenerateName);
    end;
 
    constructor TMyApplication.Create(TheOwner: TComponent);

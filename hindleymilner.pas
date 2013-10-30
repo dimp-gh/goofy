@@ -70,6 +70,7 @@ type
       constructor Create(initialValue: Char = 'a');
       function GenerateName: String;
    end;
+   PNameGenerator = ^TNameGenerator;
 
    TType = class abstract
       function ToStr: String; virtual; abstract;
@@ -79,10 +80,12 @@ type
    private
       Id: Integer;
       Name: String;
+      Namegen: PNameGenerator;
       Instance: TType;
       IsDefined: Boolean;
+      function GetName: String;
    public
-      constructor Create(id_: Integer; namegen: TNameGenerator);
+      constructor Create(id_: Integer; namegen: PNameGenerator);
       function ToStr: String; override;
       procedure SetInstance(inst: TType);
       function GetInstance: TType;
@@ -99,8 +102,6 @@ type
    
    function CreateFunType(from: TType; into: TType): TOper;
 
-   procedure foo(s1,s2,s3: String);
-      
 implementation
 
 
@@ -176,12 +177,23 @@ begin
    Self.NextVariableName := Char(Integer(Self.NextVariableName) + 1);
 end;
 
-constructor TVariable.Create(id_: Integer; namegen: TNameGenerator);
+constructor TVariable.Create(id_: Integer; namegen: PNameGenerator);
 begin
    Self.Id := id_;
-   Self.Name := namegen.GenerateName; // TODO: include next name generator here
+   Self.Namegen := namegen;
+   Self.Name := '';
    Self.IsDefined := False;
    inherited Create;
+end;
+
+function TVariable.GetName: String;
+begin
+   if Self.Name = '' then
+      if Assigned(Self.NameGen) then
+         Self.Name := Self.Namegen^.GenerateName
+      else
+         Raise Exception.Create('Name generator for type variables is nil');
+   Result := Self.Name;
 end;
 
 function TVariable.ToStr: String;
@@ -189,7 +201,7 @@ begin
    if Self.IsDefined then
       Result := Self.Instance.ToStr
    else
-      Result := Self.Name;
+      Result := Self.GetName;
 end;
 
 procedure TVariable.SetInstance(inst: TType);
@@ -237,13 +249,6 @@ begin
    args[0] := from;
    args[1] := into;
    Result := Toper.Create('->', args);
-end;
-
-procedure foo(s1: String; s2: String; s3: String);
-begin
-   writeln(s1);
-   writeln(s2);
-   writeln(s3);
 end;
 
 initialization
