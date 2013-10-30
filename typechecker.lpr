@@ -5,7 +5,7 @@ uses
    cthreads,
    {$ENDIF}{$ENDIF}
    Classes, SysUtils, CustApp,
-   HindleyMilner, fgl;
+   HindleyMilner;
 
 type
 
@@ -53,15 +53,23 @@ type
    var
       ast: TSyntaxNode;
       tpe: TType;
-      namegen: TNameGenerator;
+      gen: TGenerator;
+      ts: TTypeSystem;
    begin
       ast := TLet.Create('f', TLambda.Create('x', TIdent.Create('x')), TApply.Create(TIdent.Create('f'), TIdent.Create('5')));
       writeln('ast printing: ', ast.ToStr);
 
-      namegen := TNameGenerator.Create('a');
-      tpe := CreateFunType(TVariable.Create(1, @namegen), TVariable.Create(2, @namegen));
+      writeln('gen pointer is ', IntToHex(Integer(@gen), 8));
+      gen := TGenerator.Create;
+      writeln('gen pointer is ', IntToHex(Integer(@gen), 8));
+      ts := TTypeSystem.Create(@gen);
+
+      writeln(gen.GenerateName, gen.GenerateName, gen.GenerateName);
+      tpe := CreateFunType(gen.GenerateVariable, gen.GenerateVariable);
+      writeln(gen.GenerateName);
       writeln('type printing: ', tpe.ToStr);
       
+      writeln('int is ', ts.Integer.ToStr, ' and bool is ', ts.Boolean.ToStr);
    end;
 
    constructor TMyApplication.Create(TheOwner: TComponent);
