@@ -59,17 +59,12 @@ type
       ast := TLet.Create('f', TLambda.Create('x', TIdent.Create('x')), TApply.Create(TIdent.Create('f'), TIdent.Create('5')));
       writeln('ast printing: ', ast.ToStr);
 
-      writeln('gen pointer is ', IntToHex(Integer(@gen), 8));
       gen := TGenerator.Create;
-      writeln('gen pointer is ', IntToHex(Integer(@gen), 8));
-      ts := TTypeSystem.Create(@gen);
-
-      writeln(gen.GenerateName, gen.GenerateName, gen.GenerateName);
-      tpe := CreateFunType(gen.GenerateVariable, gen.GenerateVariable);
-      writeln(gen.GenerateName);
+      ts := TTypeSystem.Create(Pointer(gen));
+      tpe := CreateFunType(ts.GenerateVariable, CreateFunType(ts.GenerateVariable, ts.GenerateVariable));
       writeln('type printing: ', tpe.ToStr);
       
-      writeln('int is ', ts.Integer.ToStr, ' and bool is ', ts.Boolean.ToStr);
+      writeln('int is ', ts.Int.ToStr, ' and bool is ', ts.Boolean.ToStr);
    end;
 
    constructor TMyApplication.Create(TheOwner: TComponent);
