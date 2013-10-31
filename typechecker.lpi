@@ -73,8 +73,6 @@
         <StackChecks Value="True"/>
       </Checks>
       <VerifyObjMethodCallValidity Value="True"/>
-      <TargetCPU Value="x86_64"/>
-      <TargetOS Value="linux"/>
       <Optimizations>
         <OptimizationLevel Value="0"/>
       </Optimizations>
