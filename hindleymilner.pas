@@ -66,10 +66,10 @@ type
    
    PGenerator = ^TGenerator;
 
-   TType = class abstract
+   TType = class(TObject)
       function ToStr: String; virtual; abstract;
-   end;   
-      
+   end;
+   
    TVariable = class(TType)
    private
       Name: String;
@@ -93,8 +93,13 @@ type
       constructor Create(n: String; a: array of TType);
    end;
    
-   TTypeClass = Class of TType;
+   // Environment for storing type variables
+   TEnvironment = specialize TFPGMap<String,TType>;
    
+   // Name generator for variables
+   // Every TVariable, when created, receives a pointer to TGenerator instance.
+   // TVariable uses pointer to this generator to calculate its name in a lazy way.
+   // Generator ensures that no variable gets the same name.
    TGenerator = class(TObject)
    private
       NextName: Char;
@@ -102,15 +107,11 @@ type
       constructor Create(initialName: Char = 'a');
       function GenerateName: String;
    end;
-   
-   TEnvironment = specialize TFPGMap<String,TTypeClass>;
-   
+      
    TVariableList = specialize TFPGList<TVariable>;
    
    TTypeSystem = class
    private
-      NextVariableId: Integer;
-      NextVariableName: String;
       Generator: PGenerator;
       function GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
    public
@@ -118,6 +119,7 @@ type
       Boolean: TOper;
       constructor Create(gen: PGenerator);
       function GenerateVariable: TVariable;
+      procedure Unify(t1, t2: TType);
       function Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
       function Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
    end;
@@ -292,7 +294,14 @@ function TTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVaria
 var
    id: TIdent;
    apply: TApply;
-   funtype, argtype, resultType: TType;
+   lambda: TLambda;
+   let: TLet;
+   letrec: TLetRec;
+   funType, argType, resultType, defnType: TType;
+   newTypeVar: TVariable;
+   newEnv : TEnvironment;
+   newNongen: TVariableList;
+   i: Integer;
 begin
    if (ast is TIdent) then
    begin
@@ -302,21 +311,55 @@ begin
    else if (ast is TApply) then
    begin
       apply := ast as TApply;
-      funtype := analyse(apply.Fun, env, nongen);
-      argtype := analyse(apply.Argument, env, nongen);
+      funType := analyse(apply.Fun, env, nongen);
+      argType := analyse(apply.Argument, env, nongen);
       resultType := Self.GenerateVariable;
+      Self.Unify(CreateFunType(argType, resultType), funType);
+      Result := resultType;
    end
    else if (ast is TLambda) then
    begin
-      
+      lambda := ast as TLambda;
+      argType := Self.GenerateVariable;
+      // copying environment
+      newEnv := TEnvironment.Create;
+      for i := 0 to env.Count - 1 do
+         newEnv.Add(env.GetKey(i), env.GetData(i));
+      newEnv.Add(lambda.Variable, argType);
+      resultType := analyse(lambda.Body, newEnv, nongen);
+      Result := CreateFunType(argType, resultType);
    end
    else if (ast is TLet) then
    begin
-      
+      let := ast as TLet;
+      defnType := analyse(let.Definition, env, nongen);
+      // copying environment
+      newEnv := TEnvironment.Create;
+      for i := 0 to env.Count - 1 do
+         newEnv.Add(env.GetKey(i), env.GetData(i));
+      // inserting new type variable from let into environemnt
+      newEnv.Add(let.Variable, defnType);
+      Result := analyse(let.Body, newEnv, nongen);
    end
    else if (ast is TLetRec) then
    begin
-      
+      letrec := ast as TLetRec;
+      newTypeVar := Self.GenerateVariable;
+      // copying environment
+      newEnv := TEnvironment.Create;
+      for i := 0 to env.Count - 1 do
+         newEnv.Add(env.GetKey(i), env.GetData(i));
+      // inserting new type variable from letrec into environemnt
+      newEnv.Add(letrec.Variable, newTypeVar);
+      // copying nongeneric variables list
+      newNongen := TVariableList.Create;
+      for i := 0 to nongen.Count - 1 do
+         newNongen.Add(nongen.Items[i]);
+      // inserting new non-generic variable into nongen
+      newNongen.Add(newTypeVar);
+      defnType := analyse(letrec.Definition, newEnv, newNonGen);
+      Self.Unify(newTypeVar, defnType);
+      Result := analyse(letrec.Body, newEnv, nongen);
    end
    else
       Raise Exception.Create('Analysis error: Unknown type of AST node');
@@ -328,6 +371,11 @@ begin
 end;
 
 function TTypeSystem.GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
+begin
+   
+end;
+
+procedure TTypeSystem.Unify(t1,t2: TType);
 begin
    
 end;
