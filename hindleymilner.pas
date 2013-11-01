@@ -24,7 +24,7 @@ type
    // overloaded comparison operators. So the best thing we can do is to wrap
    // a TVariable into record, for which we actually can overload comparison
    // operators.
-   // This is awful and i'm hardly dissapointed about Free Pascal.
+   // This is awful and i'm deeply dissapointed about Free Pascal.
    TVariableMap = specialize TFPGMap<TWrappedVariable,TWrappedVariable>;
    
    TTypeSystem = class
