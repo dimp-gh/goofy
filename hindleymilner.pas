@@ -36,6 +36,8 @@ type
       procedure Unify(t1, t2: TType);
       function Fresh(t: TType; nongen: TVariableList): TType;
       function Fresh(t: TType; nongen: TVariableList; maps: TVariableMap): TType;
+      function Prune(t: TType): TType;
+      function IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
    public
       Int: TOper;
       Boolean: TOper;
@@ -170,8 +172,57 @@ begin
 end;
 
 function TTypeSystem.Fresh(t: TType; nongen: TVariableList; maps: TVariableMap): TType;
+var
+   pruned: TType;
+   tvar, newVar: TVariable;
+   oper: TOper;
+   newArgs: array of TType;
 begin
-   
+   pruned := Self.Prune(t);
+   if (pruned is TVariable) then
+   begin
+      tvar := pruned as TVariable;
+      if Self.IsGeneric(tvar, nongen) then
+      begin
+         if True{TODO: maps contains tvar} then
+            Result := tvar
+         else
+         begin
+            newVar := Self.GenerateVariable;
+            Result := newVar;
+         end;
+      end
+      else
+         Result := tvar;
+   end
+   else if (pruned is TOper) then
+   begin
+      oper := pruned as TOper;
+      // TODO: newArgs = oper.args map freshrec(_)
+      Result := TOper.Create(oper.Name, newArgs); 
+   end
+   else
+      Raise Exception.Create('Cannot determine type of pruned type tree');
+end;
+
+function TTypeSystem.Prune(t: TType): TType;
+var
+   tvar: TVariable;
+   inst: TType;
+begin
+   if (t is TVariable) and (t as TVariable).IsDefined then
+   begin
+      tvar := t as TVariable;
+      inst := Self.Prune(tvar.GetInstance);
+      tvar.SetInstance(inst);
+      Result := inst; 
+   end
+   else
+      Result := t;
+end;
+
+function TTypeSystem.IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
+begin
    
 end;
 

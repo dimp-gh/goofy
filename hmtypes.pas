@@ -17,13 +17,14 @@ type
    end;
    
    TVariable = class(TType)
+   private
+      Namegen: PGenerator;
+      Instance: TType;      
+   public
       Id: Integer;
       Name: String;
-      Namegen: PGenerator;
-      Instance: TType;
       IsDefined: Boolean;
       function GetName: String;
-   public
       constructor Create(id_: Integer; ng: PGenerator);
       function ToStr: String; override;
       procedure SetInstance(inst: TType);
@@ -39,10 +40,9 @@ type
    end;			 
    
    TOper = class(TType)
-   private
+   public
       Name: String;
       Args: array of TType;
-   public
       function ToStr: String; override;
       constructor Create(n: String; a: array of TType);
    end;
@@ -140,7 +140,7 @@ end;
 
 function TVariable.GetInstance: TType;
 begin
-   if Self.ISDefined then
+   if Self.IsDefined then
       Result := Self.Instance
    else
       Raise Exception.Create('Get on undefined instance');
