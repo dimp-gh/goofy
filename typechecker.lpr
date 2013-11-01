@@ -5,7 +5,7 @@ uses
    cthreads,
    {$ENDIF}{$ENDIF}
    Classes, SysUtils, CustApp,
-   HindleyMilner;
+   AST, HMTypes, HindleyMilner;
 
 type
 
