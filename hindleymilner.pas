@@ -160,8 +160,19 @@ begin
 end;
 
 function TTypeSystem.IsIntegerLiteral(s: String): Boolean;
+const
+   digits: Set of Char = ['0'..'9'];
+var
+   i: Integer;
 begin
-   
+   // Hello, mr. Nazarov. Here we meet again.
+   for i := 0 to Length(s) - 1 do
+      if not(s[i] in digits) then
+      begin
+         Result := False;
+         Exit;
+      end;
+   Result := True;
 end;
 
 function TTypeSystem.Fresh(t: TType; nongen: TVariableList): TType;
