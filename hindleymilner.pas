@@ -15,7 +15,17 @@ type
    TEnvironment = specialize TFPGMap<String,TType>;      
    
    TVariableList = specialize TFPGList<TVariable>;
-   //TVariableMap = specialize TFPGMap<TVariable,TVariable>;
+   
+   // TVariableMap = specialize TFPGMap<TVariable,TVariable>;
+   // This variant of TVariableMap does not compile because it can't
+   // find overloaded comparison operators for TVariables. Even if they're
+   // defined in HMTypes. This is very strange, but in FreePascal you just
+   // can't overload operators in classes. But specializing TFPGMap requires
+   // overloaded comparison operators. So the best thing we can do is to wrap
+   // a TVariable into record, for which we actually can overload comparison
+   // operators.
+   // This is awful and i'm hardly dissapointed about Free Pascal.
+   TVariableMap = specialize TFPGMap<TWrappedVariable,TWrappedVariable>;
    
    TTypeSystem = class
    private
@@ -25,7 +35,7 @@ type
       function IsIntegerLiteral(s: String): Boolean;
       procedure Unify(t1, t2: TType);
       function Fresh(t: TType; nongen: TVariableList): TType;
-      function Fresh(t: TType; nongen: TVariableList; maps: TVariableList): TType;
+      function Fresh(t: TType; nongen: TVariableList; maps: TVariableMap): TType;
    public
       Int: TOper;
       Boolean: TOper;
@@ -153,13 +163,13 @@ begin
 end;
 
 function TTypeSystem.Fresh(t: TType; nongen: TVariableList): TType;
-var mappings: TVariableList; //should be map
+var mappings: TVariableMap;
 begin
-   mappings := TVariableList.Create;
+   mappings := TVariableMap.Create;
    Result := Self.Fresh(t, nongen, mappings);
 end;
 
-function TTypeSystem.Fresh(t: TType; nongen: TVariableList; maps: TVariableList): TType;
+function TTypeSystem.Fresh(t: TType; nongen: TVariableList; maps: TVariableMap): TType;
 begin
    
    
