@@ -243,8 +243,9 @@ end;
 
 function TOper.ToStr: String;
 var
-   len: Integer;
+   i, len: Integer;
    t1, t2: String;
+   acc: String;
 begin
    len := Length(Self.Args);
    if len = 0 then
@@ -256,7 +257,12 @@ begin
       Result := '(' + t1 + ' ' + Self.Name + ' ' + t2 + ')';
    end
    else
-      Result := 'something long'; // TODO: join args into one string
+   begin
+      acc := Self.Name;
+      for i := 0 to len - 1 do
+         acc := acc + ' ' + Self.Args[i].ToStr;
+      Result := acc;
+   end;
 end;
 
 constructor TOper.Create(n: String; a: array of TType);

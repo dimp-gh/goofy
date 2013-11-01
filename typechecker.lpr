@@ -61,7 +61,7 @@ type
 
       gen := TGenerator.Create;
       ts := TTypeSystem.Create(Pointer(gen));
-      tpe := CreateFunType(ts.GenerateVariable, CreateFunType(ts.GenerateVariable, ts.GenerateVariable));
+      tpe := TOper.Create('Maybe', [ts.GenerateVariable]);
       writeln('type printing: ', tpe.ToStr);
       
       writeln('int is ', ts.Int.ToStr, ' and bool is ', ts.Boolean.ToStr);
