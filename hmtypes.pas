@@ -18,13 +18,14 @@ type
    end;
    
    TVariable = class(TType)
+      Id: Integer;
       Name: String;
       Namegen: PGenerator;
       Instance: TType;
       IsDefined: Boolean;
       function GetName: String;
    public
-      constructor Create(ng: PGenerator);
+      constructor Create(id_: Integer; ng: PGenerator);
       function ToStr: String; override;
       procedure SetInstance(inst: TType);
       function GetInstance: TType;
@@ -68,8 +69,9 @@ begin
    Self.NextName := Char(Integer(Self.NextName) + 1);
 end;
 
-constructor TVariable.Create(ng: PGenerator);
+constructor TVariable.Create(id_: Integer; ng: PGenerator);
 begin
+   Self.Id := id_;
    Self.Namegen := ng;
    Self.Name := '';
    Self.IsDefined := False;

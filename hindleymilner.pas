@@ -19,6 +19,7 @@ type
    
    TTypeSystem = class
    private
+      NextVariableId: Integer;
       Generator: PGenerator;
       function GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
       function IsIntegerLiteral(s: String): Boolean;
@@ -38,6 +39,7 @@ implementation
 
 constructor TTypeSystem.Create(gen: PGenerator);
 begin
+   Self.NextVariableId := 0;
    Self.Generator := gen;
    Self.Int := TOper.Create('int', []);
    Self.Boolean := TOper.Create('bool', []);
@@ -125,7 +127,8 @@ end;
 
 function TTypeSystem.GenerateVariable: TVariable;
 begin
-   Result := TVariable.Create(@(Self.Generator));
+   Result := TVariable.Create(Self.NextVariableId, @(Self.Generator));
+   NextVariableId := NextVariableId + 1;
 end;
 
 function TTypeSystem.GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
