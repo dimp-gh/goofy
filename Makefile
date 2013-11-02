@@ -1,7 +1,9 @@
-.PHONY = clean all
+FPC=fpc
+FPCOPTS=-Mobjfpc -O1
+.PHONY = typechecker
 
-all:
-	lazbuild typechecker.lpr
+typechecker:
+	$(FPC) $(FPCOPTS) -otypechecker typechecker.pas
 
 clean:
 	rm -rf lib typechecker
