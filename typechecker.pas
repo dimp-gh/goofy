@@ -50,23 +50,8 @@ type
    end;
 
    procedure TMyApplication.Main;
-   var
-      ast: TSyntaxNode;
-      tpe: TType;
-      gen: TGenerator;
-      ts: TTypeSystem;
    begin
-      ast := TLet.Create('f', TLambda.Create('x', TIdent.Create('x')), TApply.Create(TIdent.Create('f'), TIdent.Create('5')));
-      writeln('ast printing: ', ast.ToStr);
-      
-      // TODO: unittests instead of that crap
-      
-      gen := TGenerator.Create;
-      ts := TTypeSystem.Create(Pointer(gen));
-      tpe := TOper.Create('Maybe', [ts.GenerateVariable]);
-      writeln('type printing: ', tpe.ToStr);
-      
-      writeln('int is ', ts.Int.ToStr, ' and bool is ', ts.Boolean.ToStr);
+      writeln('hello typecheck');
    end;
 
    constructor TMyApplication.Create(TheOwner: TComponent);

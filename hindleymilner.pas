@@ -46,7 +46,7 @@ type
       function Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
       function Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
    end;
-
+   
 implementation
 
 constructor TTypeSystem.Create(gen: PGenerator);
@@ -188,6 +188,7 @@ var
    tvar, newVar: TVariable;
    oper: TOper;
    newArgs: array of TType;
+   index: Integer;
 begin
    pruned := Self.Prune(t);
    if (pruned is TVariable) then
@@ -195,7 +196,7 @@ begin
       tvar := pruned as TVariable;
       if Self.IsGeneric(tvar, nongen) then
       begin
-         if True{TODO: maps contains tvar} then
+         if maps.Find(WrapVariable(tvar), index) then
             Result := tvar
          else
          begin
