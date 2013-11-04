@@ -8,12 +8,10 @@ implementation
 
 procedure TypePrintingTest;
 var
-   gen: TGenerator;
    tpe: TType;
    ts: TTypeSystem;
 begin
-   gen := TGenerator.Create;
-   ts := TTypeSystem.Create(Pointer(gen));
+   ts := TTypeSystem.Create;
    tpe := TOper.Create('Maybe', [ts.GenerateVariable]);
    Assert(tpe.ToStr = 'Maybe a');
    tpe := TOper.Create('->', [ts.GenerateVariable, ts.GenerateVariable]);
@@ -22,6 +20,14 @@ begin
    Assert(tpe.ToStr = 'OneOfThree d e f');
 end;
 
+procedure IsIntegerLiteralTest;
+begin
+   Assert(IsIntegerLiteral('123'));
+   Assert(IsIntegerLiteral('256'));
+   Assert(Not IsIntegerLiteral('abc'));
+end;
+
 initialization
    TypePrintingTest;
+   IsIntegerLiteralTest;
 end.

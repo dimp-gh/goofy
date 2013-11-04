@@ -14,7 +14,7 @@ type
    // Environment for storing type variables
    TEnvironment = specialize TFPGMap<String,TType>;      
    
-   TVariableList = specialize TFPGList<TVariable>;
+   TVariableList = array of TVariable;
    
    // TVariableMap = specialize TFPGMap<TVariable,TVariable>;
    // This variant of TVariableMap does not compile because it can't
@@ -32,34 +32,43 @@ type
       NextVariableId: Integer;
       Generator: PGenerator;
       function GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
-      function IsIntegerLiteral(s: String): Boolean;
       procedure Unify(t1, t2: TType);
       function Fresh(t: TType; nongen: TVariableList): TType;
       function Fresh(t: TType; nongen: TVariableList; maps: TVariableMap): TType;
       function Prune(t: TType): TType;
       function IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
+      function OccursIn(v: TVariable; types: array of TType): Boolean;
+      function OccursInType(v: TVariable; t: TType): Boolean;
    public
       Int: TOper;
-      Boolean: TOper;
-      constructor Create(gen: PGenerator);
+      Bool: TOper;
+      constructor Create;
       function GenerateVariable: TVariable;
       function Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
       function Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
    end;
    
+   function IsIntegerLiteral(s: String): Boolean;
+   
 implementation
 
-constructor TTypeSystem.Create(gen: PGenerator);
+constructor TTypeSystem.Create;
+var
+   gen: TGenerator;
 begin
+   gen := TGenerator.Create;
    Self.NextVariableId := 0;
-   Self.Generator := gen;
+   Self.Generator := Pointer(gen);
    Self.Int := TOper.Create('int', []);
-   Self.Boolean := TOper.Create('bool', []);
+   Self.Bool := TOper.Create('bool', []);
 end;
 
 function TTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
+var
+   nongen: TVariableList;
 begin
-   Result := Self.Analyse(ast, env, TVariableList.Create);
+   SetLength(nongen, 0);
+   Result := Self.Analyse(ast, env, nongen);
 end;
 
 function TTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
@@ -73,7 +82,7 @@ var
    newTypeVar: TVariable;
    newEnv : TEnvironment;
    newNongen: TVariableList;
-   i: Integer;
+   i, len: Integer;
 begin
    if (ast is TIdent) then
    begin
@@ -124,11 +133,12 @@ begin
       // inserting new type variable from letrec into environemnt
       newEnv.Add(letrec.Variable, newTypeVar);
       // copying nongeneric variables list
-      newNongen := TVariableList.Create;
-      for i := 0 to nongen.Count - 1 do
-         newNongen.Add(nongen.Items[i]);
+      len := Length(nongen);
+      SetLength(newNongen, len + 1);
+      for i := 0 to len - 1 do
+         newNongen[i] := nongen[i];
       // inserting new non-generic variable into nongen
-      newNongen.Add(newTypeVar);
+      newNongen[len] := newTypeVar;
       defnType := analyse(letrec.Definition, newEnv, newNonGen);
       Self.Unify(newTypeVar, defnType);
       Result := analyse(letrec.Body, newEnv, nongen);
@@ -148,31 +158,35 @@ var index: Integer;
 begin
    if env.Find(name, index) then
       Result := Self.Fresh(env.Data[index], nongen)
-   else if Self.IsIntegerLiteral(name) then
+   else if IsIntegerLiteral(name) then
       Result := Self.Int
    else
       raise EParseError.Create('Undefined symbol ' + name);
 end;
 
 procedure TTypeSystem.Unify(t1,t2: TType);
-begin
-   
-end;
-
-function TTypeSystem.IsIntegerLiteral(s: String): Boolean;
-const
-   digits: Set of Char = ['0'..'9'];
 var
-   i: Integer;
+   pt1, pt2: TType;
 begin
-   // Hello, mr. Nazarov. Here we meet again.
-   for i := 0 to Length(s) - 1 do
-      if not(s[i] in digits) then
-      begin
-         Result := False;
-         Exit;
-      end;
-   Result := True;
+   // TODO: write this down
+   //    val type1 = prune(t1)
+   //    val type2 = prune(t2)
+   //   (type1, type2) match {
+   //   case (a: Variable, b) => if (a != b) {
+   // 	if (occursintype(a, b))
+   // 	  throw new TypeError("recursive unification")
+   // 	a.instance = Some(b)
+   //   }
+   //   case (a: Oper, b: Variable) => unify(b, a)
+   //   case (a: Oper, b: Oper) => {
+   // 	if (a.name != b.name ||
+   // 	  a.args.length != b.args.length) throw new TypeError("Type mismatch: "+string(a)+"≠"+string(b))   
+   // 	for(i <- 0 until a.args.length)
+   // 	  unify(a.args(i), b.args(i))
+   //   }
+   // }
+   pt1 := Self.Prune(t1);
+   pt2 := Self.Prune(t2);
 end;
 
 function TTypeSystem.Fresh(t: TType; nongen: TVariableList): TType;
@@ -188,7 +202,7 @@ var
    tvar, newVar: TVariable;
    oper: TOper;
    newArgs: array of TType;
-   index: Integer;
+   index, len: Integer;
 begin
    pruned := Self.Prune(t);
    if (pruned is TVariable) then
@@ -210,7 +224,10 @@ begin
    else if (pruned is TOper) then
    begin
       oper := pruned as TOper;
-      // TODO: newArgs = oper.args map freshrec(_)
+      len := Length(oper.Args);
+      SetLength(newArgs, len);
+      for index := 0 to len - 1 do
+         newArgs[index] := Self.Fresh(oper.Args[index], nongen, maps);
       Result := TOper.Create(oper.Name, newArgs); 
    end
    else
@@ -234,8 +251,61 @@ begin
 end;
 
 function TTypeSystem.IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
+var
+   types: array of TType;
+   i, len: Integer;
 begin
-   
+   len := Length(nongen);
+   SetLength(types, len);
+   for i := 0 to len - 1 do
+      types[i] := nongen[i];
+   Result := not Self.OccursIn(v, types);
+end;
+
+function TTypeSystem.OccursIn(v: TVariable; types: array of TType): Boolean;
+var
+   i: Integer;
+begin
+   for i := 0 to Length(types) - 1 do
+      if Self.OccursInType(v, types[i]) then
+      begin
+         Result := True;
+         Exit;
+      end;
+   Result := False;
+end;
+
+function TTypeSystem.OccursInType(v: TVariable; t: TType): Boolean;
+var
+   tt: TType;
+   oper: TOper;
+begin
+   tt := Self.Prune(t);
+   if (tt is TVariable) and (tt as TVariable = v) then
+      Result := True
+   else if (tt is TOper) then
+   begin
+      oper := tt as TOper;
+      Result := Self.OccursIn(v, oper.Args);
+   end
+   else
+      Result := False;
+end;
+
+function IsIntegerLiteral(s: String): Boolean;
+const
+   digits: Set of Char = ['0'..'9'];
+var
+   i: Integer;
+begin
+   // Hello, mr. Nazarov. Here we meet again.
+   for i := 1 to Length(s) do
+      if not(s[i] in digits) then
+      begin
+         Result := False;
+         Exit;
+      end;
+   Result := True;
 end;
 
 initialization   
