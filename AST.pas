@@ -8,19 +8,19 @@ type
       function ToStr: String; virtual; abstract;
    end;
 
+   TIdent = class(TSyntaxNode)
+   public
+      Name: String;
+      function ToStr: String; override;
+      constructor Create(n: String);
+   end;
+
    TLambda = class(TSyntaxNode)
    public
       Variable: String;
       Body: TSyntaxNode;
       function ToStr: String; override;
       constructor Create(v: String; b: TSyntaxNode);
-   end;
-
-   TIdent = class(TSyntaxNode)
-   public
-      Name: String;
-      function ToStr: String; override;
-      constructor Create(n: String);
    end;
 
    TApply = class(TSyntaxNode)
@@ -48,6 +48,12 @@ type
       function ToStr: String; override;
       constructor Create(v: String; defn: TSyntaxNode; b: TSyntaxNode);
    end;
+
+function Ident(n: String): TIdent;
+function Lambda(v: String; b: TSyntaxNode): TLambda;
+function Apply(fn: TSyntaxNode; arg: TSyntaxNode): TApply;
+function Let(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLet;
+function LetRec(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLetRec;
 
 implementation
 
@@ -111,6 +117,33 @@ function TLetRec.ToStr: String;
 begin
    Result := '(' + 'letrec ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
 end;
+
+// A few convenient functions for creating AST
+function Ident(n: String): TIdent;
+begin
+   Result := TIdent.Create(n);
+end;
+
+function Lambda(v: String; b: TSyntaxNode): TLambda;
+begin
+   Result := TLambda.Create(v, b);
+end;
+
+function Apply(fn: TSyntaxNode; arg: TSyntaxNode): TApply;
+begin
+   Result := TApply.Create(fn, arg);
+end;
+
+function Let(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLet;
+begin
+   Result := TLet.Create(v, defn, b);
+end;
+
+function LetRec(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLetRec;
+begin
+   Result := TLetRec.Create(v, defn, b);
+end;
+
 
 initialization
 

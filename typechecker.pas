@@ -55,14 +55,14 @@ type
       ast: TSyntaxNode;
    begin
       goofyTS := TGoofyTypeSystem.Create;
-      // ast := TLambda.Create('f',
-      //                       TLambda.Create('g',
-      //                                      TLambda.Create('arg',
-      //                                                     TApply.Create(TIdent.Create('g'),
-      //                                                                   TApply.Create(TIdent.Create('f'),
-      //                                                                                 TIdent.Create('arg'))))));
-      ast := TLambda.Create('x', TIdent.Create('x')); // infers bad type (a -> b)
-      
+      ast := Lambda('f',
+                    Lambda('g',
+                           Lambda('arg',
+                                  Apply(Ident('g'),
+                                        Apply(Ident('f'),
+                                              Ident('arg')))))); // infers bad type
+      writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
+      ast := Lambda('x', Ident('x')); // infers bad type (a -> b)
       writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
    end;
 
