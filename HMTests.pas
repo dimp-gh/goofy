@@ -16,8 +16,10 @@ begin
    Assert(tpe.ToStr = 'Maybe a');
    tpe := TOper.Create('->', [ts.GenerateVariable, ts.GenerateVariable]);
    Assert(tpe.ToStr = '(b -> c)');
+   tpe := TOper.Create('Either', [ts.GenerateVariable, ts.GenerateVariable]);
+   Assert(tpe.ToStr = 'Either d e');
    tpe := TOper.Create('OneOfThree', [ts.GenerateVariable, ts.GenerateVariable, ts.GenerateVariable]);
-   Assert(tpe.ToStr = 'OneOfThree d e f');
+   Assert(tpe.ToStr = 'OneOfThree f g h');
 end;
 
 procedure IsIntegerLiteralTest;
@@ -25,6 +27,7 @@ begin
    Assert(IsIntegerLiteral('123'));
    Assert(IsIntegerLiteral('256'));
    Assert(Not IsIntegerLiteral('abc'));
+   Assert(Not IsIntegerLiteral('0xB00B1E5'));
 end;
 
 initialization

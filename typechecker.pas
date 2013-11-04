@@ -61,7 +61,7 @@ type
       //                                                     TApply.Create(TIdent.Create('g'),
       //                                                                   TApply.Create(TIdent.Create('f'),
       //                                                                                 TIdent.Create('arg'))))));
-      ast := TLambda.Create('x', TIdent.Create('x'));
+      ast := TLambda.Create('x', TIdent.Create('x')); // infers bad type (a -> b)
       
       writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
    end;
