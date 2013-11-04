@@ -55,7 +55,14 @@ type
       ast: TSyntaxNode;
    begin
       goofyTS := TGoofyTypeSystem.Create;
+      // ast := TLambda.Create('f',
+      //                       TLambda.Create('g',
+      //                                      TLambda.Create('arg',
+      //                                                     TApply.Create(TIdent.Create('g'),
+      //                                                                   TApply.Create(TIdent.Create('f'),
+      //                                                                                 TIdent.Create('arg'))))));
       ast := TLambda.Create('x', TIdent.Create('x'));
+      
       writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
    end;
 

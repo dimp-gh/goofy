@@ -7,7 +7,6 @@ type
    TGoofyTypeSystem = class(TTypeSystem)
    private
       Env: TEnvironment;
-      procedure PrintInitialEnvironment;
    public
       constructor Create;
       function GetExprType(ast: TSyntaxNode): TType;
@@ -47,7 +46,7 @@ begin
    // "times"-> TypeSystem.Function(TypeSystem.Integer, TypeSystem.Function(TypeSystem.Integer, TypeSystem.Integer))
    Self.Env['times'] := CreateFunType(Self.Int, CreateFunType(Self.Int, Self.Int));
    
-   Self.PrintInitialEnvironment;
+   //Self.PrintEnvironment(Self.Env);
 end;
 
 function TGoofyTypeSystem.GetExprType(ast: TSyntaxNode): TType;
@@ -63,15 +62,6 @@ begin
       on e:EParseError do Result := 'Parse error: ' + e.Message;
       on e:ETypeError do Result := 'Type error: ' + e.Message;
    end;      
-end;
-
-procedure TGoofyTypeSystem.PrintInitialEnvironment;
-var
-   i, len: Integer;
-begin
-   len := Self.Env.Count;
-   for i := 0 to len - 1 do
-      writeln(Self.Env.Keys[i], ' :: ', Self.Env.Data[i].ToStr);
 end;
 
 initialization

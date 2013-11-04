@@ -39,6 +39,8 @@ type
       function IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
       function OccursIn(v: TVariable; types: array of TType): Boolean;
       function OccursInType(v: TVariable; t: TType): Boolean;
+   protected
+      procedure PrintEnvironment(env: TEnvironment);
    public
       Int: TOper;
       Bool: TOper;
@@ -156,7 +158,8 @@ end;
 function TTypeSystem.GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
 var index: Integer;
 begin
-   if env.Find(name, index) then
+   index := env.IndexOf(name);
+   if index <> -1 then
       Result := Self.Fresh(env.Data[index], nongen)
    else if IsIntegerLiteral(name) then
       Result := Self.Int
@@ -167,26 +170,33 @@ end;
 procedure TTypeSystem.Unify(t1,t2: TType);
 var
    pt1, pt2: TType;
+   o1, o2: TOper;
+   v: TVariable;
+   i: Integer;
 begin
-   // TODO: write this down
-   //    val type1 = prune(t1)
-   //    val type2 = prune(t2)
-   //   (type1, type2) match {
-   //   case (a: Variable, b) => if (a != b) {
-   // 	if (occursintype(a, b))
-   // 	  throw new TypeError("recursive unification")
-   // 	a.instance = Some(b)
-   //   }
-   //   case (a: Oper, b: Variable) => unify(b, a)
-   //   case (a: Oper, b: Oper) => {
-   // 	if (a.name != b.name ||
-   // 	  a.args.length != b.args.length) throw new TypeError("Type mismatch: "+string(a)+"≠"+string(b))   
-   // 	for(i <- 0 until a.args.length)
-   // 	  unify(a.args(i), b.args(i))
-   //   }
-   // }
    pt1 := Self.Prune(t1);
    pt2 := Self.Prune(t2);
+   if (pt1 is TVariable) and (pt2 is TVariable) then
+   begin
+      v := pt1 as TVariable;
+      if not((pt2 is TVariable) and ((pt2 as TVariable) = v)) then
+      begin
+         if Self.OccursInType(v, pt2) then
+            Raise ETypeError.Create('Recursive unification');
+         v.SetInstance(pt2);
+      end;
+   end
+   else if (pt1 is TOper) and (pt2 is TVariable) then
+      Self.Unify(pt2 as TVariable, pt1 as TOper)
+   else if (pt1 is TOper) and (pt2 is TOper) then
+   begin
+      o1 := pt1 as TOper;
+      o2 := pt2 as TOper;
+      if (o1.Name <> o2.Name) or (Length(o1.Args) <> Length(o2.Args)) then
+         raise ETypeError.Create('Type mismatch: ' + o1.ToStr + ' /= ' + o2.ToStr);
+      for i := 0 to Length(o1.Args) - 1 do
+         Self.Unify(o1.Args[i], o2.Args[i]);
+   end;
 end;
 
 function TTypeSystem.Fresh(t: TType; nongen: TVariableList): TType;
@@ -291,6 +301,16 @@ begin
    else
       Result := False;
 end;
+
+procedure TTypeSystem.PrintEnvironment(env: TEnvironment);
+var
+   i, len: Integer;
+begin
+   len := env.Count;
+   for i := 0 to len - 1 do
+      writeln(env.Keys[i], ' :: ', env.Data[i].ToStr);
+end;
+
 
 function IsIntegerLiteral(s: String): Boolean;
 const
