@@ -5,7 +5,7 @@ uses
    cthreads,
    {$ENDIF}{$ENDIF}
    Classes, SysUtils, CustApp,
-   AST, HMTypes, HindleyMilner;
+   AST, HMTypes, HindleyMilner, GoofyTypeSystem;
 
 type
 
@@ -50,8 +50,13 @@ type
    end;
 
    procedure TMyApplication.Main;
+   var
+      goofyTS: TGoofyTypeSystem;
+      ast: TSyntaxNode;
    begin
-      writeln('hello typecheck');
+      goofyTS := TGoofyTypeSystem.Create;
+      ast := TLambda.Create('x', TIdent.Create('x'));
+      writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
    end;
 
    constructor TMyApplication.Create(TheOwner: TComponent);
