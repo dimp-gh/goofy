@@ -6,15 +6,15 @@ interface
 uses
    AST,
    HMTypes,
-   SysUtils, // for exceptions
-   fgl; // for generic data structures
+   HMDataStructures,
+   SysUtils; // for exceptions
 
 type
    
    // Environment for storing type variables
-   TEnvironment = specialize TFPGMap<String,TType>;      
+   // TEnvironment = specialize TFPGMap<String,TType>;      
    
-   TVariableList = array of TVariable;
+   //TVariableList = array of TVariable;
    
    // TVariableMap = specialize TFPGMap<TVariable,TVariable>;
    // This variant of TVariableMap does not compile because it can't
@@ -25,7 +25,7 @@ type
    // a TVariable into record, for which we actually can overload comparison
    // operators.
    // This is awful and i'm deeply dissapointed about Free Pascal.
-   TVariableMap = specialize TFPGMap<TWrappedVariable,TWrappedVariable>;
+   //TVariableMap = specialize TFPGMap<TWrappedVariable,TWrappedVariable>;
    
    TTypeSystem = class
    private
@@ -34,10 +34,9 @@ type
       function GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
       procedure Unify(t1, t2: TType);
       function Fresh(t: TType; nongen: TVariableList): TType;
-      function Fresh(t: TType; nongen: TVariableList; maps: TVariableMap): TType;
       function Prune(t: TType): TType;
       function IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
-      function OccursIn(v: TVariable; types: array of TType): Boolean;
+      function OccursIn(v: TVariable; types: TTypeList): Boolean;
       function OccursInType(v: TVariable; t: TType): Boolean;
    protected
       procedure PrintEnvironment(env: TEnvironment);
@@ -64,11 +63,8 @@ begin
 end;
 
 function TTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
-var
-   nongen: TVariableList;
 begin
-   SetLength(nongen, 0);
-   Result := Self.Analyse(ast, env, nongen);
+   Result := Self.Analyse(ast, env, VarListNew);
 end;
 
 function TTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
@@ -82,12 +78,14 @@ var
    newTypeVar: TVariable;
    newEnv : TEnvironment;
    newNongen: TVariableList;
-   i, len: Integer;
 begin
    if (ast is TIdent) then
    begin
       id := ast as TIdent;
+      //writeln('DEBUG: analyse(Ident(', id.Name, ')');
+      //writeln('DEBUG: current environment:'); PrintEnvironment(env);
       Result := Self.GetType(id.Name, env, nongen);
+      //writeln('DEBUG Identifier type is ', Result.ToStr);
    end
    else if (ast is TApply) then
    begin
@@ -100,13 +98,13 @@ begin
    end
    else if (ast is TLambda) then
    begin
+      //writeln('DEBUG: analyse(Lambda)');
       lambda := ast as TLambda;
       argType := Self.GenerateVariable;
       // copying environment
-      newEnv := TEnvironment.Create;
-      for i := 0 to env.Count - 1 do
-         newEnv.Add(env.GetKey(i), env.GetData(i));
-      newEnv.Add(lambda.Variable, argType);
+      newEnv := EnvInsert(env, lambda.Variable, argType);
+      //writeln('DEBUG: old env:'); PrintEnvironment(env);
+      //writeln('DEBUG: new env:'); PrintEnvironment(newEnv);
       resultType := analyse(lambda.Body, newEnv, nongen);
       Result := CreateFunType(argType, resultType);
    end
@@ -115,11 +113,7 @@ begin
       let := ast as TLet;
       defnType := analyse(let.Definition, env, nongen);
       // copying environment
-      newEnv := TEnvironment.Create;
-      for i := 0 to env.Count - 1 do
-         newEnv.Add(env.GetKey(i), env.GetData(i));
-      // inserting new type variable from let into environemnt
-      newEnv.Add(let.Variable, defnType);
+      newEnv := EnvInsert(env, let.Variable, defnType);
       Result := analyse(let.Body, newEnv, nongen);
    end
    else if (ast is TLetRec) then
@@ -127,18 +121,8 @@ begin
       letrec := ast as TLetRec;
       newTypeVar := Self.GenerateVariable;
       // copying environment
-      newEnv := TEnvironment.Create;
-      for i := 0 to env.Count - 1 do
-         newEnv.Add(env.GetKey(i), env.GetData(i));
-      // inserting new type variable from letrec into environemnt
-      newEnv.Add(letrec.Variable, newTypeVar);
-      // copying nongeneric variables list
-      len := Length(nongen);
-      SetLength(newNongen, len + 1);
-      for i := 0 to len - 1 do
-         newNongen[i] := nongen[i];
-      // inserting new non-generic variable into nongen
-      newNongen[len] := newTypeVar;
+      newEnv := EnvInsert(env, letrec.Variable, newTypeVar);
+      newNonGen := VarListInsert(nongen, newTypeVar);
       defnType := analyse(letrec.Definition, newEnv, newNonGen);
       Self.Unify(newTypeVar, defnType);
       Result := analyse(letrec.Body, newEnv, nongen);
@@ -154,11 +138,9 @@ begin
 end;
 
 function TTypeSystem.GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
-var index: Integer;
 begin
-   index := env.IndexOf(name);
-   if index <> -1 then
-      Result := Self.Fresh(env.Data[index], nongen)
+   if EnvFind(env, name) then
+      Result := Self.Fresh(EnvLookup(env, name), nongen)
    else if IsIntegerLiteral(name) then
       Result := Self.Int
    else
@@ -198,49 +180,56 @@ begin
 end;
 
 function TTypeSystem.Fresh(t: TType; nongen: TVariableList): TType;
-var mappings: TVariableMap;
-begin
-   mappings := TVariableMap.Create;
-   Result := Self.Fresh(t, nongen, mappings);
-end;
-
-function TTypeSystem.Fresh(t: TType; nongen: TVariableList; maps: TVariableMap): TType;
 var
-   pruned: TType;
-   tvar, newVar: TVariable;
-   oper: TOper;
-   newArgs: array of TType;
-   index, len: Integer;
-begin
-   pruned := Self.Prune(t);
-   if (pruned is TVariable) then
+   maps: TVariableMap;
+   
+   function FreshRec(t: TType; nongen: TVariableList): TType;
+   var
+      pruned: TType;
+      tvar, newVar: TVariable;
+      oper: TOper;
+      newArgs: array of TType;
+      index, len: Integer;
    begin
-      tvar := pruned as TVariable;
-      if Self.IsGeneric(tvar, nongen) then
+      pruned := Self.Prune(t);
+      if (pruned is TVariable) then
       begin
-         if maps.Find(WrapVariable(tvar), index) then
-            Result := tvar
-         else
+         tvar := pruned as TVariable;
+         if Self.IsGeneric(tvar, nongen) then
          begin
-            newVar := Self.GenerateVariable;
-            Result := newVar;
-         end;
+            //writeln('DEBUG: looking for variable #', tvar.Id);
+            if VarMapFind(maps, tvar) then
+            begin
+               Result := VarMapLookup(maps, tvar);
+            end
+            else
+            begin
+               newVar := Self.GenerateVariable;
+               maps := VarMapInsert(maps, tvar, newVar);
+               //writeln('DEBUG: Inserting mapping #', tvar.Id, ' -> #', newVar.Id);
+               Result := newVar;
+            end;
+         end
+         else
+            Result := tvar;
+      end
+      else if (pruned is TOper) then
+      begin
+         oper := pruned as TOper;
+         len := Length(oper.Args);
+         SetLength(newArgs, len);
+         for index := 0 to len - 1 do
+            newArgs[index] := FreshRec(oper.Args[index], nongen);
+         Result := TOper.Create(oper.Name, newArgs); 
       end
       else
-         Result := tvar;
-   end
-   else if (pruned is TOper) then
-   begin
-      oper := pruned as TOper;
-      len := Length(oper.Args);
-      SetLength(newArgs, len);
-      for index := 0 to len - 1 do
-         newArgs[index] := Self.Fresh(oper.Args[index], nongen, maps);
-      Result := TOper.Create(oper.Name, newArgs); 
-   end
-   else
-      Raise Exception.Create('Cannot determine type of pruned type tree');
+         Raise Exception.Create('Cannot determine type of pruned type tree');
+   end;
+begin
+   maps := VarMapNew;
+   Result := FreshRec(t, nongen);
 end;
+
 
 function TTypeSystem.Prune(t: TType): TType;
 var
@@ -259,18 +248,11 @@ begin
 end;
 
 function TTypeSystem.IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
-var
-   types: array of TType;
-   i, len: Integer;
 begin
-   len := Length(nongen);
-   SetLength(types, len);
-   for i := 0 to len - 1 do
-      types[i] := nongen[i];
-   Result := not Self.OccursIn(v, types);
+   Result := not Self.OccursIn(v, VarListToTypeList(nongen));
 end;
 
-function TTypeSystem.OccursIn(v: TVariable; types: array of TType): Boolean;
+function TTypeSystem.OccursIn(v: TVariable; types: TTypeList): Boolean;
 var
    i: Integer;
 begin
@@ -301,12 +283,8 @@ begin
 end;
 
 procedure TTypeSystem.PrintEnvironment(env: TEnvironment);
-var
-   i, len: Integer;
 begin
-   len := env.Count;
-   for i := 0 to len - 1 do
-      writeln(env.Keys[i], ' :: ', env.Data[i].ToStr);
+   EnvPrint(env);
 end;
 
 procedure TTypeSystem.ResetGenerator;

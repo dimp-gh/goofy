@@ -1,6 +1,6 @@
 program tests;
 uses
-   ASTTests, HMTypesTests, HMTests;
+   ASTTests, HMTypesTests, HMTests, HMDataStructuresTests;
 
 begin
    writeln('All tests passed');
