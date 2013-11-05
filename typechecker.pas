@@ -62,8 +62,9 @@ type
                                         Apply(Ident('f'),
                                               Ident('arg')))))); // infers bad type
       writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
-      goofyTS.ResetGenerator;
       ast := Lambda('x', Ident('x')); // infers bad type (a -> b)
+      writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
+      ast := Lambda('f', Apply(Ident('f'), Ident('f')));
       writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
    end;
 

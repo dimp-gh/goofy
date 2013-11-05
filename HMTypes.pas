@@ -154,15 +154,15 @@ var
 begin
    len := Length(Self.Args);
    if len = 0 then
-      Result := Self.Name
+      Result := 'TOper(' + Self.Name + ')'
    else if len = 2 then
    begin
       t1 := Self.Args[0].ToStr;
       t2 := Self.Args[1].ToStr;
-      if (Self.Name = '*') or (Self.Name = '->') then
+      if {(Self.Name = '*') or (Self.Name = '->')}False then //TODO: uncomment
          Result := '(' + t1 + ' ' + Self.Name + ' ' + t2 + ')'
       else
-         Result := Self.Name + ' ' + t1 + ' ' + t2; 
+         Result := 'TOper(' + Self.Name + ', ' + t1 + ', ' + t2 + ')'; 
    end
    else
    begin
@@ -191,7 +191,7 @@ begin
    SetLength(args, 2);
    args[0] := from;
    args[1] := into;
-   Result := Toper.Create('->', args);
+   Result := TOper.Create('->', args);
 end;
 
 initialization

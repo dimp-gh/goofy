@@ -82,13 +82,14 @@ begin
    if (ast is TIdent) then
    begin
       id := ast as TIdent;
-      //writeln('DEBUG: analyse(Ident(', id.Name, ')');
+      //writeln('DEBUG: analyse(Ident(', id.Name, '))');
       //writeln('DEBUG: current environment:'); PrintEnvironment(env);
       Result := Self.GetType(id.Name, env, nongen);
-      //writeln('DEBUG Identifier type is ', Result.ToStr);
+      //writeln('DEBUG type of ', id.Name, ' is ', Result.ToStr);
    end
    else if (ast is TApply) then
    begin
+      //writeln('DEBUG: analyse(Apply)');
       apply := ast as TApply;
       funType := analyse(apply.Fun, env, nongen);
       argType := analyse(apply.Argument, env, nongen);
@@ -110,6 +111,7 @@ begin
    end
    else if (ast is TLet) then
    begin
+      //writeln('DEBUG: analyse(Let)');
       let := ast as TLet;
       defnType := analyse(let.Definition, env, nongen);
       // copying environment
@@ -118,6 +120,7 @@ begin
    end
    else if (ast is TLetRec) then
    begin
+      //writeln('DEBUG: analyse(LetRec)');
       letrec := ast as TLetRec;
       newTypeVar := Self.GenerateVariable;
       // copying environment
@@ -159,7 +162,7 @@ begin
    if (pt1 is TVariable) and (pt2 is TVariable) then
    begin
       v := pt1 as TVariable;
-      if not((pt2 is TVariable) and ((pt2 as TVariable) = v)) then
+      if not((pt2 is TVariable) and ((pt2 as TVariable).Id = v.Id)) then
       begin
          if Self.OccursInType(v, pt2) then
             Raise ETypeError.Create('Recursive unification');
@@ -167,7 +170,7 @@ begin
       end;
    end
    else if (pt1 is TOper) and (pt2 is TVariable) then
-      Self.Unify(pt2 as TVariable, pt1 as TOper)
+      Self.Unify(pt2, pt1)
    else if (pt1 is TOper) and (pt2 is TOper) then
    begin
       o1 := pt1 as TOper;
@@ -191,6 +194,7 @@ var
       newArgs: array of TType;
       index, len: Integer;
    begin
+      //writeln('DEBUG: freshrec');
       pruned := Self.Prune(t);
       if (pruned is TVariable) then
       begin
@@ -226,6 +230,7 @@ var
          Raise Exception.Create('Cannot determine type of pruned type tree');
    end;
 begin
+   //writeln('DEBUG: fresh called');
    maps := VarMapNew;
    Result := FreshRec(t, nongen);
 end;
