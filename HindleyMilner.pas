@@ -30,7 +30,7 @@ type
    TTypeSystem = class
    private
       NextVariableId: Integer;
-      Generator: PGenerator;
+      Generator: TGenerator;
       function GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
       procedure Unify(t1, t2: TType);
       function Fresh(t: TType; nongen: TVariableList): TType;
@@ -45,6 +45,7 @@ type
       Int: TOper;
       Bool: TOper;
       constructor Create;
+      procedure ResetGenerator;
       function GenerateVariable: TVariable;
       function Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
       function Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
@@ -55,12 +56,9 @@ type
 implementation
 
 constructor TTypeSystem.Create;
-var
-   gen: TGenerator;
 begin
-   gen := TGenerator.Create;
    Self.NextVariableId := 0;
-   Self.Generator := Pointer(gen);
+   Self.Generator := TGenerator.Create;
    Self.Int := TOper.Create('int', []);
    Self.Bool := TOper.Create('bool', []);
 end;
@@ -311,6 +309,11 @@ begin
       writeln(env.Keys[i], ' :: ', env.Data[i].ToStr);
 end;
 
+procedure TTypeSystem.ResetGenerator;
+begin
+   Self.Generator.Free;
+   Self.Generator := TGenerator.Create;
+end;
 
 function IsIntegerLiteral(s: String): Boolean;
 const

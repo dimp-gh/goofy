@@ -14,12 +14,15 @@ begin
    ts := TTypeSystem.Create;
    tpe := TOper.Create('Maybe', [ts.GenerateVariable]);
    Assert(tpe.ToStr = 'Maybe a');
+   ts.ResetGenerator;
    tpe := TOper.Create('->', [ts.GenerateVariable, ts.GenerateVariable]);
-   Assert(tpe.ToStr = '(b -> c)');
+   Assert(tpe.ToStr = '(a -> b)');
+   ts.ResetGenerator;
    tpe := TOper.Create('Either', [ts.GenerateVariable, ts.GenerateVariable]);
-   Assert(tpe.ToStr = 'Either d e');
+   Assert(tpe.ToStr = 'Either a b');
    tpe := TOper.Create('OneOfThree', [ts.GenerateVariable, ts.GenerateVariable, ts.GenerateVariable]);
-   Assert(tpe.ToStr = 'OneOfThree f g h');
+   ts.ResetGenerator;
+   Assert(tpe.ToStr = 'OneOfThree a b c');
 end;
 
 procedure IsIntegerLiteralTest;
