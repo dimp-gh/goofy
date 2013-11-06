@@ -1,11 +1,11 @@
-program typechecker;
+program Goofy;
 
 uses
    {$IFDEF UNIX}{$IFDEF UseCThreads}
    cthreads,
    {$ENDIF}{$ENDIF}
    Classes, SysUtils, CustApp,
-   AST, HMTypes, HMDataStructures, HindleyMilner, GoofyTypeSystem;
+   AST, HMTypes, HMDataStructures, HindleyMilner, GoofyTypeSystem, Tokenizer;
 
 type
 
@@ -51,12 +51,13 @@ type
 
    procedure TMyApplication.Main;
    var
-      goofyTS: TGoofyTypeSystem;
-      ast: TSyntaxNode;
+      sl: TStringList;
+      ts: TTokenList;
    begin
-      goofyTS := TGoofyTypeSystem.Create;
-      ast := Lambda('x', Ident('x'));
-      writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
+      sl := TStringList.Create;
+      sl.Add('123 abc 456');
+      ts := TokenizeStringList(sl);
+      PrintTokenList(ts);
    end;
    
    constructor TMyApplication.Create(TheOwner: TComponent);
