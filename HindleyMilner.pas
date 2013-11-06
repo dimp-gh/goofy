@@ -96,7 +96,6 @@ begin
    end
    else if (ast is TLambda) then
    begin
-      //writeln('DEBUG: analyse(Lambda)');
       lambda := ast as TLambda;
       argTypeVar := Self.GenerateVariable;
       newEnv := EnvInsert(env, lambda.Variable, argTypeVar);
@@ -106,19 +105,15 @@ begin
    end
    else if (ast is TLet) then
    begin
-      //writeln('DEBUG: analyse(Let)');
       let := ast as TLet;
       defnType := analyse(let.Definition, env, nongen);
-      // copying environment
       newEnv := EnvInsert(env, let.Variable, defnType);
       Result := analyse(let.Body, newEnv, nongen);
    end
    else if (ast is TLetRec) then
    begin
-      //writeln('DEBUG: analyse(LetRec)');
       letrec := ast as TLetRec;
       newTypeVar := Self.GenerateVariable;
-      // copying environment
       newEnv := EnvInsert(env, letrec.Variable, newTypeVar);
       newNonGen := VarListInsert(nongen, newTypeVar);
       defnType := analyse(letrec.Definition, newEnv, newNonGen);
@@ -154,10 +149,12 @@ var
 begin
    pt1 := Self.Prune(t1);
    pt2 := Self.Prune(t2);
-   if (pt1 is TVariable) and (pt2 is TVariable) then
+   if pt1 is TVariable then
    begin
       v := pt1 as TVariable;
-      if not((pt2 is TVariable) and ((pt2 as TVariable).Id = v.Id)) then
+      if (pt2 is TVariable) and ((pt2 as TVariable).Id = v.Id) then
+         // do nothing
+      else
       begin
          if Self.OccursInType(v, pt2) then
             Raise ETypeError.Create('Recursive unification');
@@ -189,14 +186,12 @@ var
       newArgs: array of TType;
       index, len: Integer;
    begin
-      //writeln('DEBUG: freshrec');
       pruned := Self.Prune(t);
       if (pruned is TVariable) then
       begin
          tvar := pruned as TVariable;
          if Self.IsGeneric(tvar, nongen) then
          begin
-            //writeln('DEBUG: looking for variable #', tvar.Id);
             if VarMapFind(maps, tvar) then
             begin
                Result := VarMapLookup(maps, tvar);
@@ -205,7 +200,6 @@ var
             begin
                newVar := Self.GenerateVariable;
                maps := VarMapInsert(maps, tvar, newVar);
-               //writeln('DEBUG: Inserting mapping #', tvar.Id, ' -> #', newVar.Id);
                Result := newVar;
             end;
          end
@@ -225,7 +219,6 @@ var
          Raise Exception.Create('Cannot determine type of pruned type tree');
    end;
 begin
-   //writeln('DEBUG: fresh called');
    maps := VarMapNew;
    Result := FreshRec(t, nongen);
 end;
