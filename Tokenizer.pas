@@ -5,7 +5,17 @@ interface
 uses Classes,
      Contnrs;
 type
-   TokenType = (ttIntegerLiteral, ttIdentifier, ttUnknown);
+   TokenType = (
+      // non-greedy tokens
+      ttIntegerLiteral,
+      ttIdentifier,
+      ttEquals,
+      ttLambdaArrow,
+      // greedy tokens
+      ttOpenParen,
+      ttCloseParen,
+      // 'unknown token' is good for error handling
+      ttUnknown);
       
    TToken = class(TObject)
    public
@@ -62,12 +72,33 @@ begin
    Result := True;
 end;
 
+function IsOpenParen(s: String): Boolean;
+begin
+   Result := s = '('; 
+end;
+
+function IsCloseParen(s: String): Boolean;
+begin
+   Result := s = ')'; 
+end;
+
+
 function ClassifyToken(s: String): TokenType;
 begin
    if IsIntegerLiteral(s) then
       Result := ttIntegerLiteral
    else if IsIdentifier(s) then
       Result := ttIdentifier
+   else
+      Result := ttUnknown;
+end;
+
+function ClassifyGreedyToken(s: String): TokenType;
+begin
+   if IsOpenParen(s) then
+      Result := ttOpenParen
+   else if IsCloseParen(s) then
+      Result := ttCloseParen
    else
       Result := ttUnknown;
 end;
@@ -87,19 +118,22 @@ const
    delimiters: Set of Char = [' ', #9];
 var
    l, c: Integer;
-   s, acc: String;
+   line, acc: String;
    tokens: TTokenList;
    t: TToken;
-   tt: TokenType;
+   tt, gtt: TokenType;
 begin
    tokens := TTokenList.Create;
    for l := 0 to sl.Count - 1 do
    begin
-      s := sl[l];
+      line := sl[l];
       acc := '';
-      for c := 1 to Length(s) do
+      for c := 1 to Length(line) do
       begin
-         if s[c] in delimiters then
+         // TODO: check for greedy tokens right here (like parentheses)
+         // if any of greedy tokens matches `line[c]` - create a new token and clear acc.
+         gtt := ClassifyGreedyToken(line[c]);
+         if gtt <> ttUnknown then
          begin
             if acc <> '' then
             begin
@@ -108,9 +142,24 @@ begin
                tokens.Add(t);
                acc := '';
             end;
+            t := TToken.Create(line[c], gtt, l + 1, c);
+            tokens.Add(t);            
          end
          else
-            acc := acc + s[c];
+         begin
+            if line[c] in delimiters then
+            begin
+               if acc <> '' then
+               begin
+                  tt := ClassifyToken(acc);
+                  t := TToken.Create(acc, tt, l + 1, c - Length(acc));
+                  tokens.Add(t);
+                  acc := '';
+               end;
+            end
+            else
+               acc := acc + line[c];
+         end;
       end;
       // handling token at the end of the line
       if acc <> '' then

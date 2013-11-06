@@ -55,7 +55,7 @@ type
       ts: TTokenList;
    begin
       sl := TStringList.Create;
-      sl.Add('123 abc 456');
+      sl.Add('123 abc (456 !!! er) asdasd');
       ts := TokenizeStringList(sl);
       PrintTokenList(ts);
    end;
