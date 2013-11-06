@@ -30,15 +30,7 @@ type
       procedure SetInstance(inst: TType);
       function GetInstance: TType;
    end;
-   
-   // Wrapping TVariable in a record so we can overload it's comparison operators 
-   TWrappedVariable = record
-      v: TVariable;
-      class operator Equal (v1, v2: TWrappedVariable) B: Boolean;
-      class operator LessThan (v1, v2: TWrappedVariable) B: Boolean;
-      class operator GreaterThan (v1, v2: TWrappedVariable) B: Boolean;
-   end;			 
-   
+      
    TOper = class(TType)
    public
       Name: String;
@@ -60,37 +52,8 @@ type
    end;
    
 function CreateFunType(from: TType; into: TType): TOper;
-function WrapVariable(v: TVariable): TWrappedVariable;
-function UnwrapVariable(wv: TWrappedVariable): TVariable;
 
 implementation
-
-class operator TWrappedVariable.Equal (v1,v2: TWrappedVariable)B: Boolean;
-begin
-  B := (v1.V.Id = v2.V.Id);
-end;
-
-class operator TWrappedVariable.LessThan (v1,v2: TWrappedVariable)B: Boolean;
-begin
-  B := (v1.V.Id < v2.V.Id);
-end;
-
-class operator TWrappedVariable.GreaterThan (v1,v2: TWrappedVariable)B: Boolean;
-begin
-  B := (v1.V.Id > v2.V.Id);
-end;
-
-function WrapVariable(v: TVariable): TWrappedVariable;
-var w: TWrappedVariable;
-begin
-   w.V := v;
-   Result := w;
-end;
-
-function UnwrapVariable(wv: TWrappedVariable): TVariable;
-begin
-   Result := wv.V;
-end;
 
 constructor TGenerator.Create(initialName: Char = 'a');
 begin
