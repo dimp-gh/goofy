@@ -90,6 +90,7 @@ var
    s, acc: String;
    tokens: TTokenList;
    t: TToken;
+   tt: TokenType;
 begin
    tokens := TTokenList.Create;
    for l := 0 to sl.Count - 1 do
@@ -100,10 +101,13 @@ begin
       begin
          if s[c] in delimiters then
          begin
-            writeln('DEBUG: Inserting token: ', acc);
-            t := TToken.Create(acc, ClassifyToken(acc), l + 1, c - Length(acc));
-            tokens.Add(t);
-            acc := '';
+            if acc <> '' then
+            begin
+               tt := ClassifyToken(acc);
+               t := TToken.Create(acc, tt, l + 1, c - Length(acc));
+               tokens.Add(t);
+               acc := '';
+            end;
          end
          else
             acc := acc + s[c];
@@ -111,8 +115,8 @@ begin
       // handling token at the end of the line
       if acc <> '' then
       begin
-         writeln('DEBUG: Inserting token at the end of line: ', acc);
-         t := TToken.Create(acc, ClassifyToken(acc), l, c);
+         tt := ClassifyToken(acc);
+         t := TToken.Create(acc, tt, l + 1, c - Length(acc) + 1);
          tokens.Add(t);
          acc := '';
       end;
@@ -128,7 +132,7 @@ begin
    for i := 0 to tokens.Count - 1 do
    begin
       t := tokens[i] as TToken;
-      writeln('Token #', i + 1, ' is ', t.Value, ', type of token is ', t.Kind);
+      writeln('Token #', i + 1, ' is ', t.Value, ', type of token is ', t.Kind, '. Position - ', t.LineNo ,':', t.CharNo);
    end;
 end;
 
