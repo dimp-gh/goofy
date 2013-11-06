@@ -7,9 +7,9 @@ uses HMTypes;
 implementation
 
 procedure NameGeneratorTest;
-var gen: TGenerator;
+var gen: TNameGenerator;
 begin
-   gen := TGenerator.Create('a');
+   gen := TNameGenerator.Create('a');
    Assert(gen.GenerateName = 'a');
    Assert(gen.GenerateName = 'b');
    Assert(gen.GenerateName = 'c');

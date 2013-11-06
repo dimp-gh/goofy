@@ -10,28 +10,28 @@ type
    ETypeError = class(Exception);
    EParseError = class(Exception);
    
-   PGenerator = ^TGenerator;
+   PNameGenerator = ^TNameGenerator;
 
    TType = class(TObject)
       function ToStr: String; virtual; abstract;
    end;
    
-   TVariable = class(TType)
+   TTypeVariable = class(TType)
    private
-      Namegen: PGenerator;
+      Namegen: PNameGenerator;
       Instance: TType;      
    public
       Id: Integer;
       Name: String;
       IsDefined: Boolean;
       function GetName: String;
-      constructor Create(id_: Integer; ng: PGenerator);
+      constructor Create(id_: Integer; ng: PNameGenerator);
       function ToStr: String; override;
       procedure SetInstance(inst: TType);
       function GetInstance: TType;
    end;
       
-   TOper = class(TType)
+   TParameterizedType = class(TType)
    public
       Name: String;
       Args: array of TType;
@@ -40,10 +40,10 @@ type
    end;
 
    // Name generator for type variables
-   // Every TVariable, when created, receives a pointer to TGenerator instance.
-   // TVariable uses pointer to this generator to calculate its name in a lazy way.
-   // Generator ensures that no variable gets the same name.
-   TGenerator = class(TObject)
+   // Every TTypeVariable, when created, receives a pointer to TNameGenerator instance.
+   // TTypeVariable uses pointer to this generator to calculate its name in a lazy way.
+   // NameGenerator ensures that no variable gets the same name.
+   TNameGenerator = class(TObject)
    private
       NextName: Char;
    public
@@ -51,23 +51,23 @@ type
       function GenerateName: String;
    end;
    
-function CreateFunType(from: TType; into: TType): TOper;
-function CreatePairType(t1,t2: TType): TOper;
+function CreateFunType(from: TType; into: TType): TParameterizedType;
+function CreatePairType(t1,t2: TType): TParameterizedType;
 
 implementation
 
-constructor TGenerator.Create(initialName: Char = 'a');
+constructor TNameGenerator.Create(initialName: Char = 'a');
 begin
    Self.NextName := initialName;
 end;
 
-function TGenerator.GenerateName: String;
+function TNameGenerator.GenerateName: String;
 begin
    Result := Self.NextName;
    Self.NextName := Char(Integer(Self.NextName) + 1);
 end;
 
-constructor TVariable.Create(id_: Integer; ng: PGenerator);
+constructor TTypeVariable.Create(id_: Integer; ng: PNameGenerator);
 begin
    Self.Id := id_;
    Self.Namegen := ng;
@@ -76,7 +76,7 @@ begin
    inherited Create;
 end;
 
-function TVariable.GetName: String;
+function TTypeVariable.GetName: String;
 begin
    if Self.Name = '' then
    begin
@@ -88,7 +88,7 @@ begin
    Result := Self.Name;
 end;
 
-function TVariable.ToStr: String;
+function TTypeVariable.ToStr: String;
 begin
    if Self.IsDefined then
       Result := Self.Instance.ToStr
@@ -96,13 +96,13 @@ begin
       Result := Self.GetName;
 end;
 
-procedure TVariable.SetInstance(inst: TType);
+procedure TTypeVariable.SetInstance(inst: TType);
 begin
    Self.Instance := inst;
    Self.IsDefined := True;
 end;
 
-function TVariable.GetInstance: TType;
+function TTypeVariable.GetInstance: TType;
 begin
    if Self.IsDefined then
       Result := Self.Instance
@@ -110,7 +110,7 @@ begin
       Raise Exception.Create('Get on undefined instance');
 end;
 
-function TOper.ToStr: String;
+function TParameterizedType.ToStr: String;
 var
    i, len: Integer;
    t1, t2: String;
@@ -137,7 +137,7 @@ begin
    end;
 end;
 
-constructor TOper.Create(n: String; a: array of TType);
+constructor TParameterizedType.Create(n: String; a: array of TType);
 var i: Integer;
 begin
    Self.Name := n;
@@ -148,24 +148,24 @@ begin
    end;
 end;
 
-function CreateFunType(from: TType; into: TType): TOper;
+function CreateFunType(from: TType; into: TType): TParameterizedType;
 var
    args: array of TType;
 begin
    SetLength(args, 2);
    args[0] := from;
    args[1] := into;
-   Result := TOper.Create('->', args);
+   Result := TParameterizedType.Create('->', args);
 end;
 
-function CreatePairType(t1,t2: TType): TOper;
+function CreatePairType(t1,t2: TType): TParameterizedType;
 var
    args: array of TType;
 begin
    SetLength(args, 2);
    args[0] := t1;
    args[1] := t2;
-   Result := TOper.Create('*', args);
+   Result := TParameterizedType.Create('*', args);
 end;
 
 

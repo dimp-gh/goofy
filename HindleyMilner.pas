@@ -4,70 +4,54 @@ unit HindleyMilner;
 interface
 
 uses
-   AST,
-   HMTypes,
-   HMDataStructures,
+   AST, 
+   HMTypes, // for metatypes
+   HMDataStructures, // for data structures used for type inference
    SysUtils; // for exceptions
 
 type
    
-   // Environment for storing type variables
-   // TEnvironment = specialize TFPGMap<String,TType>;      
-   
-   //TVariableList = array of TVariable;
-   
-   // TVariableMap = specialize TFPGMap<TVariable,TVariable>;
-   // This variant of TVariableMap does not compile because it can't
-   // find overloaded comparison operators for TVariables. Even if they're
-   // defined in HMTypes. This is very strange, but in FreePascal you just
-   // can't overload operators in classes. But specializing TFPGMap requires
-   // overloaded comparison operators. So the best thing we can do is to wrap
-   // a TVariable into record, for which we actually can overload comparison
-   // operators.
-   // This is awful and i'm deeply dissapointed about Free Pascal.
-   //TVariableMap = specialize TFPGMap<TWrappedVariable,TWrappedVariable>;
-   
-   TTypeSystem = class
+   THMTypeSystem = class
    private
       NextVariableId: Integer;
-      Generator: TGenerator;
-      function GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
+      NameGenerator: TNameGenerator;
+      function GetType(name: String; env: TEnvironment; nongen: TTypeVariableList): TType;
       procedure Unify(t1, t2: TType);
-      function Fresh(t: TType; nongen: TVariableList): TType;
+      function Fresh(t: TType; nongen: TTypeVariableList): TType;
       function Prune(t: TType): TType;
-      function IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
-      function OccursIn(v: TVariable; types: TTypeList): Boolean;
-      function OccursInType(v: TVariable; t: TType): Boolean;
+      function IsGeneric(v: TTypeVariable; nongen: TTypeVariableList): Boolean;
+      function OccursIn(v: TTypeVariable; types: TTypeList): Boolean;
+      function OccursInType(v: TTypeVariable; t: TType): Boolean;
    protected
       procedure PrintEnvironment(env: TEnvironment);
    public
-      Int: TOper;
-      Bool: TOper;
+      Int: TParameterizedType;
+      Bool: TParameterizedType;
       constructor Create;
-      procedure ResetGenerator;
-      function GenerateVariable: TVariable;
+      procedure ResetNameGenerator;
+      function GenerateVariable: TTypeVariable;
       function Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
-      function Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
+      function Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TTypeVariableList): TType;
    end;
    
    function IsIntegerLiteral(s: String): Boolean;
    
 implementation
 
-constructor TTypeSystem.Create;
+constructor THMTypeSystem.Create;
 begin
    Self.NextVariableId := 0;
-   Self.Generator := TGenerator.Create;
-   Self.Int := TOper.Create('int', []);
-   Self.Bool := TOper.Create('bool', []);
+   Self.NameGenerator := TNameGenerator.Create;
+   Self.Int := TParameterizedType.Create('int', []);
+   Self.Bool := TParameterizedType.Create('bool', []);
 end;
 
-function TTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
+function THMTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
 begin
    Result := Self.Analyse(ast, env, VarListNew);
 end;
 
-function TTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TVariableList): TType;
+function THMTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TTypeVariableList): TType;
 var
    id: TIdent;
    apply: TApply;
@@ -75,10 +59,10 @@ var
    let: TLet;
    letrec: TLetRec;
    funType, argType, resultType, defnType: TType;
-   newTypeVar: TVariable;
+   newTypeVar: TTypeVariable;
    newEnv : TEnvironment;
-   newNongen: TVariableList;
-   argTypeVar: TVariable;
+   newNongen: TTypeVariableList;
+   argTypeVar: TTypeVariable;
 begin
    if (ast is TIdent) then
    begin
@@ -124,13 +108,13 @@ begin
       Raise Exception.Create('Analysis error: Unknown type of AST node');
 end;
 
-function TTypeSystem.GenerateVariable: TVariable;
+function THMTypeSystem.GenerateVariable: TTypeVariable;
 begin
-   Result := TVariable.Create(Self.NextVariableId, @(Self.Generator));
+   Result := TTypeVariable.Create(Self.NextVariableId, @(Self.NameGenerator));
    NextVariableId := NextVariableId + 1;
 end;
 
-function TTypeSystem.GetType(name: String; env: TEnvironment; nongen: TVariableList): TType;
+function THMTypeSystem.GetType(name: String; env: TEnvironment; nongen: TTypeVariableList): TType;
 begin
    if EnvFind(env, name) then
       Result := Self.Fresh(EnvLookup(env, name), nongen)
@@ -140,19 +124,19 @@ begin
       raise EParseError.Create('Undefined symbol ' + name);
 end;
 
-procedure TTypeSystem.Unify(t1,t2: TType);
+procedure THMTypeSystem.Unify(t1,t2: TType);
 var
    pt1, pt2: TType;
-   o1, o2: TOper;
-   v: TVariable;
+   o1, o2: TParameterizedType;
+   v: TTypeVariable;
    i: Integer;
 begin
    pt1 := Self.Prune(t1);
    pt2 := Self.Prune(t2);
-   if pt1 is TVariable then
+   if pt1 is TTypeVariable then
    begin
-      v := pt1 as TVariable;
-      if (pt2 is TVariable) and ((pt2 as TVariable).Id = v.Id) then
+      v := pt1 as TTypeVariable;
+      if (pt2 is TTypeVariable) and ((pt2 as TTypeVariable).Id = v.Id) then
          // do nothing
       else
       begin
@@ -161,12 +145,12 @@ begin
          v.SetInstance(pt2);
       end;
    end
-   else if (pt1 is TOper) and (pt2 is TVariable) then
+   else if (pt1 is TParameterizedType) and (pt2 is TTypeVariable) then
       Self.Unify(pt2, pt1)
-   else if (pt1 is TOper) and (pt2 is TOper) then
+   else if (pt1 is TParameterizedType) and (pt2 is TParameterizedType) then
    begin
-      o1 := pt1 as TOper;
-      o2 := pt2 as TOper;
+      o1 := pt1 as TParameterizedType;
+      o2 := pt2 as TParameterizedType;
       if (o1.Name <> o2.Name) or (Length(o1.Args) <> Length(o2.Args)) then
          raise ETypeError.Create('Type mismatch: ' + o1.ToStr + ' /= ' + o2.ToStr);
       for i := 0 to Length(o1.Args) - 1 do
@@ -174,22 +158,22 @@ begin
    end;
 end;
 
-function TTypeSystem.Fresh(t: TType; nongen: TVariableList): TType;
+function THMTypeSystem.Fresh(t: TType; nongen: TTypeVariableList): TType;
 var
-   maps: TVariableMap;
+   maps: TTypeVariableMap;
    
-   function FreshRec(t: TType; nongen: TVariableList): TType;
+   function FreshRec(t: TType; nongen: TTypeVariableList): TType;
    var
       pruned: TType;
-      tvar, newVar: TVariable;
-      oper: TOper;
+      tvar, newVar: TTypeVariable;
+      oper: TParameterizedType;
       newArgs: array of TType;
       index, len: Integer;
    begin
       pruned := Self.Prune(t);
-      if (pruned is TVariable) then
+      if (pruned is TTypeVariable) then
       begin
-         tvar := pruned as TVariable;
+         tvar := pruned as TTypeVariable;
          if Self.IsGeneric(tvar, nongen) then
          begin
             if VarMapFind(maps, tvar) then
@@ -206,14 +190,14 @@ var
          else
             Result := tvar;
       end
-      else if (pruned is TOper) then
+      else if (pruned is TParameterizedType) then
       begin
-         oper := pruned as TOper;
+         oper := pruned as TParameterizedType;
          len := Length(oper.Args);
          SetLength(newArgs, len);
          for index := 0 to len - 1 do
             newArgs[index] := FreshRec(oper.Args[index], nongen);
-         Result := TOper.Create(oper.Name, newArgs); 
+         Result := TParameterizedType.Create(oper.Name, newArgs); 
       end
       else
          Raise Exception.Create('Cannot determine type of pruned type tree');
@@ -224,14 +208,14 @@ begin
 end;
 
 
-function TTypeSystem.Prune(t: TType): TType;
+function THMTypeSystem.Prune(t: TType): TType;
 var
-   tvar: TVariable;
+   tvar: TTypeVariable;
    inst: TType;
 begin
-   if (t is TVariable) and (t as TVariable).IsDefined then
+   if (t is TTypeVariable) and (t as TTypeVariable).IsDefined then
    begin
-      tvar := t as TVariable;
+      tvar := t as TTypeVariable;
       inst := Self.Prune(tvar.GetInstance);
       tvar.SetInstance(inst);
       Result := inst; 
@@ -240,12 +224,12 @@ begin
       Result := t;
 end;
 
-function TTypeSystem.IsGeneric(v: TVariable; nongen: TVariableList): Boolean;
+function THMTypeSystem.IsGeneric(v: TTypeVariable; nongen: TTypeVariableList): Boolean;
 begin
    Result := not Self.OccursIn(v, VarListToTypeList(nongen));
 end;
 
-function TTypeSystem.OccursIn(v: TVariable; types: TTypeList): Boolean;
+function THMTypeSystem.OccursIn(v: TTypeVariable; types: TTypeList): Boolean;
 var
    i: Integer;
 begin
@@ -258,32 +242,32 @@ begin
    Result := False;
 end;
 
-function TTypeSystem.OccursInType(v: TVariable; t: TType): Boolean;
+function THMTypeSystem.OccursInType(v: TTypeVariable; t: TType): Boolean;
 var
    tt: TType;
-   oper: TOper;
+   oper: TParameterizedType;
 begin
    tt := Self.Prune(t);
-   if (tt is TVariable) and (tt as TVariable = v) then
+   if (tt is TTypeVariable) and (tt as TTypeVariable = v) then
       Result := True
-   else if (tt is TOper) then
+   else if (tt is TParameterizedType) then
    begin
-      oper := tt as TOper;
+      oper := tt as TParameterizedType;
       Result := Self.OccursIn(v, oper.Args);
    end
    else
       Result := False;
 end;
 
-procedure TTypeSystem.PrintEnvironment(env: TEnvironment);
+procedure THMTypeSystem.PrintEnvironment(env: TEnvironment);
 begin
    EnvPrint(env);
 end;
 
-procedure TTypeSystem.ResetGenerator;
+procedure THMTypeSystem.ResetNameGenerator;
 begin
-   Self.Generator.Free;
-   Self.Generator := TGenerator.Create;
+   Self.NameGenerator.Free;
+   Self.NameGenerator := TNameGenerator.Create;
 end;
 
 function IsIntegerLiteral(s: String): Boolean;

@@ -59,7 +59,7 @@ type
       goofyTS := TGoofyTypeSystem.Create;
       
       pair := Apply(Apply(Ident('pair'), Apply(Ident('f'), Ident('4'))), Apply(Ident('f'), Ident('true')));
-      SetLength(examples, 8);
+      SetLength(examples, 9);
       // factorial
       examples[0] := Letrec('factorial', // letrec factorial =
                             Lambda('n',    // fn n =>
@@ -117,6 +117,8 @@ type
       // Function composition
       // fn f (fn g (fn arg (f g arg)))
       examples[7] := Lambda('f', Lambda('g', Lambda('arg', Apply(Ident('g'), Apply(Ident('f'), Ident('arg'))))));
+
+      examples[8] := Lambda('x', Ident('x'));
       
       for i := 0 to High(examples) do
          writeln(examples[i].ToStr, ' :: ', goofyTS.GetExprTypeStr(examples[i]));

@@ -4,7 +4,7 @@ interface
 uses AST, HMTypes, HMDataStructures, HindleyMilner;
 
 type
-   TGoofyTypeSystem = class(TTypeSystem)
+   TGoofyTypeSystem = class(THMTypeSystem)
    private
       Env: TEnvironment;
    public
@@ -17,7 +17,7 @@ implementation
 
 constructor TGoofyTypeSystem.Create;
 var
-   v1, v2, v3: TVariable;
+   v1, v2, v3: TTypeVariable;
 begin
    inherited Create;
    Self.Env := EnvNew;

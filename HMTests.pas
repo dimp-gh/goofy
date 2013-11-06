@@ -9,19 +9,22 @@ implementation
 procedure TypePrintingTest;
 var
    tpe: TType;
-   ts: TTypeSystem;
+   ts: THMTypeSystem;
 begin
-   ts := TTypeSystem.Create;
-   tpe := TOper.Create('Maybe', [ts.GenerateVariable]);
+   ts := THMTypeSystem.Create;
+   tpe := TParameterizedType.Create('Maybe', [ts.GenerateVariable]);
    Assert(tpe.ToStr = 'Maybe a');
-   ts.ResetGenerator;
-   tpe := TOper.Create('->', [ts.GenerateVariable, ts.GenerateVariable]);
+   ts.ResetNameGenerator;
+   tpe := TParameterizedType.Create('->',
+       [ts.GenerateVariable, ts.GenerateVariable]);
    Assert(tpe.ToStr = '(a -> b)');
-   ts.ResetGenerator;
-   tpe := TOper.Create('Either', [ts.GenerateVariable, ts.GenerateVariable]);
+   ts.ResetNameGenerator;
+   tpe := TParameterizedType.Create('Either',
+       [ts.GenerateVariable, ts.GenerateVariable]);
    Assert(tpe.ToStr = 'Either a b');
-   tpe := TOper.Create('OneOfThree', [ts.GenerateVariable, ts.GenerateVariable, ts.GenerateVariable]);
-   ts.ResetGenerator;
+   tpe := TParameterizedType.Create('OneOfThree',
+       [ts.GenerateVariable, ts.GenerateVariable, ts.GenerateVariable]);
+   ts.ResetNameGenerator;
    Assert(tpe.ToStr = 'OneOfThree a b c');
 end;
 

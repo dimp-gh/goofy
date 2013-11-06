@@ -11,7 +11,7 @@ var
    env: TEnvironment;
    bool: TType;
 begin
-   bool := TOper.Create('bool', []);
+   bool := TParameterizedType.Create('bool', []);
    env := EnvNew;
    env := EnvInsert(env, 'true', bool);
    Assert(EnvFind(env, 'true'));
@@ -22,7 +22,7 @@ var
    env: TEnvironment;
    bool: TType;
 begin
-   bool := TOper.Create('bool', []);
+   bool := TParameterizedType.Create('bool', []);
    env := EnvNew;
    env := EnvInsert(env, 'true', bool);
    Assert(EnvLookup(env, 'true').ToStr = 'bool');
@@ -33,7 +33,7 @@ var
    env: TEnvironment;
    bool: TType;
 begin
-   bool := TOper.Create('bool', []);
+   bool := TParameterizedType.Create('bool', []);
    env := EnvNew;
    env := EnvInsert(env, 'true', bool);
    Assert(EnvFind(env, 'true'));
@@ -43,12 +43,12 @@ end;
 
 procedure VarListInsertTest;
 var
-   list: TVariableList;
-   gen: TGenerator;
-   v: TVariable;
+   list: TTypeVariableList;
+   gen: TNameGenerator;
+   v: TTypeVariable;
 begin
-   gen := TGenerator.Create;
-   v := TVariable.Create(0, @gen);
+   gen := TNameGenerator.Create;
+   v := TTypeVariable.Create(0, @gen);
    list := VarListNew;
    list := VarListInsert(list, v);
    Assert(VarListFind(list, v));
@@ -56,12 +56,12 @@ end;
 
 procedure VarListDeleteTest;
 var
-   list: TVariableList;
-   gen: TGenerator;
-   v: TVariable;
+   list: TTypeVariableList;
+   gen: TNameGenerator;
+   v: TTypeVariable;
 begin
-   gen := TGenerator.Create;
-   v := TVariable.Create(0, @gen);
+   gen := TNameGenerator.Create;
+   v := TTypeVariable.Create(0, @gen);
    list := VarListNew;
    list := VarListInsert(list, v);
    Assert(VarListFind(list, v));

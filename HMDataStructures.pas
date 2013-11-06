@@ -14,15 +14,15 @@ type
    TEnvironment = array of TEnvironmentEntry;
    
    // Variable and type-list for storing non-generic variables
-   TVariableList = array of TVariable;
+   TTypeVariableList = array of TTypeVariable;
    TTypeList = array of TType;
    
    // Used for creating fresh type
    TVarMapEntry = record
-      Key: TVariable;
-      Value: TVariable;
+      Key: TTypeVariable;
+      Value: TTypeVariable;
    end;
-   TVariableMap = array of TVarMapEntry;
+   TTypeVariableMap = array of TVarMapEntry;
    
 function EnvNew: TEnvironment;
 function EnvInsert(env: TEnvironment; key: String; value: TType): TEnvironment;
@@ -31,19 +31,19 @@ function EnvLookup(env: TEnvironment; key: String): TType;
 function EnvDelete(env: TEnvironment; key: String): TEnvironment;
 procedure EnvPrint(env: TEnvironment);
 
-function VarListNew: TVariableList;
-function VarListInsert(list: TVariableList; v: TVariable): TVariableList;
-function VarListDelete(list: TVariableList; v: TVariable): TVariableList;
-function VarListFind(list: TVariableList; v: TVariable): Boolean;
-function VarListToTypeList(list: TVariableList): TTypeList;
-procedure VarListPrint(list: TVariableList);
+function VarListNew: TTypeVariableList;
+function VarListInsert(list: TTypeVariableList; v: TTypeVariable): TTypeVariableList;
+function VarListDelete(list: TTypeVariableList; v: TTypeVariable): TTypeVariableList;
+function VarListFind(list: TTypeVariableList; v: TTypeVariable): Boolean;
+function VarListToTypeList(list: TTypeVariableList): TTypeList;
+procedure VarListPrint(list: TTypeVariableList);
 
-function VarMapNew: TVariableMap;
-function VarMapInsert(map: TVariableMap; key: TVariable; value: TVariable): TVariableMap;
-function VarMapFind(map: TVariableMap; key: TVariable): Boolean;
-function VarMapLookup(map: TVariableMap; key: TVariable): TVariable;
-function VarMapDelete(map: TVariableMap; key: TVariable): TVariableMap;
-procedure VarMapPrint(map: TVariableMap);
+function VarMapNew: TTypeVariableMap;
+function VarMapInsert(map: TTypeVariableMap; key: TTypeVariable; value: TTypeVariable): TTypeVariableMap;
+function VarMapFind(map: TTypeVariableMap; key: TTypeVariable): Boolean;
+function VarMapLookup(map: TTypeVariableMap; key: TTypeVariable): TTypeVariable;
+function VarMapDelete(map: TTypeVariableMap; key: TTypeVariable): TTypeVariableMap;
+procedure VarMapPrint(map: TTypeVariableMap);
 
 implementation
 
@@ -131,12 +131,12 @@ begin
          writeln(env[i].Key, ' -> ', env[i].Value.ToStr);
 end;
 
-function VarListNew: TVariableList;
+function VarListNew: TTypeVariableList;
 begin
    Result := Nil;
 end;
 
-function VarListInsert(list: TVariableList; v: TVariable): TVariableList;
+function VarListInsert(list: TTypeVariableList; v: TTypeVariable): TTypeVariableList;
 var
    len: Integer;
 begin
@@ -146,10 +146,10 @@ begin
    Result := list;
 end;
 
-function VarListDelete(list: TVariableList; v: TVariable): TVariableList;
+function VarListDelete(list: TTypeVariableList; v: TTypeVariable): TTypeVariableList;
 var
    i, index, len: Integer;
-   newList: TVariableList;
+   newList: TTypeVariableList;
 begin
    len := Length(list);
    SetLength(newList, len - 1);
@@ -163,7 +163,7 @@ begin
    Result := newList;
 end;
 
-procedure VarListPrint(list: TVariableList);
+procedure VarListPrint(list: TTypeVariableList);
 var
    i: Integer;
 begin
@@ -175,7 +175,7 @@ begin
          writeln(list[i].ToStr);
 end;
 
-function VarListFind(list: TVariableList; v: TVariable): Boolean;
+function VarListFind(list: TTypeVariableList; v: TTypeVariable): Boolean;
 var
    i: Integer;
 begin
@@ -188,7 +188,7 @@ begin
    Result := False;
 end;
 
-function VarListToTypeList(list: TVariableList): TTypeList;
+function VarListToTypeList(list: TTypeVariableList): TTypeList;
 var
    types: TTypeList;
    i: Integer;
@@ -199,14 +199,14 @@ begin
    Result := types;
 end;
 
-function VarMapNew: TVariableMap;
+function VarMapNew: TTypeVariableMap;
 begin
    Result := nil;
 end;
 
-function VarMapInsert(map: TVariableMap; key: TVariable; value: TVariable): TVariableMap;
+function VarMapInsert(map: TTypeVariableMap; key: TTypeVariable; value: TTypeVariable): TTypeVariableMap;
 var
-   newMap: TVariableMap;
+   newMap: TTypeVariableMap;
    i, len: Integer;
 begin
    len := Length(map);
@@ -229,7 +229,7 @@ begin
    Result := newMap;
 end;
 
-function VarMapFind(map: TVariableMap; key: TVariable): Boolean;
+function VarMapFind(map: TTypeVariableMap; key: TTypeVariable): Boolean;
 var
    i: Integer;
 begin
@@ -242,7 +242,7 @@ begin
    Result := False;
 end;
 
-function VarMapLookup(map: TVariableMap; key: TVariable): TVariable;
+function VarMapLookup(map: TTypeVariableMap; key: TTypeVariable): TTypeVariable;
 var
    i: Integer;
 begin
@@ -255,9 +255,9 @@ begin
    raise Exception.Create('VariableMap has no such key: ' + key.ToStr + '. Use EnvFind before EnvLookup.');
 end;
 
-function VarMapDelete(map: TVariableMap; key: TVariable): TVariableMap;
+function VarMapDelete(map: TTypeVariableMap; key: TTypeVariable): TTypeVariableMap;
 var
-   newMap: TVariableMap;
+   newMap: TTypeVariableMap;
    i, index: Integer;
 begin
    SetLength(newMap, Length(map) - 1);
@@ -271,7 +271,7 @@ begin
    Result := newMap;
 end;
 
-procedure VarMapPrint(map: TVariableMap);
+procedure VarMapPrint(map: TTypeVariableMap);
 var
    i: Integer;
 begin
