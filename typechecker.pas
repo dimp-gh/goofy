@@ -52,22 +52,76 @@ type
    procedure TMyApplication.Main;
    var
       goofyTS: TGoofyTypeSystem;
-      ast: TSyntaxNode;
+      pair: TSyntaxNode;
+      examples: array of TSyntaxNode;
+      i: Integer;
    begin
       goofyTS := TGoofyTypeSystem.Create;
-      ast := Lambda('f',
-                    Lambda('g',
-                           Lambda('arg',
-                                  Apply(Ident('g'),
-                                        Apply(Ident('f'),
-                                              Ident('arg')))))); // infers bad type
-      writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
-      ast := Lambda('x', Ident('x')); // infers bad type (a -> b)
-      writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
-      ast := Lambda('f', Apply(Ident('f'), Ident('f')));
-      writeln(ast.ToStr, ' :: ', goofyTS.GetExprTypeStr(ast));
+      
+      pair := Apply(Apply(Ident('pair'), Apply(Ident('f'), Ident('4'))), Apply(Ident('f'), Ident('true')));
+      SetLength(examples, 8);
+      // factorial
+      examples[0] := Letrec('factorial', // letrec factorial =
+                            Lambda('n',    // fn n =>
+                                   Apply(
+                                      Apply(   // cond (zero n) 1
+                                         Apply(Ident('cond'),     // cond (zero n)
+                                               Apply(Ident('zero'), Ident('n'))),
+                                         Ident('1')),
+                                      Apply(    // times n
+                                         Apply(Ident('times'), Ident('n')),
+                                         Apply(Ident('factorial'),
+                                               Apply(Ident('pred'), Ident('n')))
+                                           )
+                                        )
+                                  ),      // in
+                            Apply(Ident('factorial'), Ident('5'))
+                           );
+      
+      // Should fail:
+      // fn x => (pair(x(3) (x(true))))
+      examples[1] := Lambda('x',
+                            Apply(
+                               Apply(Ident('pair'),
+                                     Apply(Ident('x'), Ident('3'))),
+                               Apply(Ident('x'), Ident('true'))));
+      
+      // pair(f(3), f(true))
+      examples[2] := Apply(
+         Apply(Ident('pair'), Apply(Ident('f'), Ident('4'))), 
+         Apply(Ident('f'), Ident('true')));
+         
+         
+      // letrec f = (fn x => x) in ((pair (f 4)) (f true))
+      examples[3] := Let('f', Lambda('x', Ident('x')), pair);
+         
+      // fn f => f f (fail)
+      examples[4] := Lambda('f', Apply(Ident('f'), Ident('f')));
+         
+      // let g = fn f => 5 in g g
+      examples[5] := Let('g',
+                         Lambda('f', Ident('5')),
+                         Apply(Ident('g'), Ident('g')));
+         
+      // example that demonstrates generic and non-generic variables:
+      // fn g => let f = fn x => g in pair (f 3, f true)
+      examples[6] := Lambda('g',
+                            Let('f',
+                                Lambda('x', Ident('g')),
+                                Apply(
+                                   Apply(Ident('pair'),
+                                         Apply(Ident('f'), Ident('3'))
+                                        ),
+                                   Apply(Ident('f'), Ident('true')))));
+      
+      // Function composition
+      // fn f (fn g (fn arg (f g arg)))
+      examples[7] := Lambda('f', Lambda('g', Lambda('arg', Apply(Ident('g'), Apply(Ident('f'), Ident('arg'))))));
+      
+      for i := 0 to High(examples) do
+         writeln(examples[i].ToStr, ' :: ', goofyTS.GetExprTypeStr(examples[i]));
    end;
-
+   
    constructor TMyApplication.Create(TheOwner: TComponent);
    begin
       inherited Create(TheOwner);
