@@ -52,6 +52,7 @@ type
    end;
    
 function CreateFunType(from: TType; into: TType): TOper;
+function CreatePairType(t1,t2: TType): TOper;
 
 implementation
 
@@ -156,6 +157,17 @@ begin
    args[1] := into;
    Result := TOper.Create('->', args);
 end;
+
+function CreatePairType(t1,t2: TType): TOper;
+var
+   args: array of TType;
+begin
+   SetLength(args, 2);
+   args[0] := t1;
+   args[1] := t2;
+   Result := TOper.Create('*', args);
+end;
+
 
 initialization
 
