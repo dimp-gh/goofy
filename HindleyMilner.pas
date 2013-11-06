@@ -78,18 +78,15 @@ var
    newTypeVar: TVariable;
    newEnv : TEnvironment;
    newNongen: TVariableList;
+   argTypeVar: TVariable;
 begin
    if (ast is TIdent) then
    begin
       id := ast as TIdent;
-      //writeln('DEBUG: analyse(Ident(', id.Name, '))');
-      //writeln('DEBUG: current environment:'); PrintEnvironment(env);
       Result := Self.GetType(id.Name, env, nongen);
-      //writeln('DEBUG type of ', id.Name, ' is ', Result.ToStr);
    end
    else if (ast is TApply) then
    begin
-      //writeln('DEBUG: analyse(Apply)');
       apply := ast as TApply;
       funType := analyse(apply.Fun, env, nongen);
       argType := analyse(apply.Argument, env, nongen);
@@ -101,13 +98,11 @@ begin
    begin
       //writeln('DEBUG: analyse(Lambda)');
       lambda := ast as TLambda;
-      argType := Self.GenerateVariable;
-      // copying environment
-      newEnv := EnvInsert(env, lambda.Variable, argType);
-      //writeln('DEBUG: old env:'); PrintEnvironment(env);
-      //writeln('DEBUG: new env:'); PrintEnvironment(newEnv);
-      resultType := analyse(lambda.Body, newEnv, nongen);
-      Result := CreateFunType(argType, resultType);
+      argTypeVar := Self.GenerateVariable;
+      newEnv := EnvInsert(env, lambda.Variable, argTypeVar);
+      newNongen := VarListInsert(nongen, argTypeVar);
+      resultType := analyse(lambda.Body, newEnv, newNongen);
+      Result := CreateFunType(argTypeVar, resultType);
    end
    else if (ast is TLet) then
    begin
