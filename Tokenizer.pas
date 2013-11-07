@@ -9,6 +9,8 @@ uses
 
 type
    TokenType = (
+      // 'unknown token' is good for error handling
+      ttUnknown,
       // non-greedy tokens
       ttIntegerLiteral,
       ttIdentifier,
@@ -20,9 +22,7 @@ type
       ttLambdaArrow,
       // greedy tokens
       ttOpenParen,
-      ttCloseParen,
-      // 'unknown token' is good for error handling
-      ttUnknown);
+      ttCloseParen);
       
    TToken = class(TObject)
    public
