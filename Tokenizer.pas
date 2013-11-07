@@ -2,8 +2,11 @@ unit Tokenizer;
 {$mode objfpc}{$H+}
 interface
 
-uses Classes,
-     Contnrs;
+uses
+   Classes,
+   Contnrs,
+   SysUtils;
+
 type
    TokenType = (
       // non-greedy tokens
@@ -31,9 +34,12 @@ type
    
    TTokenList = TObjectList;
    
+   ETokenizeError = class(Exception);
+      
 function TokenizeFile(path: String): TTokenList;
 function TokenizeStringList(sl: TStringList): TTokenList;
 procedure PrintTokenList(tokens: TTokenList);
+procedure ReportTokenizeErrors(sourcePath: String; tokens: TTokenList);
 
 implementation
 
@@ -230,6 +236,31 @@ begin
       t := tokens[i] as TToken;
       writeln('Token #', i + 1, ' is ', t.Value, ', type of token is ', t.Kind, '. Position - ', t.LineNo ,':', t.CharNo);
    end;
+end;
+
+procedure ReportTokenizeErrors(sourcePath: String; tokens: TTokenList);
+var
+   i: Integer;
+   t: TToken;
+   ShouldThrow: Boolean;
+begin
+   ShouldThrow := False;
+   for i := 0 to tokens.Count - 1 do
+   begin
+      t := tokens[i] as TToken;
+      if t.Kind = ttUnknown then
+      begin
+         ShouldThrow := True;
+         // TODO: draw pretty report for every bad token
+         // example:
+         // (let f = fn x => 5 in '(f f))
+         //                       ^
+         // Error: Bad token ' at position x:23
+         writeln('Error: Bad token "', t.Value, '" at position ', t.LineNo, ':', t.CharNo);
+      end
+   end;
+   if ShouldThrow then
+      raise ETokenizeError.Create('Errors were found on tokenization. Process aborted');
 end;
 
 initialization
