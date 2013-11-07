@@ -40,6 +40,8 @@ function TokenizeFile(path: String): TTokenList;
 function TokenizeStringList(sl: TStringList): TTokenList;
 procedure PrintTokenList(tokens: TTokenList);
 procedure ReportTokenizeErrors(sourcePath: String; tokens: TTokenList);
+procedure Push(t: TToken; tokens: TTokenList);
+function Pop(tokens: TTokenList): TToken;
 
 implementation
 
@@ -261,6 +263,34 @@ begin
    end;
    if ShouldThrow then
       raise ETokenizeError.Create('Errors were found on tokenization. Process aborted');
+end;
+
+function Pop(tokens: TTokenList): TToken;
+var
+   t: TToken;
+begin
+   if tokens.Count > 0 then
+   begin
+      //writeln('DEBUG: The only cast is here');
+      //PrintTokenList(tokens);
+      //writeln('DEBUG: Right here');
+      t := tokens.First as TToken;
+      //writeln('DEBUG: And it doesn''t fail');
+      //writeln('DEBUG: Popped token ', t.Value);
+      //writeln('DEBUG: Rest of the tokens are:');
+      //PrintTokenList(tokens);
+      tokens.Extract(t);
+      Result := t;
+      //writeln('DEBUG: Repeat, popped token ', Result.Value);
+   end
+   else
+      Raise Exception.Create('Cannot pop empty token list');
+end;
+
+procedure Push(t: TToken; tokens: TTokenList);
+begin
+   //writeln('DEBUG: Inserting token ', t.Value, ' right into token list');
+   tokens.Insert(0, t);
 end;
 
 initialization
