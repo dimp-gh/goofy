@@ -5,7 +5,8 @@ uses
    cthreads,
    {$ENDIF}{$ENDIF}
    Classes, SysUtils, CustApp,
-   AST, HMTypes, HMDataStructures, HindleyMilner, GoofyTypeSystem, Tokenizer;
+   AST, HMTypes, HMDataStructures, HindleyMilner, GoofyTypeSystem,
+   Tokenizer, Parser;
 
 type
 
@@ -13,8 +14,9 @@ type
 
    TMyApplication = class(TCustomApplication)
    protected
+      Verbose: Boolean;
       procedure DoRun; override;
-      procedure Main;
+      procedure Interpret(path: String);
    public
       constructor Create(TheOwner: TComponent); override;
       destructor Destroy; override;
@@ -26,6 +28,7 @@ type
    procedure TMyApplication.DoRun;
    var
       ErrorMsg: String;
+      fileList: TStringList;
    begin
       // quick check parameters
       ErrorMsg:=CheckOptions('h','help');
@@ -34,36 +37,49 @@ type
          Terminate;
          Exit;
       end;
-
       // parse parameters
       if HasOption('h','help') then begin
          WriteHelp;
          Terminate;
          Exit;
       end;
-
-      { add your program here }
-      Main;
-
+      if HasOption('v','verbose') then
+         Self.Verbose := True;
+      
+      fileList := TStringList.Create;
+      CheckOptions('', nil, nil, fileList);
+      if fileList.Count = 0 then
+      begin
+         WriteHelp;
+         Terminate;
+         Exit;
+      end;
+      Interpret(fileList[0]);
+      
       // stop program loop
       Terminate;
    end;
 
-   procedure TMyApplication.Main;
+   procedure TMyApplication.Interpret(path: String);
    var
-      sl: TStringList;
-      ts: TTokenList;
+      tokens: TTokenList;
    begin
-      sl := TStringList.Create;
-      sl.Add('123 abc (456 !!! er) asdasd');
-      ts := TokenizeStringList(sl);
-      PrintTokenList(ts);
+      try
+         tokens := TokenizeFile(path);
+         ReportTokenizeErrors(path, tokens);
+         if Self.Verbose then
+            PrintTokenList(tokens);
+      except
+         on e: ETokenizeError do
+            writeln(e.Message);
+      end;
    end;
    
    constructor TMyApplication.Create(TheOwner: TComponent);
    begin
       inherited Create(TheOwner);
-      StopOnException:=True;
+      StopOnException := True;
+      Self.Verbose := False;
    end;
 
    destructor TMyApplication.Destroy;
@@ -74,7 +90,7 @@ type
    procedure TMyApplication.WriteHelp;
    begin
       { add your help code here }
-      writeln('Usage: ',ExeName,' -h');
+      writeln('Usage: ',ExeName,' [-h] [-v] <source file>');
    end;
 
 var
