@@ -9,7 +9,11 @@ type
       // non-greedy tokens
       ttIntegerLiteral,
       ttIdentifier,
+      ttLet,
+      ttLetRec,
+      ttIn,
       ttEquals,
+      ttLambda,
       ttLambdaArrow,
       // greedy tokens
       ttOpenParen,
@@ -82,11 +86,52 @@ begin
    Result := s = ')'; 
 end;
 
+function IsLet(s: String): Boolean;
+begin
+   Result := s = 'let'; 
+end;
+
+function IsLetRec(s: String): Boolean;
+begin
+   Result := s = 'letrec'; 
+end;
+
+function IsEquals(s: String): Boolean;
+begin
+   Result := s = '='; 
+end;
+
+function IsLambda(s: String): Boolean;
+begin
+   Result := s = 'fn';
+end;
+
+function IsLambdaArrow(s: String): Boolean;
+begin
+   Result := s = '=>';
+end;
+
+function IsIn(s: String): Boolean;
+begin
+   Result := s = 'in'; 
+end;
 
 function ClassifyToken(s: String): TokenType;
 begin
    if IsIntegerLiteral(s) then
       Result := ttIntegerLiteral
+   else if IsLambdaArrow(s) then
+      Result := ttLambdaArrow
+   else if IsEquals(s) then
+      Result := ttEquals
+   else if IsLambda(s) then
+      Result := ttLambda
+   else if IsLet(s) then
+      Result := ttLet
+   else if IsLetRec(s) then
+      Result := ttLetRec
+   else if IsIn(s) then
+      Result := ttIn
    else if IsIdentifier(s) then
       Result := ttIdentifier
    else
@@ -95,6 +140,7 @@ end;
 
 function ClassifyGreedyToken(s: String): TokenType;
 begin
+   // for simplification, only parens are greedy tokens
    if IsOpenParen(s) then
       Result := ttOpenParen
    else if IsCloseParen(s) then
@@ -130,8 +176,9 @@ begin
       acc := '';
       for c := 1 to Length(line) do
       begin
-         // TODO: check for greedy tokens right here (like parentheses)
          // if any of greedy tokens matches `line[c]` - create a new token and clear acc.
+         // In another words, greedy tokens are the ones that do not require whitespace
+         // to separate them and other tokens.
          gtt := ClassifyGreedyToken(line[c]);
          if gtt <> ttUnknown then
          begin
