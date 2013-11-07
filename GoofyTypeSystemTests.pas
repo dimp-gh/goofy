@@ -8,7 +8,7 @@ implementation
 
 procedure FactorialInferTest;
 var
-   fact:  TSyntaxNode;
+   fact:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin
    fact := Letrec('factorial', // letrec factorial =
@@ -33,7 +33,7 @@ end;
 
 procedure TypeMismatchTest;
 var
-   pairfun:  TSyntaxNode;
+   pairfun:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin
    // fn x => (pair(x(3) (x(true))))
@@ -48,7 +48,7 @@ end;
 
 procedure UndefinedSymbolTest;
 var
-   pair:  TSyntaxNode;
+   pair:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin
    // fn x => (pair(x(3) (x(true))))
@@ -61,7 +61,7 @@ end;
 
 procedure PairTypeTest;
 var
-   pair:  TSyntaxNode;
+   pair:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin
    // letrec f = (fn x => x) in ((pair (f 4)) (f true))
@@ -76,7 +76,7 @@ end;
          
 procedure RecursiveUnificationTest;
 var
-   ast:  TSyntaxNode;
+   ast:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin
    // fn f => f f (fail)
@@ -87,7 +87,7 @@ end;
 
 procedure TrickyFunctionTest;
 var
-   ast:  TSyntaxNode;
+   ast:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin
    // let g = fn f => 5 in g g
@@ -100,7 +100,7 @@ end;
 
 procedure GenericsTest;
 var
-   ast:  TSyntaxNode;
+   ast:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin
    // example that demonstrates generic and non-generic variables:
@@ -120,7 +120,7 @@ end;
 
 procedure FunCompositionTest;
 var
-   ast:  TSyntaxNode;
+   ast:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin      
    // Function composition
@@ -132,7 +132,7 @@ end;
 
 procedure IdentityTypeTest;
 var
-   ast:  TSyntaxNode;
+   ast:  TExpression;
    goofyTS: TGoofyTypeSystem;
 begin      
    // identity function

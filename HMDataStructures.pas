@@ -7,11 +7,11 @@ uses HMTypes, SysUtils;
 type
   
    // Environment for mapping types to it's names
-   TEnvironmentEntry = record
+   TTypeEnvironmentEntry = record
       Key: String;
       Value: TType;
    end;  
-   TEnvironment = array of TEnvironmentEntry;
+   TTypeEnvironment = array of TTypeEnvironmentEntry;
    
    // Variable and type-list for storing non-generic variables
    TTypeVariableList = array of TTypeVariable;
@@ -24,12 +24,12 @@ type
    end;
    TTypeVariableMap = array of TVarMapEntry;
    
-function EnvNew: TEnvironment;
-function EnvInsert(env: TEnvironment; key: String; value: TType): TEnvironment;
-function EnvFind(env: TEnvironment; key: String): Boolean;
-function EnvLookup(env: TEnvironment; key: String): TType;
-function EnvDelete(env: TEnvironment; key: String): TEnvironment;
-procedure EnvPrint(env: TEnvironment);
+function EnvNew: TTypeEnvironment;
+function EnvInsert(env: TTypeEnvironment; key: String; value: TType): TTypeEnvironment;
+function EnvFind(env: TTypeEnvironment; key: String): Boolean;
+function EnvLookup(env: TTypeEnvironment; key: String): TType;
+function EnvDelete(env: TTypeEnvironment; key: String): TTypeEnvironment;
+procedure EnvPrint(env: TTypeEnvironment);
 
 function VarListNew: TTypeVariableList;
 function VarListInsert(list: TTypeVariableList; v: TTypeVariable): TTypeVariableList;
@@ -47,14 +47,14 @@ procedure VarMapPrint(map: TTypeVariableMap);
 
 implementation
 
-function EnvNew: TEnvironment;
+function EnvNew: TTypeEnvironment;
 begin
    Result := Nil;
 end;
 
-function EnvInsert(env: TEnvironment; key: String; value: TType): TEnvironment;
+function EnvInsert(env: TTypeEnvironment; key: String; value: TType): TTypeEnvironment;
 var
-   newEnv: TEnvironment;
+   newEnv: TTypeEnvironment;
    i, len: Integer;
 begin
    len := Length(env);
@@ -77,7 +77,7 @@ begin
    Result := newEnv;
  end;
 
-function EnvFind(env: TEnvironment; key: String): Boolean;
+function EnvFind(env: TTypeEnvironment; key: String): Boolean;
 var
    i: Integer;
 begin
@@ -90,7 +90,7 @@ begin
    Result := False;
 end;
 
-function EnvLookup(env: TEnvironment; key: String): TType;
+function EnvLookup(env: TTypeEnvironment; key: String): TType;
 var
    i: Integer;
 begin
@@ -103,9 +103,9 @@ begin
    raise Exception.Create('Environment has no such key: ' + key + '. Use EnvFind before EnvLookup.');
 end;
 
-function EnvDelete(env: TEnvironment; key: String): TEnvironment;
+function EnvDelete(env: TTypeEnvironment; key: String): TTypeEnvironment;
 var
-   newEnv: TEnvironment;
+   newEnv: TTypeEnvironment;
    i, index: Integer;
 begin
    SetLength(newEnv, Length(env) - 1);
@@ -119,7 +119,7 @@ begin
    Result := newEnv;
 end;
 
-procedure EnvPrint(env: TEnvironment);
+procedure EnvPrint(env: TTypeEnvironment);
 var
    i: Integer;
 begin

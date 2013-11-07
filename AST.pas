@@ -4,60 +4,60 @@ unit AST;
 interface
 
 type
-   TSyntaxNode = class abstract
+   TExpression = class abstract
       function ToStr: String; virtual; abstract;
    end;
 
-   TIdent = class(TSyntaxNode)
+   TIdent = class(TExpression)
    public
       Name: String;
       function ToStr: String; override;
       constructor Create(n: String);
    end;
 
-   TLambda = class(TSyntaxNode)
+   TLambda = class(TExpression)
    public
       Variable: String;
-      Body: TSyntaxNode;
+      Body: TExpression;
       function ToStr: String; override;
-      constructor Create(v: String; b: TSyntaxNode);
+      constructor Create(v: String; b: TExpression);
    end;
 
-   TApply = class(TSyntaxNode)
+   TApply = class(TExpression)
    public
-      Fun: TSyntaxNode;
-      Argument: TSyntaxNode;
+      Fun: TExpression;
+      Argument: TExpression;
       function ToStr: String; override;
-      constructor Create(fn: TSyntaxNode; arg: TSyntaxNode);
+      constructor Create(fn: TExpression; arg: TExpression);
    end;
 
-   TLet = class(TSyntaxNode)
-   public
-      Variable: String;
-      Definition: TSyntaxNode;
-      Body: TSyntaxNode;
-      function ToStr: String; override;
-      constructor Create(v: String; defn: TSyntaxNode; b: TSyntaxNode);
-   end;
-
-   TLetRec = class(TSyntaxNode)
+   TLet = class(TExpression)
    public
       Variable: String;
-      Definition: TSyntaxNode;
-      Body: TSyntaxNode;
+      Definition: TExpression;
+      Body: TExpression;
       function ToStr: String; override;
-      constructor Create(v: String; defn: TSyntaxNode; b: TSyntaxNode);
+      constructor Create(v: String; defn: TExpression; b: TExpression);
+   end;
+
+   TLetRec = class(TExpression)
+   public
+      Variable: String;
+      Definition: TExpression;
+      Body: TExpression;
+      function ToStr: String; override;
+      constructor Create(v: String; defn: TExpression; b: TExpression);
    end;
 
 function Ident(n: String): TIdent;
-function Lambda(v: String; b: TSyntaxNode): TLambda;
-function Apply(fn: TSyntaxNode; arg: TSyntaxNode): TApply;
-function Let(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLet;
-function LetRec(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLetRec;
+function Lambda(v: String; b: TExpression): TLambda;
+function Apply(fn: TExpression; arg: TExpression): TApply;
+function Let(v: String; defn: TExpression; b: TExpression): TLet;
+function LetRec(v: String; defn: TExpression; b: TExpression): TLetRec;
 
 implementation
 
-constructor TLambda.Create(v: String; b: TSyntaxNode);
+constructor TLambda.Create(v: String; b: TExpression);
 begin
    Self.Variable := v;
    Self.Body := b;
@@ -80,7 +80,7 @@ begin
    Result := Self.Name;
 end;
 
-constructor TApply.Create(fn, arg: TSyntaxNode);
+constructor TApply.Create(fn, arg: TExpression);
 begin
    Self.Fun := fn;
    Self.Argument := arg;
@@ -92,7 +92,7 @@ begin
    Result := '(' + Self.Fun.ToStr + ' ' + Self.Argument.ToStr + ')';
 end;
 
-constructor TLet.Create(v: String; defn, b: TSyntaxNode);
+constructor TLet.Create(v: String; defn, b: TExpression);
 begin
    Self.Variable := v;
    Self.Definition := defn;
@@ -105,7 +105,7 @@ begin
    Result := '(' + 'let ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
 end;
 
-constructor TLetRec.Create(v: String; defn, b: TSyntaxNode);
+constructor TLetRec.Create(v: String; defn, b: TExpression);
 begin
    Self.Variable := v;
    Self.Definition := defn;
@@ -124,22 +124,22 @@ begin
    Result := TIdent.Create(n);
 end;
 
-function Lambda(v: String; b: TSyntaxNode): TLambda;
+function Lambda(v: String; b: TExpression): TLambda;
 begin
    Result := TLambda.Create(v, b);
 end;
 
-function Apply(fn: TSyntaxNode; arg: TSyntaxNode): TApply;
+function Apply(fn: TExpression; arg: TExpression): TApply;
 begin
    Result := TApply.Create(fn, arg);
 end;
 
-function Let(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLet;
+function Let(v: String; defn: TExpression; b: TExpression): TLet;
 begin
    Result := TLet.Create(v, defn, b);
 end;
 
-function LetRec(v: String; defn: TSyntaxNode; b: TSyntaxNode): TLetRec;
+function LetRec(v: String; defn: TExpression; b: TExpression): TLetRec;
 begin
    Result := TLetRec.Create(v, defn, b);
 end;

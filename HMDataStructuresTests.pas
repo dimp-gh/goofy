@@ -8,7 +8,7 @@ implementation
 
 procedure EnvironmentInsertTest;
 var
-   env: TEnvironment;
+   env: TTypeEnvironment;
    bool: TType;
 begin
    bool := TParameterizedType.Create('bool', []);
@@ -19,7 +19,7 @@ end;
 
 procedure EnvironmentLookupTest;
 var
-   env: TEnvironment;
+   env: TTypeEnvironment;
    bool: TType;
 begin
    bool := TParameterizedType.Create('bool', []);
@@ -30,7 +30,7 @@ end;
 
 procedure EnvironmentDeleteTest;
 var
-   env: TEnvironment;
+   env: TTypeEnvironment;
    bool: TType;
 begin
    bool := TParameterizedType.Create('bool', []);

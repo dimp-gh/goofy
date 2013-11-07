@@ -8,7 +8,7 @@ implementation
 
 procedure ASTPrettyPrintingTest;
 var
-   ast: TSyntaxNode;
+   ast: TExpression;
 begin
    ast := TLet.Create('f', TLambda.Create('x', TIdent.Create('x')), TApply.Create(TIdent.Create('f'), TIdent.Create('5')));
    Assert(ast.ToStr = '(let f = (fn x => x) in (f 5))')

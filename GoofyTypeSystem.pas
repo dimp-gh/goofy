@@ -6,11 +6,11 @@ uses AST, HMTypes, HMDataStructures, HindleyMilner;
 type
    TGoofyTypeSystem = class(THMTypeSystem)
    private
-      Env: TEnvironment;
+      Env: TTypeEnvironment;
    public
       constructor Create;
-      function GetExprType(ast: TSyntaxNode): TType;
-      function GetExprTypeStr(ast: TSyntaxNode): String;
+      function GetExprType(ast: TExpression): TType;
+      function GetExprTypeStr(ast: TExpression): String;
    end;
 
 implementation
@@ -36,12 +36,12 @@ begin
    //Self.PrintEnvironment(Self.Env);
 end;
 
-function TGoofyTypeSystem.GetExprType(ast: TSyntaxNode): TType;
+function TGoofyTypeSystem.GetExprType(ast: TExpression): TType;
 begin
    Result := Self.Analyse(ast, Self.Env);
 end;
 
-function TGoofyTypeSystem.GetExprTypeStr(ast: TSyntaxNode): String;
+function TGoofyTypeSystem.GetExprTypeStr(ast: TExpression): String;
 begin
    try
       Result := Self.GetExprType(ast).ToStr;

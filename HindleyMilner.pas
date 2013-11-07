@@ -15,7 +15,7 @@ type
    private
       NextVariableId: Integer;
       NameGenerator: TNameGenerator;
-      function GetType(name: String; env: TEnvironment; nongen: TTypeVariableList): TType;
+      function GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
       procedure Unify(t1, t2: TType);
       function Fresh(t: TType; nongen: TTypeVariableList): TType;
       function Prune(t: TType): TType;
@@ -23,15 +23,15 @@ type
       function OccursIn(v: TTypeVariable; types: TTypeList): Boolean;
       function OccursInType(v: TTypeVariable; t: TType): Boolean;
    protected
-      procedure PrintEnvironment(env: TEnvironment);
+      procedure PrintEnvironment(env: TTypeEnvironment);
    public
       Int: TParameterizedType;
       Bool: TParameterizedType;
       constructor Create;
       procedure ResetNameGenerator;
       function GenerateVariable: TTypeVariable;
-      function Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
-      function Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TTypeVariableList): TType;
+      function Analyse(ast: TExpression; env: TTypeEnvironment): TType;
+      function Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
    end;
    
    function IsIntegerLiteral(s: String): Boolean;
@@ -46,12 +46,12 @@ begin
    Self.Bool := TParameterizedType.Create('bool', []);
 end;
 
-function THMTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment): TType;
+function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment): TType;
 begin
    Result := Self.Analyse(ast, env, VarListNew);
 end;
 
-function THMTypeSystem.Analyse(ast: TSyntaxNode; env: TEnvironment; nongen: TTypeVariableList): TType;
+function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
 var
    id: TIdent;
    apply: TApply;
@@ -60,7 +60,7 @@ var
    letrec: TLetRec;
    funType, argType, resultType, defnType: TType;
    newTypeVar: TTypeVariable;
-   newEnv : TEnvironment;
+   newEnv : TTypeEnvironment;
    newNongen: TTypeVariableList;
    argTypeVar: TTypeVariable;
 begin
@@ -114,7 +114,7 @@ begin
    NextVariableId := NextVariableId + 1;
 end;
 
-function THMTypeSystem.GetType(name: String; env: TEnvironment; nongen: TTypeVariableList): TType;
+function THMTypeSystem.GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
 begin
    if EnvFind(env, name) then
       Result := Self.Fresh(EnvLookup(env, name), nongen)
@@ -259,7 +259,7 @@ begin
       Result := False;
 end;
 
-procedure THMTypeSystem.PrintEnvironment(env: TEnvironment);
+procedure THMTypeSystem.PrintEnvironment(env: TTypeEnvironment);
 begin
    EnvPrint(env);
 end;
