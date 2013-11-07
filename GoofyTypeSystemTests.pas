@@ -17,7 +17,7 @@ begin
                             Apply(   // cond (zero n) 1
                                Apply(Ident('cond'),     // cond (zero n)
                                      Apply(Ident('zero'), Ident('n'))),
-                               Ident('1')),
+                               IntegerLiteral(1)),
                             Apply(    // times n
                                Apply(Ident('times'), Ident('n')),
                                Apply(Ident('factorial'),
@@ -25,7 +25,7 @@ begin
                                  )
                               )
                         ),      // in
-                  Apply(Ident('factorial'), Ident('5'))
+                  Apply(Ident('factorial'), IntegerLiteral(5))
                  );
    goofyTS := TGoofyTypeSystem.Create;
    Assert(goofyTS.GetExprTypeStr(fact) = 'int');
@@ -40,7 +40,7 @@ begin
    pairfun := Lambda('x',
                   Apply(
                      Apply(Ident('pair'),
-                           Apply(Ident('x'), Ident('3'))),
+                           Apply(Ident('x'), IntegerLiteral(3))),
                      Apply(Ident('x'), Ident('true'))));
    goofyTS := TGoofyTypeSystem.Create;
    Assert(goofyTS.GetExprTypeStr(pairfun) = 'Type error: Type mismatch: bool /= int');      
@@ -68,7 +68,7 @@ begin
    pair := Let('f', Lambda('x', Ident('x')),
                Apply(
                   Apply(Ident('pair'),
-                        Apply(Ident('f'), Ident('4'))),
+                        Apply(Ident('f'), IntegerLiteral(4))),
                   Apply(Ident('f'), Ident('true'))));
    goofyTS := TGoofyTypeSystem.Create;
    Assert(goofyTS.GetExprTypeStr(pair) = '(int * bool)');      
@@ -92,7 +92,7 @@ var
 begin
    // let g = fn f => 5 in g g
    ast := Let('g',
-                   Lambda('f', Ident('5')),
+                   Lambda('f', IntegerLiteral(5)),
                    Apply(Ident('g'), Ident('g')));
    goofyTS := TGoofyTypeSystem.Create;
    Assert(goofyTS.GetExprTypeStr(ast) = 'int');      
@@ -111,7 +111,7 @@ begin
                      Apply(
                         Apply(Ident('pair'),
                               Apply(Ident('f'),
-                                    Ident('3'))),
+                                    IntegerLiteral(3))),
                         Apply(Ident('f'),
                               Ident('true')))));
    goofyTS := TGoofyTypeSystem.Create;

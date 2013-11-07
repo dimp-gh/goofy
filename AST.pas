@@ -1,7 +1,9 @@
 unit AST;
 {$mode objfpc}{$H+}
-
 interface
+
+uses
+   Sysutils;
 
 type
    TExpression = class abstract
@@ -14,7 +16,14 @@ type
       function ToStr: String; override;
       constructor Create(n: String);
    end;
-
+   
+   TIntegerLiteral = class(TExpression)
+   public
+      Value: Integer;
+      function ToStr: String; override;
+      constructor Create(v: String);
+   end;
+   
    TLambda = class(TExpression)
    public
       Variable: String;
@@ -50,6 +59,8 @@ type
    end;
 
 function Ident(n: String): TIdent;
+function IntegerLiteral(v: Integer): TIntegerLiteral;
+function IntegerLiteral(v: String): TIntegerLiteral;
 function Lambda(v: String; b: TExpression): TLambda;
 function Apply(fn: TExpression; arg: TExpression): TApply;
 function Let(v: String; defn: TExpression; b: TExpression): TLet;
@@ -57,16 +68,15 @@ function LetRec(v: String; defn: TExpression; b: TExpression): TLetRec;
 
 implementation
 
-constructor TLambda.Create(v: String; b: TExpression);
+constructor TIntegerLiteral.Create(v: String);
 begin
-   Self.Variable := v;
-   Self.Body := b;
+   Self.Value := StrToInt(v);
    inherited Create;
 end;
 
-function TLambda.ToStr: String;
+function TIntegerLiteral.ToStr: String;
 begin
-   Result := '(fn ' + Self.Variable + ' => ' + Self.Body.ToStr + ')';
+   Result := IntToStr(Self.Value);
 end;
 
 constructor TIdent.Create(n: String);
@@ -78,6 +88,18 @@ end;
 function TIdent.ToStr: String;
 begin
    Result := Self.Name;
+end;
+
+constructor TLambda.Create(v: String; b: TExpression);
+begin
+   Self.Variable := v;
+   Self.Body := b;
+   inherited Create;
+end;
+
+function TLambda.ToStr: String;
+begin
+   Result := '(fn ' + Self.Variable + ' => ' + Self.Body.ToStr + ')';
 end;
 
 constructor TApply.Create(fn, arg: TExpression);
@@ -122,6 +144,16 @@ end;
 function Ident(n: String): TIdent;
 begin
    Result := TIdent.Create(n);
+end;
+
+function IntegerLiteral(v: Integer): TIntegerLiteral;
+begin
+   Result := TIntegerLiteral.Create(IntToStr(v));
+end;
+
+function IntegerLiteral(v: String): TIntegerLiteral;
+begin
+   Result := TIntegerLiteral.Create(v);
 end;
 
 function Lambda(v: String; b: TExpression): TLambda;

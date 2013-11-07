@@ -28,15 +28,6 @@ begin
    Assert(tpe.ToStr = 'OneOfThree a b c');
 end;
 
-procedure IsIntegerLiteralTest;
-begin
-   Assert(IsIntegerLiteral('123'));
-   Assert(IsIntegerLiteral('256'));
-   Assert(Not IsIntegerLiteral('abc'));
-   Assert(Not IsIntegerLiteral('0xB00B1E5'));
-end;
-
 initialization
    TypePrintingTest;
-   IsIntegerLiteralTest;
 end.

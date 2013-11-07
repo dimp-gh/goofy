@@ -34,8 +34,6 @@ type
       function Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
    end;
    
-   function IsIntegerLiteral(s: String): Boolean;
-   
 implementation
 
 constructor THMTypeSystem.Create;
@@ -64,7 +62,11 @@ var
    newNongen: TTypeVariableList;
    argTypeVar: TTypeVariable;
 begin
-   if (ast is TIdent) then
+   if (ast is TIntegerLiteral) then
+   begin
+      Result := Self.Int;
+   end
+   else if (ast is TIdent) then
    begin
       id := ast as TIdent;
       Result := Self.GetType(id.Name, env, nongen);
@@ -118,8 +120,6 @@ function THMTypeSystem.GetType(name: String; env: TTypeEnvironment; nongen: TTyp
 begin
    if EnvFind(env, name) then
       Result := Self.Fresh(EnvLookup(env, name), nongen)
-   else if IsIntegerLiteral(name) then
-      Result := Self.Int
    else
       raise EParseError.Create('Undefined symbol ' + name);
 end;
@@ -207,7 +207,6 @@ begin
    Result := FreshRec(t, nongen);
 end;
 
-
 function THMTypeSystem.Prune(t: TType): TType;
 var
    tvar: TTypeVariable;
@@ -268,22 +267,6 @@ procedure THMTypeSystem.ResetNameGenerator;
 begin
    Self.NameGenerator.Free;
    Self.NameGenerator := TNameGenerator.Create;
-end;
-
-function IsIntegerLiteral(s: String): Boolean;
-const
-   digits: Set of Char = ['0'..'9'];
-var
-   i: Integer;
-begin
-   // Hello, mr. Nazarov. Here we meet again.
-   for i := 1 to Length(s) do
-      if not(s[i] in digits) then
-      begin
-         Result := False;
-         Exit;
-      end;
-   Result := True;
 end;
 
 initialization   
