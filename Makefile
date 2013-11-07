@@ -1,6 +1,5 @@
 FPC=fpc
 FPCOPTS=-Mobjfpc -O1
-.PHONY = typechecker
 
 goofy:
 	$(FPC) $(FPCOPTS) -ogoofy Goofy.pas
@@ -14,8 +13,10 @@ extraclean: clean
 tests:
 	$(FPC) $(FPCOPTS) -otests tests.pas
 
-run:	goofy
+run: goofy
 	./goofy
 	
-runtests:	tests
+runtests: clean tests
 	./tests
+
+.PHONY: clean goofy
