@@ -36,7 +36,7 @@ type
          ShowException(Exception.Create(ErrorMsg));
          Terminate;
          Exit;
-      end;
+      end;      
       // parse parameters
       if HasOption('h','help') then begin
          WriteHelp;
@@ -63,14 +63,19 @@ type
    procedure TMyApplication.Interpret(path: String);
    var
       tokens: TTokenList;
+      ast: TExpression;
    begin
       try
          tokens := TokenizeFile(path);
-         ReportTokenizeErrors(path, tokens);
          if Self.Verbose then
             PrintTokenList(tokens);
+         ReportTokenizeErrors(path, tokens);
+         ast := Parse(tokens);
+         writeln('Parsed AST: ', ast.ToStr);
       except
          on e: ETokenizeError do
+            writeln(e.Message);
+         on e: EParseError do
             writeln(e.Message);
       end;
    end;
@@ -79,7 +84,7 @@ type
    begin
       inherited Create(TheOwner);
       StopOnException := True;
-      Self.Verbose := False;
+      Self.Verbose := True;
    end;
 
    destructor TMyApplication.Destroy;
