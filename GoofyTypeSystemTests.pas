@@ -140,7 +140,16 @@ begin
    goofyTS := TGoofyTypeSystem.Create;
    Assert(goofyTS.GetExprTypeStr(ast) = '(a -> a)');      
 end;
-   
+
+procedure ApplyNumberTest;
+var
+   ast:  TExpression;
+   goofyTS: TGoofyTypeSystem;
+begin
+   ast := Apply(IntegerLiteral(5), IntegerLiteral(10));
+   goofyTS := TGoofyTypeSystem.Create;
+   Assert(goofyTS.GetExprTypeStr(ast) = 'Type error: Type mismatch: (int -> a) /= int');
+end;
 
 initialization
    FactorialInferTest;
@@ -152,4 +161,5 @@ initialization
    GenericsTest;
    FunCompositionTest;
    IdentityTypeTest;
+   ApplyNumberTest;
 end.
