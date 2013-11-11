@@ -2,6 +2,16 @@ unit Parser;
 {$mode objfpc}{$H+}
 interface
 
+{
+Current CFG: (non-terminals are starting with capital letters, others are terminals)
+Expr ::= Identifier
+Expr ::= Int
+Expr ::= (fn Identifier => Expr)
+Expr ::= (Expr Expr)
+Expr ::= (let Identifier = Expr in Expr)
+Expr ::= (letrec Identifier = Expr in Expr)
+}
+
 uses Tokenizer, AST, SysUtils, TypInfo;
 
 type
@@ -19,7 +29,6 @@ function ParseLet(tokens: TTokenList; var let_: TLet): Boolean; forward;
 function ParseLetRec(tokens: TTokenList; var letrec_: TLetRec): Boolean; forward;
 function ParseLambda(tokens: TTokenList; var lamb: TLambda): Boolean; forward;
 function ParseApply(tokens: TTokenList; var app: TApply): Boolean; forward;
-function ParseParenExpression(tokens: TTokenList; var expr: TExpression): Boolean; forward;
 
 function Parse(tokens: TTokenList): TExpression;
 var
@@ -38,12 +47,11 @@ var
    int: TIntegerLiteral;
    lambda: TLambda;
    id: TIdent;
-   parend: TExpression;
 begin
    writeln('Trying to parse expression');
    writeln('{');
-   // TODO: parenthesis tokens are handled right here
-   // TODO: priorities are also handled right here
+   writeln('Token list:');
+   PrintTokenList(tokens);
    if ParseIntegerLiteral(tokens, int) then
    begin
       writeln('Parsing expression succeeded');
@@ -89,15 +97,6 @@ begin
       expr := lambda;
       Exit;
    end;
-   if ParseParenExpression(tokens, parend) then
-   begin
-      writeln('Parsing expression succeeded');
-      writeln('Parsed expression: ', parend.ToStr, '');
-      writeln('}');
-      Result := True;
-      expr := parend;
-      Exit;
-   end;
    if ParseApply(tokens, apply) then
    begin
       writeln('Parsing expression succeeded');
@@ -119,6 +118,8 @@ var
 begin
    writeln('Trying to parse identifier');
    writeln('{');
+   writeln('Token list:');
+   PrintTokenList(tokens);
    tid := Pop(tokens);
    if tid.Kind <> ttIdentifier then
    begin
@@ -141,6 +142,8 @@ var
 begin
    writeln('Trying to parse integer literal');
    writeln('{');
+   writeln('Token list:');
+   PrintTokenList(tokens);
    tint := Pop(tokens);
    if tint.Kind <> ttIntegerLiteral then
    begin
@@ -165,9 +168,23 @@ var
    binding: TExpression;
    inWord: TToken;
    inExpr: TExpression;
+   openParen, closeParen: TToken;
 begin
    writeln('Trying to parse let');
    writeln('{');
+   writeln('Token list:');
+   PrintTokenList(tokens);
+   // (
+   openParen := Pop(tokens);
+   if openParen.Kind <> ttOpenParen then
+   begin
+      writeln('Parsing let failed');
+      writeln('}');
+      Push(openParen, tokens);
+      Result := False;
+      Exit;
+   end;
+   writeln('Open paren parsed');
    // let
    letWord := Pop(tokens);
    if letWord.Kind <> ttLet then
@@ -175,6 +192,7 @@ begin
       writeln('Parsing let failed');
       writeln('}');
       Push(letWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -187,6 +205,7 @@ begin
       writeln('}');
       Push(name, tokens);
       Push(letWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -200,6 +219,7 @@ begin
       Push(eqSign, tokens);
       Push(name, tokens);
       Push(letWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -223,6 +243,7 @@ begin
       Push(eqSign, tokens);
       Push(name, tokens);
       Push(letWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -236,6 +257,22 @@ begin
       Exit;
    end;
    writeln('in-expresssion parsed');
+   // )
+   closeParen := Pop(tokens);
+   if closeParen.Kind <> ttCloseParen then
+   begin
+      writeln('Parsing let failed');
+      writeln('}');
+      Push(closeParen, tokens);
+      Push(inWord, tokens);
+      Push(eqSign, tokens);
+      Push(name, tokens);
+      Push(letWord, tokens);
+      Push(openParen, tokens);
+      Result := False;
+      Exit;
+   end;
+   writeln('Close paren parsed');
    // filling results
    let_ := Let(name.Value, binding, inExpr);
    Result := True;
@@ -252,9 +289,23 @@ var
    binding: TExpression;
    inWord: TToken;
    inExpr: TExpression;
+   openParen, closeParen: TToken;
 begin
    writeln('Trying to parse letrec');
    writeln('{');
+   writeln('Token list:');
+   PrintTokenList(tokens);
+   // (
+   openParen := Pop(tokens);
+   if openParen.Kind <> ttOpenParen then
+   begin
+      writeln('Parsing letrec failed');
+      writeln('}');
+      Push(openParen, tokens);
+      Result := False;
+      Exit;
+   end;
+   writeln('Open paren parsed');
    // letrec
    letrecWord := Pop(tokens);
    if letrecWord.Kind <> ttLetRec then
@@ -262,6 +313,7 @@ begin
       writeln('Parsing letrec failed');
       writeln('}');
       Push(letrecWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -274,6 +326,7 @@ begin
       writeln('}');
       Push(name, tokens);
       Push(letrecWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -287,6 +340,7 @@ begin
       Push(eqSign, tokens);
       Push(name, tokens);
       Push(letrecWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -310,6 +364,7 @@ begin
       Push(name, tokens);
       Push(letrecWord, tokens);
       Push(inWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -323,6 +378,22 @@ begin
       Exit;
    end;
    writeln('in-expression parsed');
+   // )
+   closeParen := Pop(tokens);
+   if closeParen.Kind <> ttCloseParen then
+   begin
+      writeln('Parsing letrec failed');
+      writeln('}');
+      Push(closeParen, tokens);
+      Push(eqSign, tokens);
+      Push(name, tokens);
+      Push(letrecWord, tokens);
+      Push(inWord, tokens);
+      Push(openParen, tokens);
+      Result := False;
+      Exit;
+   end;
+   writeln('Close paren parsed');
    // filling results
    letrec_ := LetRec(name.Value, binding, inExpr);
    Result := True;
@@ -337,9 +408,23 @@ var
    arg: TToken;
    lambdaArrow: TToken;
    body: TExpression;
+   openParen, closeParen: TToken;
 begin
    writeln('Trying to parse lambda');
    writeln('{');
+   writeln('Token list:');
+   PrintTokenList(tokens);
+   // (
+   openParen := Pop(tokens);
+   if openParen.Kind <> ttOpenParen then
+   begin
+      writeln('Parsing lambda failed');
+      writeln('}');
+      Push(openParen, tokens);
+      Result := False;
+      Exit;
+   end;
+   writeln('Open paren parsed');
    // fn
    lambdaWord := Pop(tokens);
    if lambdaWord.Kind <> ttLambda then
@@ -347,6 +432,7 @@ begin
       writeln('Parsing lambda failed');
       writeln('}');
       Push(lambdaWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -359,6 +445,7 @@ begin
       writeln('}');
       Push(arg, tokens);
       Push(lambdaWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -372,6 +459,7 @@ begin
       Push(lambdaArrow, tokens);
       Push(arg, tokens);
       Push(lambdaWord, tokens);
+      Push(openParen, tokens);
       Result := False;
       Exit;
    end;
@@ -385,6 +473,21 @@ begin
       Exit;
    end;
    writeln('lambda body parsed');
+   // )
+   closeParen := Pop(tokens);
+   if closeParen.Kind <> ttCloseParen then
+   begin
+      writeln('Parsing lambda failed');
+      writeln('}');
+      Push(closeParen, tokens);
+      Push(lambdaArrow, tokens);
+      Push(arg, tokens);
+      Push(lambdaWord, tokens);
+      Push(openParen, tokens);
+      Result := False;
+      Exit;
+   end;
+   writeln('Close paren parsed');
    // filling results
    lamb := Lambda(arg.Value, body);
    Result := True;
@@ -395,11 +498,25 @@ end;
 
 function ParseApply(tokens: TTokenList; var app: TApply): Boolean;
 var
+   openParen, closeParen: TToken;
    fn: TExpression;
    arg: TExpression;
 begin
    writeln('Trying to parse apply');
    writeln('{');
+   writeln('Token list:');
+   PrintTokenList(tokens);
+   // (
+   openParen := Pop(tokens);
+   if openParen.Kind <> ttOpenParen then
+   begin
+      writeln('Parsing apply failed');
+      writeln('}');
+      Push(openParen, tokens);
+      Result := False;
+      Exit;
+   end;
+   writeln('Open paren parsed');
    // <fn>
    if not ParseExpression(tokens, fn) then
    begin
@@ -418,46 +535,11 @@ begin
       Exit;
    end;
    writeln('argument parsed');
-   // filling results
-   app := Apply(fn, arg);
-   Result := True;
-   writeln('Parsing apply succeeded');
-   writeln('Parsed apply: ', app.ToStr, '');
-   writeln('}');
-end;
-
-function ParseParenExpression(tokens: TTokenList; var expr: TExpression): Boolean;
-var
-   openParen, closeParen: TToken;
-   e: TExpression;
-begin
-   writeln('Trying to parse parenthesized expression');
-   writeln('{');
-   // (
-   openParen := Pop(tokens);
-   if openParen.Kind <> ttOpenParen then
-   begin
-      writeln('Parsing parenExpr failed');
-      writeln('}');
-      Push(openParen, tokens);
-      Result := False;
-      Exit;
-   end;
-   writeln('Open paren parsed');
-   // <expr>
-   if not ParseExpression(tokens, e) then
-   begin
-      writeln('Parsing parenExpr failed');
-      writeln('}');
-      Result := False;
-      Exit;
-   end;
-   writeln('subexpression parsed');
    // )
    closeParen := Pop(tokens);
    if closeParen.Kind <> ttCloseParen then
    begin
-      writeln('Parsing parenExpr failed');
+      writeln('Parsing apply failed');
       writeln('}');
       Push(closeParen, tokens);
       Push(openParen, tokens);
@@ -466,30 +548,14 @@ begin
    end;
    writeln('Close paren parsed');
    // filling results
-   expr := e;
+   app := Apply(fn, arg);
    Result := True;
-   writeln('Parsing parenExpr succeeded');
-   writeln('Parsed paren expr: (', expr.ToStr, ')');
+   writeln('Parsing apply succeeded');
+   writeln('Parsed apply: ', app.ToStr, '');
    writeln('}');
 end;
 
-initialization
-{
-;; bad grammar
-E ::= Id
-E ::= Int
-E ::= fn Id => E
-E ::= E E
-E ::= let Id = E in E
-E ::= ( E )
 
-;; better grammar (without left recursion)
-E :: Int
-E ::= Id E'
-E ::= fn Id => E E'
-E ::= let Id = E in E E'
-E ::= ( E ) E'
-E' ::= E E' | Nothing
-}
+initialization
    
 end.
