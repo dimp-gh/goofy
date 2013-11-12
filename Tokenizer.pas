@@ -78,7 +78,7 @@ end;
 
 function IsIdentifier(s: String): Boolean;
 const
-   allowed: Set of Char = ['a'..'z', 'A'..'Z', '_', '0'..'9'];
+   allowed: Set of Char = ['a'..'z', 'A'..'Z', '_', '-', '0'..'9'];
 var
    i: Integer;
 begin
