@@ -8,7 +8,8 @@ uses
    Tokenizer,
    AST, Parser,
    HMTypes, GoofyTypeSystem,
-   Values, Evaluator;
+   Values, Evaluator,
+   Builtins;
 
 type
 
@@ -87,16 +88,15 @@ type
          ReportTokenizeErrors(path, tokens);
          // parsing
          ast := Parse(tokens);
-         if Self.Verbose then
-            writeln('Parsed AST: ', ast.ToStr);
+         write(ast.ToStr);
          // typechecking
          typeSystem := TGoofyTypeSystem.Create;
          exprType := typeSystem.GetExprType(ast);
-         writeln(ast.ToStr, ' :: ', exprType.ToStr);
+         write(' :: ', exprType.ToStr);
          // evaluating
          eval := TEvaluator.Create;
          value := eval.Evaluate(ast);
-         writeln('=> ', value.ToStr);
+         writeln(' => ', value.ToStr);
       except
          on e: EFOpenError do
             writeln('Cannot find file ', path);

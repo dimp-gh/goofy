@@ -50,8 +50,9 @@ type
       constructor Create(initialName: Char = 'a');
       function GenerateName: String;
    end;
-   
-function CreateFunType(from: TType; into: TType): TParameterizedType;
+
+function CreateType(name: String): TParameterizedType;
+function CreateFunType(from	  : TType; into: TType): TParameterizedType;
 function CreatePairType(t1,t2: TType): TParameterizedType;
 
 implementation
@@ -168,6 +169,10 @@ begin
    Result := TParameterizedType.Create('*', args);
 end;
 
+function CreateType(name: String): TParameterizedType;
+begin
+   Result := TParameterizedType.Create(name, []);
+end;
 
 initialization
 
