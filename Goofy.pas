@@ -1,12 +1,14 @@
 program Goofy;
-
+{$I+}
 uses
    {$IFDEF UNIX}{$IFDEF UseCThreads}
    cthreads,
    {$ENDIF}{$ENDIF}
    Classes, SysUtils, CustApp,
-   AST, HMTypes, HMDataStructures, HindleyMilner, GoofyTypeSystem,
-   Tokenizer, Parser;
+   Tokenizer,
+   AST, Parser,
+   HMTypes, GoofyTypeSystem,
+   Values, Evaluator;
 
 type
 
@@ -16,7 +18,7 @@ type
    protected
       Verbose: Boolean;
       procedure DoRun; override;
-      procedure Interpret(path: String);
+      procedure InterpretPath(path: String);
    public
       constructor Create(TheOwner: TComponent); override;
       destructor Destroy; override;
@@ -27,56 +29,85 @@ type
 
    procedure TMyApplication.DoRun;
    var
-      ErrorMsg: String;
+      ErrorMsg, path: String;
       fileList: TStringList;
    begin
-      // quick check parameters
-      ErrorMsg:=CheckOptions('h','help');
+      // parse parameters
+      fileList := TStringList.Create;
+      ErrorMsg:=CheckOptions('hv', nil, nil, fileList);
       if ErrorMsg<>'' then begin
          ShowException(Exception.Create(ErrorMsg));
          Terminate;
          Exit;
-      end;      
-      // parse parameters
-      if HasOption('h','help') then begin
-         WriteHelp;
-         Terminate;
-         Exit;
       end;
-      if HasOption('v','verbose') then
-         Self.Verbose := True;
-      
-      fileList := TStringList.Create;
-      CheckOptions('', nil, nil, fileList);
-      if fileList.Count = 0 then
+      if HasOption('h','help') then
       begin
          WriteHelp;
          Terminate;
          Exit;
       end;
-      Interpret(fileList[0]);
+      if HasOption('v','verbose') then
+      begin
+         path := GetOptionValue('v', 'verbose');
+         Self.Verbose := True;
+      end;
+      
+      if (fileList.Count > 0) then
+         path := fileList[0]
+      else if (path <> '') then
+         //pass
+      else
+      begin
+         writeln('No files specified');
+         WriteHelp;
+         Terminate;
+         Exit;
+      end;
+      
+      InterpretPath(path);
       
       // stop program loop
       Terminate;
    end;
-
-   procedure TMyApplication.Interpret(path: String);
+   
+   procedure TMyApplication.InterpretPath(path: String);
    var
       tokens: TTokenList;
       ast: TExpression;
+      typeSystem: TGoofyTypeSystem;
+      exprType: TType;
+      eval: TEvaluator;
+      value: TValue;
    begin
       try
+         // lexing
          tokens := TokenizeFile(path);
          if Self.Verbose then
             PrintTokenList(tokens);
          ReportTokenizeErrors(path, tokens);
+         // parsing
          ast := Parse(tokens);
-         writeln('Parsed AST: ', ast.ToStr);
+         if Self.Verbose then
+            writeln('Parsed AST: ', ast.ToStr);
+         // typechecking
+         typeSystem := TGoofyTypeSystem.Create;
+         exprType := typeSystem.GetExprType(ast);
+         writeln(ast.ToStr, ' :: ', exprType.ToStr);
+         // evaluating
+         eval := TEvaluator.Create;
+         value := eval.Evaluate(ast);
+         writeln('=> ', value.ToStr);
       except
+         on e: EFOpenError do
+            writeln('Cannot find file ', path);
          on e: ETokenizeError do
             writeln(e.Message);
          on e: EParseError do
             writeln(e.Message);
+         on e: ETypeError do
+            writeln('Typecheck error: ', e.Message);
+         on e: EEvalError do
+            writeln('Evaluation error: ', e.Message)
       end;
    end;
    
@@ -84,7 +115,7 @@ type
    begin
       inherited Create(TheOwner);
       StopOnException := True;
-      Self.Verbose := True;
+      Self.Verbose := False;
    end;
 
    destructor TMyApplication.Destroy;
