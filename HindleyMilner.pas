@@ -51,7 +51,7 @@ end;
 
 function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
 var
-   id: TIdent;
+   id: TIdentifier;
    apply: TApply;
    lambda: TLambda;
    let: TLet;
@@ -66,9 +66,9 @@ begin
    begin
       Result := Self.Int;
    end
-   else if (ast is TIdent) then
+   else if (ast is TIdentifier) then
    begin
-      id := ast as TIdent;
+      id := ast as TIdentifier;
       Result := Self.GetType(id.Name, env, nongen);
    end
    else if (ast is TApply) then

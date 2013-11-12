@@ -23,7 +23,7 @@ implementation
 
 // pre-declarations of functions called from ParseExpression
 function ParseExpression(tokens: TTokenList; var expr: TExpression): Boolean; forward;
-function ParseIdentifier(tokens: TTokenList; var id: TIdent): Boolean; forward;
+function ParseIdentifier(tokens: TTokenList; var id: TIdentifier): Boolean; forward;
 function ParseIntegerLiteral(tokens: TTokenList; var int: TIntegerLiteral): Boolean; forward;
 function ParseLet(tokens: TTokenList; var let_: TLet): Boolean; forward;
 function ParseLetRec(tokens: TTokenList; var letrec_: TLetRec): Boolean; forward;
@@ -46,7 +46,7 @@ var
    apply: TApply;
    int: TIntegerLiteral;
    lambda: TLambda;
-   id: TIdent;
+   id: TIdentifier;
 begin
    writeln('Trying to parse expression');
    writeln('{');
@@ -112,7 +112,7 @@ begin
    expr := nil;
 end;
 
-function ParseIdentifier(tokens: TTokenList; var id: TIdent): Boolean;
+function ParseIdentifier(tokens: TTokenList; var id: TIdentifier): Boolean;
 var
    tid: TToken;
 begin

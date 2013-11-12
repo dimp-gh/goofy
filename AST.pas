@@ -10,7 +10,7 @@ type
       function ToStr: String; virtual; abstract;
    end;
 
-   TIdent = class(TExpression)
+   TIdentifier = class(TExpression)
    public
       Name: String;
       function ToStr: String; override;
@@ -58,7 +58,7 @@ type
       constructor Create(v: String; defn: TExpression; b: TExpression);
    end;
 
-function Ident(n: String): TIdent;
+function Ident(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
 function Lambda(v: String; b: TExpression): TLambda;
@@ -79,13 +79,13 @@ begin
    Result := IntToStr(Self.Value);
 end;
 
-constructor TIdent.Create(n: String);
+constructor TIdentifier.Create(n: String);
 begin
    Self.Name := n;
    inherited Create;
 end;
 
-function TIdent.ToStr: String;
+function TIdentifier.ToStr: String;
 begin
    Result := Self.Name;
 end;
@@ -141,9 +141,9 @@ begin
 end;
 
 // A few convenient functions for creating AST
-function Ident(n: String): TIdent;
+function Ident(n: String): TIdentifier;
 begin
-   Result := TIdent.Create(n);
+   Result := TIdentifier.Create(n);
 end;
 
 function IntegerLiteral(v: Integer): TIntegerLiteral;
