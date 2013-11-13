@@ -88,6 +88,11 @@ begin
    Result := TFunctionValue.Create(v);
 end;
 
+function EmptyFunction: TFunctionValue;
+begin
+   Result := FunctionV(Lambda('x', Ident('x')));
+end;
+
 initialization
 
 end.

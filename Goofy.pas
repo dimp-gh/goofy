@@ -79,6 +79,7 @@ type
       exprType: TType;
       eval: TEvaluator;
       value: TValue;
+      builtins: TGoofyBuiltins;
    begin
       try
          // lexing
@@ -94,20 +95,35 @@ type
          exprType := typeSystem.GetExprType(ast);
          write(' :: ', exprType.ToStr);
          // evaluating
-         eval := TEvaluator.Create;
+         builtins := TGoofyBuiltins.Create;
+         eval := TEvaluator.Create(builtins);
          value := eval.Evaluate(ast);
          writeln(' => ', value.ToStr);
       except
-         on e: EFOpenError do
+         on e: EFOpenError do begin
+            writeln;
             writeln('Cannot find file ', path);
+         end;
          on e: ETokenizeError do
+         begin
+            writeln;
             writeln(e.Message);
+         end;
          on e: EParseError do
+         begin
+            writeln;
             writeln(e.Message);
+         end;
          on e: ETypeError do
+         begin
+            writeln;
             writeln('Typecheck error: ', e.Message);
+         end;
          on e: EEvalError do
-            writeln('Evaluation error: ', e.Message)
+         begin
+            writeln;
+            writeln('Evaluation error: ', e.Message);
+         end;
       end;
    end;
    

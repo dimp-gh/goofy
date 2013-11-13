@@ -1,7 +1,7 @@
 unit GoofyTypeSystem;
 {$mode objfpc}{$H+}
 interface
-uses AST, HMTypes, HMDataStructures, HindleyMilner;
+uses AST, HMTypes, HMDataStructures, HindleyMilner, Builtins;
 
 type
    TGoofyTypeSystem = class(THMTypeSystem)
@@ -32,6 +32,8 @@ begin
    Self.Env := EnvInsert(Self.Env, 'zero', CreateFunType(Self.Int, Self.Bool));
    Self.Env := EnvInsert(Self.Env, 'pred', CreateFunType(Self.Int, Self.Int));
    Self.Env := EnvInsert(Self.Env, 'times', CreateFunType(Self.Int, CreateFunType(Self.Int, Self.Int)));
+
+   Self.Env := EnvInsert(Self.Env, 'forty-two', Self.Int);
    
    //Self.PrintEnvironment(Self.Env);
 end;

@@ -52,17 +52,23 @@ begin
 end;
 
 constructor TGoofyBuiltins.Create;
+var
+   Int, Bool: TType;
 begin
    Self.Builtins := nil;
-   Self.Insert(Builtin('forty-two', IntegerV(42), CreateType('int')));
+   Int := CreateType('int');
+   Bool := CreateType('bool');
+   Self.Insert(Builtin('forty-two', IntegerV(42), Int));
+   Self.Insert(Builtin('true', BooleanV(True), Bool));
+   Self.Insert(Builtin('false', BooleanV(False), Bool));
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);
 var
    len: Integer;
 begin
-   len := Length(Self.Builtins) + 1;
-   SetLength(Self.Builtins, len);
+   len := Length(Self.Builtins);
+   SetLength(Self.Builtins, len + 1);
    Self.Builtins[len] := b;
 end;
 
