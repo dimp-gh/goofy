@@ -50,7 +50,17 @@ type
       constructor Create(initialName: Char = 'a');
       function GenerateName: String;
    end;
-
+   
+   TVariableGenerator = class(TObject)
+   private
+      NextVariableId: Integer;
+      NameGenerator: TNameGenerator;
+   public
+      constructor Create(initialName: Char = 'a');
+      function GenerateVariable: TTypeVariable;
+      procedure ResetNameGenerator;
+   end;
+   
 function CreateType(name: String): TParameterizedType;
 function CreateFunType(from	  : TType; into: TType): TParameterizedType;
 function CreatePairType(t1,t2: TType): TParameterizedType;
@@ -66,6 +76,24 @@ function TNameGenerator.GenerateName: String;
 begin
    Result := Self.NextName;
    Self.NextName := Char(Integer(Self.NextName) + 1);
+end;
+
+constructor TVariableGenerator.Create(initialName: Char = 'a');
+begin
+   Self.NextVariableId := 0;
+   Self.NameGenerator := TNameGenerator.Create(initialName);
+end;
+
+function TVariableGenerator.GenerateVariable: TTypeVariable;
+begin
+   Result := TTypeVariable.Create(Self.NextVariableId, @(Self.NameGenerator));
+   NextVariableId := NextVariableId + 1;
+end;
+
+procedure TVariableGenerator.ResetNameGenerator;
+begin
+   Self.NameGenerator.Free;
+   Self.NameGenerator := TNameGenerator.Create;
 end;
 
 constructor TTypeVariable.Create(id_: Integer; ng: PNameGenerator);

@@ -22,9 +22,9 @@ begin
    inherited Create;
    Self.Env := EnvNew;
    
-   v1 := Self.GenerateVariable;
-   v2 := Self.GenerateVariable;
-   v3 := Self.GenerateVariable;
+   v1 := Self.VarGen.GenerateVariable;
+   v2 := Self.VarGen.GenerateVariable;
+   v3 := Self.VarGen.GenerateVariable;
    
    Self.Env := EnvInsert(Self.Env, 'pair', CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2))));
    Self.Env := EnvInsert(Self.Env, 'true', Self.Bool);

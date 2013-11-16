@@ -2,7 +2,6 @@ program tests;
 uses
    ASTTests,
    HMTypesTests,
-   HMTests,
    HMDataStructuresTests,
    GoofyTypeSystemTests;
 

@@ -13,8 +13,6 @@ type
    
    THMTypeSystem = class
    private
-      NextVariableId: Integer;
-      NameGenerator: TNameGenerator;
       function GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
       procedure Unify(t1, t2: TType);
       function Fresh(t: TType; nongen: TTypeVariableList): TType;
@@ -23,25 +21,24 @@ type
       function OccursIn(v: TTypeVariable; types: TTypeList): Boolean;
       function OccursInType(v: TTypeVariable; t: TType): Boolean;
    protected
+      VarGen: TVariableGenerator;
       procedure PrintEnvironment(env: TTypeEnvironment);
    public
       Int: TParameterizedType;
       Bool: TParameterizedType;
       constructor Create;
-      procedure ResetNameGenerator;
-      function GenerateVariable: TTypeVariable;
       function Analyse(ast: TExpression; env: TTypeEnvironment): TType;
       function Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
+      procedure ResetGeneratorNames;
    end;
    
 implementation
 
 constructor THMTypeSystem.Create;
 begin
-   Self.NextVariableId := 0;
-   Self.NameGenerator := TNameGenerator.Create;
-   Self.Int := TParameterizedType.Create('int', []);
-   Self.Bool := TParameterizedType.Create('bool', []);
+   Self.VarGen := TVariableGenerator.Create;
+   Self.Int := CreateType('int');
+   Self.Bool := CreateType('bool');
 end;
 
 function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment): TType;
@@ -76,14 +73,14 @@ begin
       apply := ast as TApply;
       funType := analyse(apply.Fun, env, nongen);
       argType := analyse(apply.Argument, env, nongen);
-      resultType := Self.GenerateVariable;
+      resultType := Self.VarGen.GenerateVariable;
       Self.Unify(CreateFunType(argType, resultType), funType);
       Result := resultType;
    end
    else if (ast is TLambda) then
    begin
       lambda := ast as TLambda;
-      argTypeVar := Self.GenerateVariable;
+      argTypeVar := Self.VarGen.GenerateVariable;
       newEnv := EnvInsert(env, lambda.Variable, argTypeVar);
       newNongen := VarListInsert(nongen, argTypeVar);
       resultType := analyse(lambda.Body, newEnv, newNongen);
@@ -99,7 +96,7 @@ begin
    else if (ast is TLetRec) then
    begin
       letrec := ast as TLetRec;
-      newTypeVar := Self.GenerateVariable;
+      newTypeVar := Self.VarGen.GenerateVariable;
       newEnv := EnvInsert(env, letrec.Variable, newTypeVar);
       newNonGen := VarListInsert(nongen, newTypeVar);
       defnType := analyse(letrec.Definition, newEnv, newNonGen);
@@ -108,12 +105,6 @@ begin
    end
    else
       Raise Exception.Create('Analysis error: Unknown type of AST node');
-end;
-
-function THMTypeSystem.GenerateVariable: TTypeVariable;
-begin
-   Result := TTypeVariable.Create(Self.NextVariableId, @(Self.NameGenerator));
-   NextVariableId := NextVariableId + 1;
 end;
 
 function THMTypeSystem.GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
@@ -182,7 +173,7 @@ var
             end
             else
             begin
-               newVar := Self.GenerateVariable;
+               newVar := Self.VarGen.GenerateVariable;
                maps := VarMapInsert(maps, tvar, newVar);
                Result := newVar;
             end;
@@ -263,10 +254,9 @@ begin
    EnvPrint(env);
 end;
 
-procedure THMTypeSystem.ResetNameGenerator;
+procedure THMTypeSystem.ResetGeneratorNames;
 begin
-   Self.NameGenerator.Free;
-   Self.NameGenerator := TNameGenerator.Create;
+   Self.VarGen.ResetNameGenerator;
 end;
 
 initialization   
