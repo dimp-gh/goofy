@@ -10,7 +10,7 @@ procedure ASTPrettyPrintingTest;
 var
    ast: TExpression;
 begin
-   ast := TLet.Create('f', TLambda.Create('x', TIdent.Create('x')), TApply.Create(TIdent.Create('f'), TIdent.Create('5')));
+   ast := Let('f', Lambda('x', Ident('x')), Apply(Ident('f'), IntegerLiteral(5)));
    Assert(ast.ToStr = '(let f = (fn x => x) in (f 5))')
 end;
 
