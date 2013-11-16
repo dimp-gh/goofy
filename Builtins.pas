@@ -78,13 +78,14 @@ begin
    // built-in functions
    Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
    Self.Insert(Builtin('cond', BuiltinFunction('cond'), CreateFunType(Bool, CreateFunType(v3, CreateFunType(v3, v3)))));
-   Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
-   Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
+   Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool))); // X
+   Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int))); // X
+   Self.Insert(Builtin('succ', BuiltinFunction('succ'), CreateFunType(Int, Int))); // X
    Self.Insert(Builtin('times', BuiltinFunction('times'), CreateFunType(Int, CreateFunType(Int, Int))));
    
    // built-ins for debugging purposes
-   Self.Insert(Builtin('forty-two', IntegerV(42), Int));
-   Self.Insert(Builtin('factorial', BuiltinFunction('factorial'), CreateFunType(Int, Int)));
+   Self.Insert(Builtin('forty-two', IntegerV(42), Int)); // X
+   Self.Insert(Builtin('factorial', BuiltinFunction('factorial'), CreateFunType(Int, Int))); // X
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);
@@ -116,6 +117,18 @@ begin
    end
    else if (builtin = 'zero') then
       Result := BooleanV((arg as TIntegerValue).Value = 0)
+   else if (builtin = 'succ') then
+      Result := IntegerV((arg as TIntegerValue).Value + 1)
+   else if (builtin = 'pred') then
+      Result := IntegerV((arg as TIntegerValue).Value - 1)
+   else if (builtin = 'cond') then
+      // cond takes a boolean value and returns a function that takes one argument (x)
+      // and returns a function that takes one argument (y) and returns either x or y
+      // according to a given boolean value
+      if (arg as TBooleanValue).Value then //pretty cool idea, but it just doesn't work now
+         Result := FunctionV(Lambda('x', Lambda('y', Ident('x'))))
+      else
+         Result := FunctionV(Lambda('x', Lambda('y', Ident('y'))))
    else
       raise EBuiltinError('Builtin ' + builtin + ' is not implemented yet');
 end;
