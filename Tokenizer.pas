@@ -288,7 +288,6 @@ end;
 
 procedure Push(t: TToken; tokens: TTokenList);
 begin
-   //writeln('DEBUG: Inserting token ', t.Value, ' right into token list');
    tokens.Insert(0, t);
 end;
 

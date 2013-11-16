@@ -67,30 +67,15 @@ begin
          writeln(' => ', value.ToStr);
       except
          on e: ETokenizeError do
-         begin
-            writeln;
             writeln(e.Message);
-         end;
          on e: EParseError do
-         begin
-            writeln;
             writeln(e.Message);
-         end;
          on e: ETypeError do
-         begin
-            writeln;
             writeln('Typecheck error: ', e.Message);
-         end;
          on e: EEvalError do
-         begin
-            writeln;
             writeln('Evaluation error: ', e.Message);
-         end;
          on e: EBuiltinError do
-         begin
-            writeln;
-            writeln('Builtin error" ', e.Message);
-         end;
+            writeln('Builtin error: ', e.Message);
       end;      
    writeln('Exiting REPL');
 end;
