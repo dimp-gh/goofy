@@ -53,14 +53,30 @@ end;
 
 constructor TGoofyBuiltins.Create;
 var
+   v1, v2, v3: TTypeVariable;
+   vg: TVariableGenerator;
+   // NOTE: there may be a huge bug, because type builtins are created
+   // with name generator different from type system's one.
    Int, Bool: TType;
 begin
+   vg := TVariableGenerator.Create;
    Self.Builtins := nil;
    Int := CreateType('int');
-   Bool := CreateType('bool');
-   Self.Insert(Builtin('forty-two', IntegerV(42), Int));
+   Bool := CreateType('bool');      
+   v1 := vg.GenerateVariable;
+   v2 := vg.GenerateVariable;
+   v3 := vg.GenerateVariable;
+   
    Self.Insert(Builtin('true', BooleanV(True), Bool));
    Self.Insert(Builtin('false', BooleanV(False), Bool));
+   Self.Insert(Builtin('pair', EmptyFunction, CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
+   Self.Insert(Builtin('cond', EmptyFunction, CreateFunType(Bool, CreateFunType(v3, CreateFunType(v3, v3)))));
+   Self.Insert(Builtin('zero', EmptyFunction, CreateFunType(Int, Bool)));
+   Self.Insert(Builtin('pred', EmptyFunction, CreateFunType(Int, Int)));
+   Self.Insert(Builtin('times', EmptyFunction, CreateFunType(Int, CreateFunType(Int, Int))));
+   
+   Self.Insert(Builtin('forty-two', IntegerV(42), Int));
+   
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);

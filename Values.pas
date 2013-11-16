@@ -34,6 +34,7 @@ type
 function IntegerV(v: Integer): TIntegerValue;
 function BooleanV(v: Boolean): TBooleanValue;
 function FunctionV(v: TLambda): TFunctionValue;
+function EmptyFunction: TFunctionValue;
 
 implementation
 

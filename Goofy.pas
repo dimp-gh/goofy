@@ -91,11 +91,11 @@ type
          ast := Parse(tokens);
          write(ast.ToStr);
          // typechecking
-         typeSystem := TGoofyTypeSystem.Create;
+         builtins := TGoofyBuiltins.Create;
+         typeSystem := TGoofyTypeSystem.Create(builtins);
          exprType := typeSystem.GetExprType(ast);
          write(' :: ', exprType.ToStr);
          // evaluating
-         builtins := TGoofyBuiltins.Create;
          eval := TEvaluator.Create(builtins);
          value := eval.Evaluate(ast);
          writeln(' => ', value.ToStr);
