@@ -9,7 +9,8 @@ uses
    AST, Parser,
    HMTypes, GoofyTypeSystem,
    Values, Evaluator,
-   Builtins;
+   Builtins,
+   Repl;
 
 type
 
@@ -20,6 +21,7 @@ type
       Verbose: Boolean;
       procedure DoRun; override;
       procedure InterpretPath(path: String);
+      procedure GoofyRepl;
    public
       constructor Create(TheOwner: TComponent); override;
       destructor Destroy; override;
@@ -35,7 +37,7 @@ type
    begin
       // parse parameters
       fileList := TStringList.Create;
-      ErrorMsg:=CheckOptions('hv', nil, nil, fileList);
+      ErrorMsg:=CheckOptions('hvr', nil, nil, fileList);
       if ErrorMsg<>'' then begin
          ShowException(Exception.Create(ErrorMsg));
          Terminate;
@@ -44,6 +46,12 @@ type
       if HasOption('h','help') then
       begin
          WriteHelp;
+         Terminate;
+         Exit;
+      end;
+      if HasOption('r','repl') then
+      begin
+         GoofyRepl;
          Terminate;
          Exit;
       end;
@@ -60,7 +68,6 @@ type
       else
       begin
          writeln('No files specified');
-         WriteHelp;
          Terminate;
          Exit;
       end;
@@ -124,7 +131,20 @@ type
             writeln;
             writeln('Evaluation error: ', e.Message);
          end;
+         on e: EBuiltinError do
+         begin
+            writeln;
+            writeln('Builtin error" ', e.Message);
+         end;
       end;
+   end;
+   
+   procedure TMyApplication.GoofyRepl;
+   var
+      repl: TGoofyRepl;
+   begin
+      repl := TGoofyRepl.Create;
+      repl.RunRepl;
    end;
    
    constructor TMyApplication.Create(TheOwner: TComponent);

@@ -14,7 +14,7 @@ tests:
 	$(FPC) $(FPCOPTS) -otests tests.pas
 
 run: goofy
-	./goofy
+	./goofy -r
 	
 runtests: clean tests
 	./tests
