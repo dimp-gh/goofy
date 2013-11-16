@@ -3,6 +3,7 @@ unit Builtins;
 interface
 
 uses
+   SysUtils,
    HMTypes, Values, AST, EvaluatorDataStructures, HMDataStructures;
 
 type
@@ -12,6 +13,8 @@ type
       Name: String;
    end;
    
+   EBuiltinError = class(Exception);
+   
    TGoofyBuiltins = class
    private
       Builtins: array of TGoofyBuiltin;
@@ -20,6 +23,7 @@ type
       constructor Create;
       function GetBuiltinTypes: TTypeEnvironment;
       function GetBuiltinValues: TValueEnvironment;
+      function ApplyBuiltin(builtin: String; arg: TValue; env: TValueEnvironment): TValue;
    end;
    
 function Builtin(n: String; v: TValue; t: TType): TGoofyBuiltin;
@@ -69,14 +73,14 @@ begin
    
    Self.Insert(Builtin('true', BooleanV(True), Bool));
    Self.Insert(Builtin('false', BooleanV(False), Bool));
-   Self.Insert(Builtin('pair', EmptyFunction, CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
-   Self.Insert(Builtin('cond', EmptyFunction, CreateFunType(Bool, CreateFunType(v3, CreateFunType(v3, v3)))));
-   Self.Insert(Builtin('zero', EmptyFunction, CreateFunType(Int, Bool)));
-   Self.Insert(Builtin('pred', EmptyFunction, CreateFunType(Int, Int)));
-   Self.Insert(Builtin('times', EmptyFunction, CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
+   Self.Insert(Builtin('cond', BuiltinFunction('cond'), CreateFunType(Bool, CreateFunType(v3, CreateFunType(v3, v3)))));
+   Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
+   Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
+   Self.Insert(Builtin('times', BuiltinFunction('times'), CreateFunType(Int, CreateFunType(Int, Int))));
    
    Self.Insert(Builtin('forty-two', IntegerV(42), Int));
-   
+   Self.Insert(Builtin('factorial', BuiltinFunction('factorial'), CreateFunType(Int, Int)));
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);
@@ -86,6 +90,12 @@ begin
    len := Length(Self.Builtins);
    SetLength(Self.Builtins, len + 1);
    Self.Builtins[len] := b;
+end;
+
+function TGoofyBuiltins.ApplyBuiltin(builtin: String; arg: TValue; env: TValueEnvironment): TValue;
+begin
+   writeln('Applying builtin ', builtin);
+   Result := IntegerV(0);
 end;
 
 initialization
