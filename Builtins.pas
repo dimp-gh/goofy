@@ -71,14 +71,18 @@ begin
    v2 := vg.GenerateVariable;
    v3 := vg.GenerateVariable;
    
+   // built-in values
    Self.Insert(Builtin('true', BooleanV(True), Bool));
    Self.Insert(Builtin('false', BooleanV(False), Bool));
+   
+   // built-in functions
    Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
    Self.Insert(Builtin('cond', BuiltinFunction('cond'), CreateFunType(Bool, CreateFunType(v3, CreateFunType(v3, v3)))));
    Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
    Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
    Self.Insert(Builtin('times', BuiltinFunction('times'), CreateFunType(Int, CreateFunType(Int, Int))));
    
+   // built-ins for debugging purposes
    Self.Insert(Builtin('forty-two', IntegerV(42), Int));
    Self.Insert(Builtin('factorial', BuiltinFunction('factorial'), CreateFunType(Int, Int)));
 end;
@@ -92,10 +96,25 @@ begin
    Self.Builtins[len] := b;
 end;
 
+function Factorial(n: Integer): Integer;
+var
+   i: Integer;
+begin
+   Result := 1;
+   for i := 2 to n do
+      Result := Result * i;
+end;
+
 function TGoofyBuiltins.ApplyBuiltin(builtin: String; arg: TValue; env: TValueEnvironment): TValue;
 begin
-   writeln('Applying builtin ', builtin);
-   Result := IntegerV(0);
+   // dispatching by builtin name
+   if (builtin = 'factorial') then
+   begin
+      // no need to check for arg to have integer type
+      Result := IntegerV(Factorial((arg as TIntegerValue).Value));
+   end
+   else
+      raise EBuiltinError('Builtin ' + builtin + ' is not implemented yet');
 end;
 
 initialization
