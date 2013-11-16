@@ -66,11 +66,11 @@ begin
    vg := TVariableGenerator.Create;
    Self.Builtins := nil;
    Int := CreateType('int');
-   Bool := CreateType('bool');      
+   Bool := CreateType('bool');
    v1 := vg.GenerateVariable;
    v2 := vg.GenerateVariable;
    v3 := vg.GenerateVariable;
-   
+
    // built-in values
    Self.Insert(Builtin('true', BooleanV(True), Bool));
    Self.Insert(Builtin('false', BooleanV(False), Bool));
@@ -111,8 +111,11 @@ begin
    if (builtin = 'factorial') then
    begin
       // no need to check for arg to have integer type
+      // or is it?
       Result := IntegerV(Factorial((arg as TIntegerValue).Value));
    end
+   else if (builtin = 'zero') then
+      Result := BooleanV((arg as TIntegerValue).Value = 0)
    else
       raise EBuiltinError('Builtin ' + builtin + ' is not implemented yet');
 end;
