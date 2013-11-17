@@ -1,4 +1,4 @@
-unit EvaluatorDataStructures;
+unit ValueEnvironment;
 {$mode objfpc}{$H+}
 interface
 
@@ -16,6 +16,7 @@ function EnvInsert(env: TValueEnvironment; key: String; value: TValue): TValueEn
 function EnvFind(env: TValueEnvironment; key: String): Boolean;
 function EnvLookup(env: TValueEnvironment; key: String): TValue;
 function EnvDelete(env: TValueEnvironment; key: String): TValueEnvironment;
+function EnvCopy(env: TValueEnvironment): TValueEnvironment;
 procedure EnvPrint(env: TValueEnvironment);
 
 implementation
@@ -89,6 +90,17 @@ begin
          newEnv[index] := env[i];
          index := index + 1;
       end;
+   Result := newEnv;
+end;
+
+function EnvCopy(env: TValueEnvironment): TValueEnvironment;
+var
+   newEnv: TValueEnvironment;
+   i: Integer;
+begin
+   SetLength(newEnv, Length(env));
+   for i := 0 to High(Env) do
+      newEnv[i] := env[i];
    Result := newEnv;
 end;
 

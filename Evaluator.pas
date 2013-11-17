@@ -4,7 +4,7 @@ interface
 
 uses
    SysUtils,
-   Values, AST, EvaluatorDataStructures, Builtins;
+   Values, Closures, AST, ValueEnvironment, Builtins;
 
 type
    EEvalError = Exception;

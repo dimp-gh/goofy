@@ -4,7 +4,7 @@ interface
 
 uses
    SysUtils,
-   HMTypes, Values, AST, EvaluatorDataStructures, HMDataStructures;
+   HMTypes, Values, Closures, AST, ValueEnvironment, HMDataStructures;
 
 type
    TGoofyBuiltin = record
@@ -50,9 +50,9 @@ function TGoofyBuiltins.GetBuiltinValues: TValueEnvironment;
 var
    i: Integer;
 begin
-   Result := EvaluatorDataStructures.EnvNew;
+   Result := ValueEnvironment.EnvNew;
    for i := 0 to Length(Builtins) - 1 do
-      Result := EvaluatorDataStructures.EnvInsert(Result, Builtins[i].Name, Builtins[i].Value);
+      Result := ValueEnvironment.EnvInsert(Result, Builtins[i].Name, Builtins[i].Value);
 end;
 
 constructor TGoofyBuiltins.Create;
