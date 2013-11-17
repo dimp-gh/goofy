@@ -45,6 +45,7 @@ var
    input: TStringList;
 begin
    writeln('Welcome to Goofy REPL.');
+   writeln('Enter :quit to exit');
    while True do
       try
          input := Self.ReadUserInput;
@@ -77,7 +78,6 @@ begin
          on e: EBuiltinError do
             writeln('Builtin error: ', e.Message);
       end;      
-   writeln('Exiting REPL');
 end;
 
 function TGoofyRepl.ReadUserInput: TStringList;
