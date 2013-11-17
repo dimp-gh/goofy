@@ -67,7 +67,7 @@ begin
    begin
       lambda := ast as TLambda;
       // TODO: should probably create closure here
-      Result := FunctionV(lambda);
+      Result := FunctionV(lambda, EnvCopy(env));
    end
    else if (ast is TApply) then
    begin
@@ -78,7 +78,7 @@ begin
       begin
          // apply function
          fv := fun as TFunctionValue;
-         newEnv := EnvInsert(env, fv.Lambda.Variable, arg);
+         newEnv := EnvInsert(fv.Env, fv.Lambda.Variable, arg);
          Result := Evaluate(fv.Lambda.Body, newEnv);
       end
       else if (fun is TBuiltinFunctionValue) then

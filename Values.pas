@@ -23,15 +23,8 @@ type
       function ToStr: String; override;
       constructor Create(b: Boolean);
    end;
-   
-   TFunctionValue = class(TValue)
-   public
-      Lambda: TLambda;
-      function ToStr: String; override;
-      constructor Create(l: TLambda);
-   end;
-   
-   // this is not really a builtin function value
+      
+   // NOTE: this is not really a builtin function value
    // it's just a marker for evaluator to handle it like builtin
    TBuiltinFunctionValue = class(TValue)
    public
@@ -42,8 +35,6 @@ type
    
 function IntegerV(v: Integer): TIntegerValue;
 function BooleanV(v: Boolean): TBooleanValue;
-function FunctionV(v: TLambda): TFunctionValue;
-function EmptyFunction: TFunctionValue;
 function BuiltinFunction(name: String): TBuiltinFunctionValue;
 
 implementation
@@ -73,17 +64,6 @@ begin
    Self.Value := b;
 end;
 
-function TFunctionValue.ToStr: String;
-begin
-   Result := '<function value>';
-end;
-
-constructor TFunctionValue.Create(l: TLambda);
-begin
-   inherited Create;
-   Self.Lambda := l;
-end;
-
 constructor TBuiltinFunctionValue.Create(n: String);
 begin
    inherited Create;
@@ -103,16 +83,6 @@ end;
 function BooleanV(v: Boolean): TBooleanValue;
 begin
    Result := TBooleanValue.Create(v);
-end;
-
-function FunctionV(v: TLambda): TFunctionValue;
-begin
-   Result := TFunctionValue.Create(v);
-end;
-
-function EmptyFunction: TFunctionValue;
-begin
-   Result := FunctionV(Lambda('x', Ident('x')));
 end;
 
 function BuiltinFunction(name: String): TBuiltinFunctionValue;

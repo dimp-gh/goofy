@@ -125,7 +125,7 @@ begin
       // cond takes a boolean value and returns a function that takes one argument (x)
       // and returns a function that takes one argument (y) and returns either x or y
       // according to a given boolean value
-      if (arg as TBooleanValue).Value then //pretty cool idea, but it just doesn't work now
+      if (arg as TBooleanValue).Value then
          Result := FunctionV(Lambda('x', Lambda('y', Ident('x'))))
       else
          Result := FunctionV(Lambda('x', Lambda('y', Ident('y'))))
