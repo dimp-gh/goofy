@@ -27,11 +27,15 @@ type
       function IsCommandGetType(s: String): Boolean;
       function IsCommandShow(s: String): Boolean;
       function IsCommandQuit(s: String): Boolean;
+      function IsCommandMan(s: String): Boolean;
+      function IsCommandBuiltins(s: String): Boolean;
       procedure CutCommand(var input: TStringList);
    public
       constructor Create;
       procedure RunRepl;
       procedure PrintHelp;
+      procedure PrintMan;
+      procedure PrintBuiltins;
    end;
    
 implementation
@@ -64,6 +68,16 @@ begin
    Result := (s = ':quit') or (s = ':q');
 end;
 
+function TGoofyRepl.IsCommandMan(s: String): Boolean;      
+begin
+   Result := (s = ':man');
+end;
+
+function TGoofyRepl.IsCommandBuiltins(s: String): Boolean;      
+begin
+   Result := (s = ':builtins');
+end;
+
 procedure TGoofyRepl.PrintHelp;
 begin
    writeln('The followind commands are available:');
@@ -71,7 +85,20 @@ begin
    writeln('  :type <expr>, :t <expr>          infer type for given expression');
    writeln('  :show <expr>, :s <expr>          parse and prettyprint given expression');
    writeln('  :help, :h                        print that message');
+   writeln('  :man                             print small overview of language features');
+   writeln('  :builtins                        print all built-in values and their signatures');
    writeln('  :quit, :q                        quit REPL');
+end;
+
+procedure TGoofyRepl.PrintMan;
+begin
+   writeln('Goofy is a small, statically-typed language with type inference.');
+   writeln('');
+end;
+
+procedure TGoofyRepl.PrintBuiltins;
+begin
+   Self.Builtins.PrintBuiltins;
 end;
 
 procedure TGoofyRepl.CutCommand(var input: TStringList);
@@ -97,10 +124,14 @@ begin
          input := Self.ReadUserInput;
          if (input = nil) or (Trim(input[0]) = '') then
             // do nothing
-         else if IsCommandHelp(input[0]) then
-            PrintHelp
          else if IsCommandQuit(input[0]) then
             break
+         else if IsCommandHelp(input[0]) then
+            PrintHelp
+         else if IsCommandMan(input[0]) then
+            PrintMan
+         else if IsCommandBuiltins(input[0]) then
+            PrintBuiltins
          else if IsCommandGetType(input[0]) then            
          begin
             CutCommand(input);

@@ -17,6 +17,7 @@ type
    
    TGoofyBuiltins = class
    private
+      VarGen: TVariableGenerator;
       Builtins: array of TGoofyBuiltin;
       procedure Insert(b: TGoofyBuiltin);
    public
@@ -24,6 +25,7 @@ type
       function GetBuiltinTypes: TTypeEnvironment;
       function GetBuiltinValues: TValueEnvironment;
       function ApplyBuiltin(builtin: String; arg: TValue; env: TValueEnvironment): TValue;
+      procedure PrintBuiltins;
    end;
    
 function Builtin(n: String; v: TValue; t: TType): TGoofyBuiltin;
@@ -58,22 +60,21 @@ end;
 constructor TGoofyBuiltins.Create;
 var
    v1, v2, v3, v4, v5, v6, v7: TTypeVariable;
-   vg: TVariableGenerator;
    // NOTE: there may be a huge bug, because type builtins are created
    // with name generator different from type system's one.
    Int, Bool: TType;
 begin
-   vg := TVariableGenerator.Create;
-   Self.Builtins := nil;
+   VarGen := TVariableGenerator.Create;
+   Builtins := nil;
    Int := CreateType('Int');
    Bool := CreateType('Bool');
-   v1 := vg.GenerateVariable;
-   v2 := vg.GenerateVariable;
-   v3 := vg.GenerateVariable;
-   v4 := vg.GenerateVariable;
-   v5 := vg.GenerateVariable;
-   v6 := vg.GenerateVariable;
-   v7 := vg.GenerateVariable;
+   v1 := VarGen.GenerateVariable;
+   v2 := VarGen.GenerateVariable;
+   v3 := VarGen.GenerateVariable;
+   v4 := VarGen.GenerateVariable;
+   v5 := VarGen.GenerateVariable;
+   v6 := VarGen.GenerateVariable;
+   v7 := VarGen.GenerateVariable;
    
    // built-in values
    Self.Insert(Builtin('true', BooleanV(True), Bool));
@@ -83,21 +84,22 @@ begin
    Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
    Self.Insert(Builtin('fst', BuiltinFunction('fst'), CreateFunType(CreatePairType(v3, v4), v3)));
    Self.Insert(Builtin('snd', BuiltinFunction('snd'), CreateFunType(CreatePairType(v5, v6), v6)));
-   Self.Insert(Builtin('if', BuiltinFunction('if'), CreateFunType(Bool, CreateFunType(v7, CreateFunType(v7, v7))))); // X
-   Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool))); // X
-   Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int))); // X
-   Self.Insert(Builtin('succ', BuiltinFunction('succ'), CreateFunType(Int, Int))); // X
+   Self.Insert(Builtin('if', BuiltinFunction('if'), CreateFunType(Bool, CreateFunType(v7, CreateFunType(v7, v7)))));
+   Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
+   Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
+   Self.Insert(Builtin('succ', BuiltinFunction('succ'), CreateFunType(Int, Int)));
    Self.Insert(Builtin('times', BuiltinFunction('times'), CreateFunType(Int, CreateFunType(Int, Int))));
-   Self.Insert(Builtin('eq_int', BuiltinFunction('eq_int'), CreateFunType(Int, CreateFunType(Int, Bool))));
+   Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Int, CreateFunType(Int, Bool))));
    //Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Bool, CreateFunType(Bool, Bool))));
-   // NOTE: Previous line does not compile because in value environment keys are names and name '==' is allready taken
+   // NOTE: Previous line breaks compilation because in value environment keys are names and name 'eq' is allready taken
    // There are many ways to handle that:
-   // First is to create different comparison functions for different types
-   // Second is to use overloading
+   // * First is to create different comparison functions for different types
+   // * Second is to implement fucntion overloading.
+   //   (Probably through some sort of embedding function signature into environment key)
    
    // built-ins for debugging purposes
-   Self.Insert(Builtin('forty-two', IntegerV(42), Int)); // X
-   Self.Insert(Builtin('factorial', BuiltinFunction('factorial'), CreateFunType(Int, Int))); // X
+   Self.Insert(Builtin('forty-two', IntegerV(42), Int));
+   Self.Insert(Builtin('factorial', BuiltinFunction('factorial'), CreateFunType(Int, Int)));
    Self.Insert(Builtin('one-two', PairV(IntegerV(1), IntegerV(2)), CreatePairType(Int, Int)));
 end;
 
@@ -151,6 +153,32 @@ begin
       Result := (arg as TPairValue).Snd
    else
       raise EBuiltinError.Create('Built-in function ''' + builtin + ''' is not implemented yet');
+end;
+
+function RPadTo(n: Integer; s: String): String;
+// right pad given string s with spaces to n characters
+begin
+   Result := s;
+   while Length(Result) < n do
+      Result += ' ';
+end;
+
+procedure TGoofyBuiltins.PrintBuiltins;
+const
+   nameDelim = 16;
+   typeDelim = 30;
+var
+   i: Integer;
+begin
+   writeln(RPadTo(nameDelim, 'Name'), RPadTo(typeDelim, 'Type'), 'Value');
+   writeln(RPadTo(nameDelim, '----'), RPadTo(typeDelim, '----'), '-----');
+   for i := Low(Builtins) to High(Builtins) do
+   begin
+      writeln(RPadTo(nameDelim, Builtins[i].Name),
+              RPadTo(typeDelim, Builtins[i].ItsType.ToStr),
+              Builtins[i].Value.ToStr);
+      VarGen.ResetNameGenerator;
+   end;
 end;
 
 initialization
