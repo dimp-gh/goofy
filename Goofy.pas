@@ -83,9 +83,7 @@ type
       tokens: TTokenList;
       ast: TExpression;
       typeSystem: TGoofyTypeSystem;
-      exprType: TType;
       eval: TEvaluator;
-      value: TValue;
       builtins: TGoofyBuiltins;
    begin
       try
@@ -96,16 +94,13 @@ type
          ReportTokenizeErrors(path, tokens);
          // parsing
          ast := Parse(tokens);
-         write(ast.ToStr);
          // typechecking
          builtins := TGoofyBuiltins.Create;
          typeSystem := TGoofyTypeSystem.Create(builtins);
-         exprType := typeSystem.GetExprType(ast);
-         write(' :: ', exprType.ToStr);
+         typeSystem.GetExprType(ast);
          // evaluating
          eval := TEvaluator.Create(builtins);
-         value := eval.Evaluate(ast);
-         writeln(' => ', value.ToStr);
+         eval.Evaluate(ast);
       except
          on e: EFOpenError do begin
             writeln;
