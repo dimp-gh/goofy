@@ -117,7 +117,6 @@ begin
    
    // built-ins for debugging purposes
    Self.Insert(Builtin('forty-two', IntegerV(42), Int));
-   Self.Insert(Builtin('factorial', BuiltinFunction('factorial'), CreateFunType(Int, Int)));
    Self.Insert(Builtin('one-two', PairV(IntegerV(1), IntegerV(2)), CreatePairType(Int, Int)));
 end;
 
@@ -130,15 +129,6 @@ begin
    Self.Builtins[len] := b;
 end;
 
-function Factorial(n: Integer): Integer;
-var
-   i: Integer;
-begin
-   Result := 1;
-   for i := 2 to n do
-      Result := Result * i;
-end;
-
 function TGoofyBuiltins.ApplyBuiltin(builtin: String;
                                      arg: TExpression;
                                      env: TValueEnvironment;
@@ -149,13 +139,9 @@ var
 begin
    e := evalo as TEvaluator;
    // dispatching by builtin name
-   if (builtin = 'factorial') then
-   begin
+   if (builtin = 'zero') then
       // no need to check for arg to have integer type
       // or is it?
-      Result := IntegerV(Factorial((e.Evaluate(arg, env) as TIntegerValue).Value));
-   end
-   else if (builtin = 'zero') then
       Result := BooleanV((e.Evaluate(arg, env) as TIntegerValue).Value = 0)
    else if (builtin = 'succ') then
       Result := IntegerV((e.Evaluate(arg, env) as TIntegerValue).Value + 1)
