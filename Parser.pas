@@ -34,9 +34,10 @@ function Parse(tokens: TTokenList): TExpression;
 var
    res: TExpression;
 begin
-   if not ParseExpression(tokens, res) then
+   if ParseExpression(tokens, res) then
+      Result := res
+   else
       raise EParseError.Create('Cannot parse that stuff');
-   Result := res;
 end;
 
 function ParseExpression(tokens: TTokenList; var expr: TExpression): Boolean;

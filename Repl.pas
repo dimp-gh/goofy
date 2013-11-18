@@ -125,8 +125,7 @@ begin
             if Self.Verbose then
                PrintTokenList(tokens);
             ReportTokenizeErrors('<user input>', tokens);
-            // parsing
-            ast := Parse(tokens);
+            ast := Parser.Parse(tokens);
             writeln(ast.ToStr);
          end
          else // command is an expression
@@ -152,13 +151,15 @@ begin
          on e: ETokenizeError do
             writeln(e.Message);
          on e: EParseError do
-            writeln(e.Message);
+            writeln('Parsing error: ', e.Message);
          on e: ETypeError do
             writeln('Typecheck error: ', e.Message);
          on e: EEvalError do
             writeln('Evaluation error: ', e.Message);
          on e: EBuiltinError do
             writeln('Builtin error: ', e.Message);
+         on e: Exception do
+            writeln('Weird error: ', e.Message);
       end;      
 end;
 

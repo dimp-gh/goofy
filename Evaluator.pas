@@ -7,7 +7,7 @@ uses
    Values, Closures, AST, ValueEnvironment, Builtins;
 
 type
-   EEvalError = Exception;
+   EEvalError = class(Exception);
    
    TEvaluator = class
    private
