@@ -32,7 +32,18 @@ type
       function ToStr: String; override;
       constructor Create(n: String);
    end;
-      
+   
+   // Partially applied builtin.
+   // This is a way to implement builtin functions like `pair` and `times`
+   // Not a pretty solution, but i see no other way.
+   TPABuiltinFunctionValue = class(TValue)
+   public
+      Name: String;
+      Defval: TValue;
+      function ToStr: String; override;
+      constructor Create(n: String; dv: TValue);
+   end;
+   
    TPairValue = class(TValue)
    public
       Fst: TValue;
@@ -40,12 +51,14 @@ type
       function ToStr: String; override;
       constructor Create(f, s: TValue);
    end;
-   
+      
 function IntegerV(v: Integer): TIntegerValue;
 function BooleanV(v: Boolean): TBooleanValue;
 function BuiltinFunction(name: String): TBuiltinFunctionValue;
+function PABuiltinFunction(name: String; v: TValue): TPABuiltinFunctionValue;
 function PairV(v1, v2: TValue): TPairValue;
-   
+function EmptyValue: TValue;
+
 implementation
 
 function TIntegerValue.ToStr: String;
@@ -84,6 +97,18 @@ begin
    Result := '<built-in function ''' + Self.Name + '''>';
 end;
 
+constructor TPABuiltinFunctionValue.Create(n: String; dv: TValue);
+begin
+   inherited Create;
+   Self.Name := n;
+   Self.Defval := dv;
+end;
+
+function TPABuiltinFunctionValue.ToStr: String;
+begin
+   Result := '<partially applied built-in function ''' + Name + ''' with value ' + DefVal.ToStr + '>';
+end;
+
 function IntegerV(v: Integer): TIntegerValue;
 begin
    Result := TIntegerValue.Create(v);
@@ -97,6 +122,11 @@ end;
 function BuiltinFunction(name: String): TBuiltinFunctionValue;
 begin
    Result := TBuiltinFunctionValue.Create(name);
+end;
+
+function PABuiltinFunction(name: String; v: TValue): TPABuiltinFunctionValue;
+begin
+   Result := TPABuiltinFunctionValue.Create(name, v);
 end;
 
 function TPairValue.ToStr: String;
@@ -113,6 +143,11 @@ end;
 function PairV(v1, v2: TValue): TPairValue;
 begin
    Result := TPairValue.Create(v1, v2);
+end;
+
+function EmptyValue: TValue;
+begin
+   Result := BooleanV(False);
 end;
 
 initialization
