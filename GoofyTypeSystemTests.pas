@@ -15,8 +15,8 @@ begin
    fact := Letrec('fact', // letrec factorial =
                   Lambda('n',    // fn n =>
                          Apply(
-                            Apply(   // cond (zero n) 1
-                               Apply(Ident('cond'),     // cond (zero n)
+                            Apply(   // if (zero n) 1
+                               Apply(Ident('if'),     // if (zero n)
                                      Apply(Ident('zero'), Ident('n'))),
                                IntegerLiteral(1)),
                             Apply(    // times n
@@ -28,9 +28,10 @@ begin
                         ),      // in
                   Apply(Ident('fact'), IntegerLiteral(5))
                  );
+   writeln(fact.ToStr);
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(fact) = 'int');
+   Assert(goofyTS.GetExprTypeStr(fact) = 'Int');
 end;
 
 procedure TypeMismatchTest;
@@ -47,7 +48,7 @@ begin
                      Apply(Ident('x'), Ident('true'))));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(pairfun) = 'Type error: Type mismatch: bool /= int');      
+   Assert(goofyTS.GetExprTypeStr(pairfun) = 'Type error: Type mismatch: Bool /= Int');      
 end;
 
 procedure UndefinedSymbolTest;
@@ -79,7 +80,7 @@ begin
                   Apply(Ident('f'), Ident('true'))));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(pair) = '(int * bool)');      
+   Assert(goofyTS.GetExprTypeStr(pair) = '(Int * Bool)');      
 end;
          
 procedure RecursiveUnificationTest;
@@ -107,7 +108,7 @@ begin
                    Apply(Ident('g'), Ident('g')));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(ast) = 'int');      
+   Assert(goofyTS.GetExprTypeStr(ast) = 'Int');      
 end;
 
 procedure GenericsTest;
@@ -168,7 +169,7 @@ begin
    ast := Apply(IntegerLiteral(5), IntegerLiteral(10));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(ast) = 'Type error: Type mismatch: (int -> a) /= int');
+   Assert(goofyTS.GetExprTypeStr(ast) = 'Type error: Type mismatch: (Int -> a) /= Int');
 end;
 
 initialization
