@@ -69,7 +69,7 @@ end;
 
 constructor TGoofyBuiltins.Create;
 var
-   v1, v2, v3, v4, v5, v6, v7, v8, v9: TTypeVariable;
+   v1, v2, v3, v4, v5, v6, v7, v8, v9, v10: TTypeVariable;
    // NOTE: there may be a huge bug, because type builtins are created
    // with name generator different from type system's one.
    Int, Bool: TType;
@@ -87,6 +87,8 @@ begin
    v7 := VarGen.GenerateVariable;
    v8 := VarGen.GenerateVariable;
    v9 := VarGen.GenerateVariable;
+   v10 := VarGen.GenerateVariable;
+   // TODO: add method TVariableGenerator.GenerateNVars
    
    // built-in values
    Self.Insert(Builtin('true', BooleanV(True), Bool));
@@ -110,6 +112,8 @@ begin
    // * First is to create different comparison functions for different types
    // * Second is to implement fucntion overloading.
    //   (Probably through some sort of embedding function signature into environment key)
+   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v10, Bool)));
+   // TODO: Create some sort of Unit type (type with one value).
    
    // built-ins for debugging purposes
    Self.Insert(Builtin('forty-two', IntegerV(42), Int));
@@ -184,6 +188,11 @@ begin
       Result := PABuiltinFunction('pair', e.Evaluate(arg, env))
    else if (builtin = 'times') then
       Result := PABuiltinFunction('times', e.Evaluate(arg, env))
+   else if (builtin = 'println') then
+   begin
+      writeln(e.Evaluate(arg, env).ToStr);
+      Result := BooleanV(True);
+   end
    else
       raise EBuiltinError.Create('Built-in function ''' + builtin + ''' is not implemented yet');
 end;
