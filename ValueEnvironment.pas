@@ -16,6 +16,7 @@ function EnvInsert(env: TValueEnvironment; key: String; value: TValue): TValueEn
 function EnvFind(env: TValueEnvironment; key: String): Boolean;
 function EnvLookup(env: TValueEnvironment; key: String): TValue;
 function EnvDelete(env: TValueEnvironment; key: String): TValueEnvironment;
+function EnvUpdate(env: TValueEnvironment; key: String; value: TValue): TValueEnvironment;
 function EnvCopy(env: TValueEnvironment): TValueEnvironment;
 procedure EnvPrint(env: TValueEnvironment);
 
@@ -35,12 +36,15 @@ begin
    if (len <> 0) then
    begin
       if EnvFind(env, key) then
-         raise Exception.Create('Cannot insert an existing key:' + key);
-      SetLength(newEnv, len + 1);
-      for i := 0 to len - 1 do
-         newEnv[i] := env[i];
-      newEnv[len].Key := key;
-      newEnv[len].Value := value;
+         Result := EnvUpdate(env, key, value)
+      else
+      begin
+         SetLength(newEnv, len + 1);
+         for i := 0 to len - 1 do
+            newEnv[i] := env[i];
+         newEnv[len].Key := key;
+         newEnv[len].Value := value;
+      end;
    end
    else
    begin
@@ -101,6 +105,21 @@ begin
    SetLength(newEnv, Length(env));
    for i := 0 to High(Env) do
       newEnv[i] := env[i];
+   Result := newEnv;
+end;
+
+function EnvUpdate(env: TValueEnvironment; key: String; value: TValue): TValueEnvironment;
+var
+   newEnv: TValueEnvironment;
+   i: Integer;
+begin
+   SetLength(newEnv, Length(env));
+   for i := 0 to High(Env) do
+   begin
+      newEnv[i] := env[i];
+      if env[i].Key = key then
+         newEnv[i].Value := value;
+   end;
    Result := newEnv;
 end;
 

@@ -69,7 +69,7 @@ end;
 
 constructor TGoofyBuiltins.Create;
 var
-   v1, v2, v3, v4, v5, v6, v7: TTypeVariable;
+   v1, v2, v3, v4, v5, v6, v7, v8, v9: TTypeVariable;
    // NOTE: there may be a huge bug, because type builtins are created
    // with name generator different from type system's one.
    Int, Bool: TType;
@@ -85,6 +85,8 @@ begin
    v5 := VarGen.GenerateVariable;
    v6 := VarGen.GenerateVariable;
    v7 := VarGen.GenerateVariable;
+   v8 := VarGen.GenerateVariable;
+   v9 := VarGen.GenerateVariable;
    
    // built-in values
    Self.Insert(Builtin('true', BooleanV(True), Bool));
@@ -95,6 +97,8 @@ begin
    Self.Insert(Builtin('fst', BuiltinFunction('fst'), CreateFunType(CreatePairType(v3, v4), v3)));
    Self.Insert(Builtin('snd', BuiltinFunction('snd'), CreateFunType(CreatePairType(v5, v6), v6)));
    Self.Insert(Builtin('if', BuiltinFunction('if'), CreateFunType(Bool, CreateFunType(v7, CreateFunType(v7, v7)))));
+   Self.Insert(Builtin('ift', BuiltinFunction('ift'), CreateFunType(v8, CreateFunType(v8, v8))));
+   Self.Insert(Builtin('iff', BuiltinFunction('iff'), CreateFunType(v9, CreateFunType(v9, v9))));
    Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
    Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
    Self.Insert(Builtin('succ', BuiltinFunction('succ'), CreateFunType(Int, Int)));
@@ -155,15 +159,23 @@ begin
       Result := IntegerV((e.Evaluate(arg, env) as TIntegerValue).Value - 1)
    else if (builtin = 'if') then
    begin
-      // if takes a boolean value (b) and returns a function
+      // 'if' takes a boolean value (b) and returns a function
       // that takes one argument (x) and returns a function
       // that takes one argument (y) and returns either x or y
-      // (according to given boolean value b.
-      if (arg as TBooleanValue).Value then
-         Result := FunctionV(Lambda('x', Lambda('y', Ident('x'))))
+      // (according to given boolean value b).
+      // NOTE: this is broken since we pass arguments in builtin by-name, not by-value
+      // Alright, new solution. If condition is true - return builtin function 'ift',
+      // otherwise return built-in function 'iff'.
+      cond := e.Evaluate(arg, env) as TBooleanValue;
+      if cond.Value then
+         Result := BuiltinFunction('ift')
       else
-         Result := FunctionV(Lambda('x', Lambda('y', Ident('y'))));
+         Result := BuiltinFunction('iff');
    end
+   else if (builtin = 'ift') then
+      Result := PABuiltinFunction('ift', e.Evaluate(arg, env))
+   else if (builtin = 'iff') then
+      Result := PABuiltinFunction('iff', EmptyValue)
    else if (builtin = 'fst') then
       Result := (e.Evaluate(arg, env) as TPairValue).Fst
    else if (builtin = 'snd') then
