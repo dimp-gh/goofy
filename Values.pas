@@ -32,11 +32,20 @@ type
       function ToStr: String; override;
       constructor Create(n: String);
    end;
+      
+   TPairValue = class(TValue)
+   public
+      Fst: TValue;
+      Snd: TValue;
+      function ToStr: String; override;
+      constructor Create(f, s: TValue);
+   end;
    
 function IntegerV(v: Integer): TIntegerValue;
 function BooleanV(v: Boolean): TBooleanValue;
 function BuiltinFunction(name: String): TBuiltinFunctionValue;
-
+function PairV(v1, v2: TValue): TPairValue;
+   
 implementation
 
 function TIntegerValue.ToStr: String;
@@ -88,6 +97,22 @@ end;
 function BuiltinFunction(name: String): TBuiltinFunctionValue;
 begin
    Result := TBuiltinFunctionValue.Create(name);
+end;
+
+function TPairValue.ToStr: String;
+begin
+   Result := '(' + fst.ToStr + ', ' + snd.ToStr + ')';
+end;
+
+constructor TPairValue.Create(f, s: TValue);
+begin
+   Fst := f;
+   Snd := s;
+end;
+
+function PairV(v1, v2: TValue): TPairValue;
+begin
+   Result := TPairValue.Create(v1, v2);
 end;
 
 initialization

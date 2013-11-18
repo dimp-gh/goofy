@@ -37,8 +37,8 @@ implementation
 constructor THMTypeSystem.Create;
 begin
    Self.VarGen := TVariableGenerator.Create;
-   Self.Int := CreateType('int');
-   Self.Bool := CreateType('bool');
+   Self.Int := CreateType('Int');
+   Self.Bool := CreateType('Bool');
 end;
 
 function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment): TType;
