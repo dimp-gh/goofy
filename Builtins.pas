@@ -24,13 +24,23 @@ type
       constructor Create;
       function GetBuiltinTypes: TTypeEnvironment;
       function GetBuiltinValues: TValueEnvironment;
-      function ApplyBuiltin(builtin: String; arg: TValue; env: TValueEnvironment): TValue;
+      function ApplyBuiltin(builtin: String;
+                            arg: TExpression;
+                            env: TValueEnvironment;
+                            evalo: TObject): TValue;
+      function ApplyPABuiltin(builtin: String;
+                              oldarg: TValue;
+                              arg: TExpression;
+                              env: TValueEnvironment;
+                              evalo: TObject): TValue;
       procedure PrintBuiltins;
    end;
    
 function Builtin(n: String; v: TValue; t: TType): TGoofyBuiltin;
 
 implementation
+
+uses Evaluator;
 
 function Builtin(n: String; v: TValue; t: TType): TGoofyBuiltin;
 begin
@@ -121,21 +131,28 @@ begin
       Result := Result * i;
 end;
 
-function TGoofyBuiltins.ApplyBuiltin(builtin: String; arg: TValue; env: TValueEnvironment): TValue;
+function TGoofyBuiltins.ApplyBuiltin(builtin: String;
+                                     arg: TExpression;
+                                     env: TValueEnvironment;
+                                     evalo: TObject): TValue;
+var
+   e: TEvaluator;
+   cond: TBooleanValue;
 begin
+   e := evalo as TEvaluator;
    // dispatching by builtin name
    if (builtin = 'factorial') then
    begin
       // no need to check for arg to have integer type
       // or is it?
-      Result := IntegerV(Factorial((arg as TIntegerValue).Value));
+      Result := IntegerV(Factorial((e.Evaluate(arg, env) as TIntegerValue).Value));
    end
    else if (builtin = 'zero') then
-      Result := BooleanV((arg as TIntegerValue).Value = 0)
+      Result := BooleanV((e.Evaluate(arg, env) as TIntegerValue).Value = 0)
    else if (builtin = 'succ') then
-      Result := IntegerV((arg as TIntegerValue).Value + 1)
+      Result := IntegerV((e.Evaluate(arg, env) as TIntegerValue).Value + 1)
    else if (builtin = 'pred') then
-      Result := IntegerV((arg as TIntegerValue).Value - 1)
+      Result := IntegerV((e.Evaluate(arg, env) as TIntegerValue).Value - 1)
    else if (builtin = 'if') then
    begin
       // if takes a boolean value (b) and returns a function
@@ -148,11 +165,36 @@ begin
          Result := FunctionV(Lambda('x', Lambda('y', Ident('y'))));
    end
    else if (builtin = 'fst') then
-      Result := (arg as TPairValue).Fst
+      Result := (e.Evaluate(arg, env) as TPairValue).Fst
    else if (builtin = 'snd') then
-      Result := (arg as TPairValue).Snd
+      Result := (e.Evaluate(arg, env) as TPairValue).Snd
+   else if (builtin = 'pair') then
+      Result := PABuiltinFunction('pair', e.Evaluate(arg, env))
+   else if (builtin = 'times') then
+      Result := PABuiltinFunction('times', e.Evaluate(arg, env))
    else
       raise EBuiltinError.Create('Built-in function ''' + builtin + ''' is not implemented yet');
+end;
+
+function TGoofyBuiltins.ApplyPABuiltin(builtin: String;
+                                       oldarg: TValue;
+                                       arg: TExpression;
+                                       env: TValueEnvironment;
+                                       evalo: TObject): TValue;
+var
+   e: TEvaluator;
+begin
+   e := evalo as TEvaluator;
+   if (builtin = 'pair') then
+      Result := PairV(oldarg, e.Evaluate(arg, env))
+   else if (builtin = 'times') then
+      Result := IntegerV((oldarg as TIntegerValue).Value * (e.Evaluate(arg, env) as TIntegerValue).Value)
+   else if (builtin = 'ift') then // iftrue - ignoring new argument, returning old one 
+      Result := oldArg
+   else if (builtin = 'iff') then // iffalse - ignoring old argument, evaluating new one
+      Result := e.Evaluate(arg, env)
+   else
+      raise EBuiltinError.Create('Partially applied built-in function ''' + builtin + ''' is not implemented yet');
 end;
 
 function RPadTo(n: Integer; s: String): String;

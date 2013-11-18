@@ -38,6 +38,7 @@ var
    fv: TFunctionValue;
    arg: TValue;
    bfv: TBuiltinFunctionValue;
+   pabfv: TPABuiltinFunctionValue;
 begin
    if (ast is TIntegerLiteral) then
       Result := IntegerV((ast as TIntegerLiteral).Value)
@@ -66,16 +67,17 @@ begin
    else if (ast is TLambda) then
    begin
       lambda := ast as TLambda;
-      // TODO: should probably create closure here
+      // Creating closure with current environment
       Result := FunctionV(lambda, EnvCopy(env));
    end
    else if (ast is TApply) then
    begin
       apply := ast as TApply;
       fun := Evaluate(apply.Fun, env);
-      arg := Evaluate(apply.Argument, env);
       if (fun is TFunctionValue) then
       begin
+         // evaluate argument
+         arg := Evaluate(apply.Argument, env);
          // apply function
          fv := fun as TFunctionValue;
          newEnv := EnvInsert(fv.Env, fv.Lambda.Variable, arg);
@@ -84,7 +86,12 @@ begin
       else if (fun is TBuiltinFunctionValue) then
       begin
          bfv := fun as TBuiltinFunctionValue;
-         Result := Self.Builtins.ApplyBuiltin(bfv.Name, arg, env);
+         Result := Self.Builtins.ApplyBuiltin(bfv.Name, apply.Argument, env, Self);
+      end
+      else if (fun is TPABuiltinFunctionValue) then
+      begin
+         pabfv := fun as TPABuiltinFunctionValue;
+         Result := Self.Builtins.ApplyPABuiltin(pabfv.Name, pabfv.DefVal, apply.Argument, env, Self);
       end
       else
          raise EEvalError.Create('Value ' + fun.ToStr + ' is not a function and cannot be applied');
