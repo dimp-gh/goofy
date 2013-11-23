@@ -52,10 +52,10 @@ type
    TLetRec = class(TExpression)
    public
       Variable: String;
-      Definition: TExpression;
+      Definition: TLambda;
       Body: TExpression;
       function ToStr: String; override;
-      constructor Create(v: String; defn: TExpression; b: TExpression);
+      constructor Create(v: String; defn: TLambda; b: TExpression);
    end;
 
 function Ident(n: String): TIdentifier;
@@ -64,7 +64,7 @@ function IntegerLiteral(v: String): TIntegerLiteral;
 function Lambda(v: String; b: TExpression): TLambda;
 function Apply(fn: TExpression; arg: TExpression): TApply;
 function Let(v: String; defn: TExpression; b: TExpression): TLet;
-function LetRec(v: String; defn: TExpression; b: TExpression): TLetRec;
+function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
 
 implementation
 
@@ -127,7 +127,7 @@ begin
    Result := '(' + 'let ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
 end;
 
-constructor TLetRec.Create(v: String; defn, b: TExpression);
+constructor TLetRec.Create(v: String; defn: TLambda; b: TExpression);
 begin
    Self.Variable := v;
    Self.Definition := defn;
@@ -171,7 +171,7 @@ begin
    Result := TLet.Create(v, defn, b);
 end;
 
-function LetRec(v: String; defn: TExpression; b: TExpression): TLetRec;
+function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
 begin
    Result := TLetRec.Create(v, defn, b);
 end;

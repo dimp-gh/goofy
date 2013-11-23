@@ -59,17 +59,12 @@ begin
       letrec := ast as TLetRec;
       // evaluate let.Definition
       v := Evaluate(letrec.Definition, env);
-      if (v is TFunctionValue) then
-      begin
-         fv := v as TFunctionValue;
-         fv.Env := EnvInsert(fv.Env, letrec.Variable, fv);
-         // bind it's value to a let.Variable in a new environment
-         newEnv := EnvInsert(env, letrec.Variable, fv);
-         // evaluate let.Body with new environment
-         Result := Evaluate(letrec.Body, newEnv);
-      end
-      else
-         raise EEvalError.Create('letrec didn''t receive function in binding');
+      fv := v as TFunctionValue;
+      fv.Env := EnvInsert(fv.Env, letrec.Variable, fv);
+      // bind it's value to a let.Variable in a new environment
+      newEnv := EnvInsert(env, letrec.Variable, fv);
+      // evaluate let.Body with new environment
+      Result := Evaluate(letrec.Body, newEnv);
    end
    else if (ast is TLambda) then
    begin

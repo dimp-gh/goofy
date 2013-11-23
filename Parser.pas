@@ -6,10 +6,11 @@ interface
 Current CFG: (non-terminals are starting with capital letters, others are terminals)
 Expr ::= Identifier
 Expr ::= Int
-Expr ::= (fn Identifier => Expr)
+Expr ::= Lambda
 Expr ::= (Expr Expr)
 Expr ::= (let Identifier = Expr in Expr)
-Expr ::= (letrec Identifier = Expr in Expr)
+Expr ::= (letrec Identifier = Lambda in Expr)
+Lambda ::= (fn Identifier => Expr)
 }
 
 uses Tokenizer, AST, SysUtils, TypInfo;
@@ -287,7 +288,7 @@ var
    letrecWord: TToken;
    name: TToken;
    eqSign: TToken;
-   binding: TExpression;
+   lambda: TLambda;
    inWord: TToken;
    inExpr: TExpression;
    openParen, closeParen: TToken;
@@ -347,14 +348,14 @@ begin
    end;
    //writeln('equal sign parsed');
    // <expr>
-   if not ParseExpression(tokens, binding) then
+   if not ParseLambda(tokens, lambda) then
    begin
       //writeln('Parsing letrec failed');
       //writeln('}');
       Result := False;
       Exit;
    end;
-   //writeln('Binding parsed');
+   //writeln('Lambda parsed');
    // in
    inWord := Pop(tokens);
    if inWord.Kind <> ttIn then
@@ -396,7 +397,7 @@ begin
    end;
    //writeln('Close paren parsed');
    // filling results
-   letrec_ := LetRec(name.Value, binding, inExpr);
+   letrec_ := LetRec(name.Value, lambda, inExpr);
    Result := True;
    //writeln('Parsing letrec succeeded');
    //writeln('Parsed letrec: ', letrec_.ToStr, '');
@@ -534,7 +535,7 @@ begin
       //writeln('}');
       Result := False;
       Exit;
-   end;
+   end;   
    //writeln('argument parsed');
    // )
    closeParen := Pop(tokens);
