@@ -2,10 +2,11 @@ FPC=fpc
 FPCOPTS=-Mobjfpc -O1
 
 Goofy:
-	lazbuild Goofy.lpr
+	lazbuild sources/Goofy.lpr
+	cp sources/Goofy ./goofy 
 
 clean:
-	rm -rf lib Goofy tests *.o *.ppu *.compiled
+	rm -rf lib goofy tests sources/*.o sources/*.ppu sources/*.compiled sources/Goofy
 
 extraclean: clean
 	rm -rf *.bak *~
@@ -15,7 +16,7 @@ tests:
 #	$(FPC) $(FPCOPTS) -otests tests.pas
 
 run: Goofy
-	./Goofy -r
+	./goofy -r
 	
 runtests: clean tests
 	./tests
