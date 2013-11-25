@@ -24,6 +24,8 @@ else                            return(ELSE_SYM);
 				  return(IDENT);
 				end;
 
+"()"                            return(UNIT_SYM);
+
 " "             		;
 
 .				|

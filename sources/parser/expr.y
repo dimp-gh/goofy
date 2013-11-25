@@ -32,6 +32,7 @@ uses
 %token IF_SYM
 %token THEN_SYM
 %token ELSE_SYM
+%token UNIT_SYM
 
 %token ILLEGAL 		/* illegal token */
 
@@ -63,6 +64,7 @@ expr3   :  expr3 '`' expr4 '`' expr4		 { $$ := Apply(Apply($3, $1), $5); }
 expr4   :  NUM					{ $$ := IntegerLiteral($1); }
     	|  IDENT                        	{ $$ := Identifier($1); }
 	|  '(' expr ')'         		{ $$ := $2; }
+	|  UNIT_SYM 				{ $$ := UnitLiteral; }
 
 lambda  :  LAMBDA_SYM IDENT LAMBDA_ARROW_SYM expr          { $$ := Lambda($2, $4); }
 	|  '(' lambda ')'                                  { $$ := $2; }

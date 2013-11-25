@@ -26,6 +26,7 @@ type
    public
       Int: TParameterizedType;
       Bool: TParameterizedType;
+      UnitType: TParameterizedType; { cannot name this one Unit }
       constructor Create;
       function Analyse(ast: TExpression; env: TTypeEnvironment): TType;
       function Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
@@ -39,6 +40,7 @@ begin
    Self.VarGen := TVariableGenerator.Create;
    Self.Int := CreateType('Int');
    Self.Bool := CreateType('Bool');
+   Self.UnitType := CreateType('Unit');
 end;
 
 function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment): TType;
@@ -64,6 +66,8 @@ begin
    begin
       Result := Self.Int;
    end
+   else if (ast is TUnitLiteral) then
+      Result := Self.UnitType
    else if (ast is TIdentifier) then
    begin
       id := ast as TIdentifier;

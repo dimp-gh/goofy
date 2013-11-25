@@ -23,7 +23,13 @@ type
       function ToStr: String; override;
       constructor Create(b: Boolean);
    end;
-      
+   
+   TUnitValue = class(TValue)
+   public
+      function ToStr: String; override;
+      constructor Create;
+   end;
+   
    // NOTE: this is not really a builtin function value
    // it's just a marker for evaluator to handle it like builtin
    TBuiltinFunctionValue = class(TValue)
@@ -57,7 +63,7 @@ function BooleanV(v: Boolean): TBooleanValue;
 function BuiltinFunction(name: String): TBuiltinFunctionValue;
 function PABuiltinFunction(name: String; v: TValue): TPABuiltinFunctionValue;
 function PairV(v1, v2: TValue): TPairValue;
-function EmptyValue: TValue;
+function UnitV: TUnitValue;
 
 implementation
 
@@ -84,6 +90,16 @@ constructor TBooleanValue.Create(b: Boolean);
 begin
    inherited Create;
    Self.Value := b;
+end;
+
+function TUnitValue.ToStr: String;
+begin
+   Result := '()';
+end;
+
+constructor TUnitValue.Create;
+begin
+   inherited Create;
 end;
 
 constructor TBuiltinFunctionValue.Create(n: String);
@@ -145,9 +161,9 @@ begin
    Result := TPairValue.Create(v1, v2);
 end;
 
-function EmptyValue: TValue;
+function UnitV: TUnitValue;
 begin
-   Result := BooleanV(False);
+   Result := TUnitValue.Create;
 end;
 
 initialization

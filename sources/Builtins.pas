@@ -68,12 +68,13 @@ var
    v1, v2, v3, v4, v5, v6, v7: TTypeVariable;
    // NOTE: there may be a huge bug, because type builtins are created
    // with name generator different from type system's one.
-   Int, Bool: TType;
+   Int, Bool, UnitType: TType;
 begin
    VarGen := TVariableGenerator.Create;
    Builtins := nil;
    Int := CreateType('Int');
    Bool := CreateType('Bool');
+   UnitType := CreateType('Unit');
    v1 := VarGen.GenerateVariable;
    v2 := VarGen.GenerateVariable;
    v3 := VarGen.GenerateVariable;
@@ -102,8 +103,7 @@ begin
    // * First is to create different comparison functions for different types
    // * Second is to implement fucntion overloading.
    //   (Probably through some sort of embedding function signature into environment key)
-   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v7, Bool)));
-   // TODO: Create some sort of Unit type (type with one value).
+   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v7, UnitType)));
    
    // built-ins for debugging purposes
    Self.Insert(Builtin('forty-two', IntegerV(42), Int));
@@ -143,7 +143,7 @@ begin
    else if (builtin = 'println') then
    begin
       writeln(arg.ToStr);
-      Result := BooleanV(True);
+      Result := UnitV;
    end
    else
       raise EBuiltinError.Create('Built-in function ''' + builtin + ''' is not implemented yet');
