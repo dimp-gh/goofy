@@ -4,7 +4,7 @@ interface
 
 uses
    SysUtils,
-   HMTypes, Values, Closures, AST, ValueEnvironment, HMDataStructures;
+   HMTypes, Values, ValueEnvironment, HMDataStructures;
 
 type
    TGoofyBuiltin = record
@@ -25,22 +25,18 @@ type
       function GetBuiltinTypes: TTypeEnvironment;
       function GetBuiltinValues: TValueEnvironment;
       function ApplyBuiltin(builtin: String;
-                            arg: TExpression;
-                            env: TValueEnvironment;
-                            evalo: TObject): TValue;
+                            arg: TValue;
+                            env: TValueEnvironment): TValue;
       function ApplyPABuiltin(builtin: String;
                               oldarg: TValue;
-                              arg: TExpression;
-                              env: TValueEnvironment;
-                              evalo: TObject): TValue;
+                              arg: TValue;
+                              env: TValueEnvironment): TValue;
       procedure PrintBuiltins;
    end;
    
 function Builtin(n: String; v: TValue; t: TType): TGoofyBuiltin;
 
 implementation
-
-uses Evaluator;
 
 function Builtin(n: String; v: TValue; t: TType): TGoofyBuiltin;
 begin
@@ -69,7 +65,7 @@ end;
 
 constructor TGoofyBuiltins.Create;
 var
-   v1, v2, v3, v4, v5, v6, v7, v8, v9, v10: TTypeVariable;
+   v1, v2, v3, v4, v5, v6, v7: TTypeVariable;
    // NOTE: there may be a huge bug, because type builtins are created
    // with name generator different from type system's one.
    Int, Bool: TType;
@@ -85,9 +81,6 @@ begin
    v5 := VarGen.GenerateVariable;
    v6 := VarGen.GenerateVariable;
    v7 := VarGen.GenerateVariable;
-   v8 := VarGen.GenerateVariable;
-   v9 := VarGen.GenerateVariable;
-   v10 := VarGen.GenerateVariable;
    // TODO: add method TVariableGenerator.GenerateNVars
    
    // built-in values
@@ -98,9 +91,6 @@ begin
    Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
    Self.Insert(Builtin('fst', BuiltinFunction('fst'), CreateFunType(CreatePairType(v3, v4), v3)));
    Self.Insert(Builtin('snd', BuiltinFunction('snd'), CreateFunType(CreatePairType(v5, v6), v6)));
-   Self.Insert(Builtin('if', BuiltinFunction('if'), CreateFunType(Bool, CreateFunType(v7, CreateFunType(v7, v7)))));
-   Self.Insert(Builtin('ift', BuiltinFunction('ift'), CreateFunType(v8, CreateFunType(v8, v8))));
-   Self.Insert(Builtin('iff', BuiltinFunction('iff'), CreateFunType(v9, CreateFunType(v9, v9))));
    Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
    Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
    Self.Insert(Builtin('succ', BuiltinFunction('succ'), CreateFunType(Int, Int)));
@@ -112,7 +102,7 @@ begin
    // * First is to create different comparison functions for different types
    // * Second is to implement fucntion overloading.
    //   (Probably through some sort of embedding function signature into environment key)
-   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v10, Bool)));
+   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v7, Bool)));
    // TODO: Create some sort of Unit type (type with one value).
    
    // built-ins for debugging purposes
@@ -130,53 +120,29 @@ begin
 end;
 
 function TGoofyBuiltins.ApplyBuiltin(builtin: String;
-                                     arg: TExpression;
-                                     env: TValueEnvironment;
-                                     evalo: TObject): TValue;
-var
-   e: TEvaluator;
-   cond: TBooleanValue;
+                                     arg: TValue;
+                                     env: TValueEnvironment): TValue;
 begin
-   e := evalo as TEvaluator;
    // dispatching by builtin name
    if (builtin = 'zero') then
       // no need to check for arg to have integer type
       // or is it?
-      Result := BooleanV((e.Evaluate(arg, env) as TIntegerValue).Value = 0)
+      Result := BooleanV((arg as TIntegerValue).Value = 0)
    else if (builtin = 'succ') then
-      Result := IntegerV((e.Evaluate(arg, env) as TIntegerValue).Value + 1)
+      Result := IntegerV((arg as TIntegerValue).Value + 1)
    else if (builtin = 'pred') then
-      Result := IntegerV((e.Evaluate(arg, env) as TIntegerValue).Value - 1)
-   else if (builtin = 'if') then
-   begin
-      // 'if' takes a boolean value (b) and returns a function
-      // that takes one argument (x) and returns a function
-      // that takes one argument (y) and returns either x or y
-      // (according to given boolean value b).
-      // NOTE: this is broken since we pass arguments in builtin by-name, not by-value
-      // Alright, new solution. If condition is true - return builtin function 'ift',
-      // otherwise return built-in function 'iff'.
-      cond := e.Evaluate(arg, env) as TBooleanValue;
-      if cond.Value then
-         Result := BuiltinFunction('ift')
-      else
-         Result := BuiltinFunction('iff');
-   end
-   else if (builtin = 'ift') then
-      Result := PABuiltinFunction('ift', e.Evaluate(arg, env))
-   else if (builtin = 'iff') then
-      Result := PABuiltinFunction('iff', EmptyValue)
+      Result := IntegerV((arg as TIntegerValue).Value - 1)
    else if (builtin = 'fst') then
-      Result := (e.Evaluate(arg, env) as TPairValue).Fst
+      Result := (arg as TPairValue).Fst
    else if (builtin = 'snd') then
-      Result := (e.Evaluate(arg, env) as TPairValue).Snd
+      Result := (arg as TPairValue).Snd
    else if (builtin = 'pair') then
-      Result := PABuiltinFunction('pair', e.Evaluate(arg, env))
+      Result := PABuiltinFunction('pair', arg)
    else if (builtin = 'times') then
-      Result := PABuiltinFunction('times', e.Evaluate(arg, env))
+      Result := PABuiltinFunction('times', arg)
    else if (builtin = 'println') then
    begin
-      writeln(e.Evaluate(arg, env).ToStr);
+      writeln(arg.ToStr);
       Result := BooleanV(True);
    end
    else
@@ -185,21 +151,13 @@ end;
 
 function TGoofyBuiltins.ApplyPABuiltin(builtin: String;
                                        oldarg: TValue;
-                                       arg: TExpression;
-                                       env: TValueEnvironment;
-                                       evalo: TObject): TValue;
-var
-   e: TEvaluator;
+                                       arg: TValue;
+                                       env: TValueEnvironment): TValue;
 begin
-   e := evalo as TEvaluator;
    if (builtin = 'pair') then
-      Result := PairV(oldarg, e.Evaluate(arg, env))
+      Result := PairV(oldarg, arg)
    else if (builtin = 'times') then
-      Result := IntegerV((oldarg as TIntegerValue).Value * (e.Evaluate(arg, env) as TIntegerValue).Value)
-   else if (builtin = 'ift') then // iftrue - ignoring new argument, returning old one 
-      Result := oldArg
-   else if (builtin = 'iff') then // iffalse - ignoring old argument, evaluating new one
-      Result := e.Evaluate(arg, env)
+      Result := IntegerV((oldarg as TIntegerValue).Value * (arg as TIntegerValue).Value)
    else
       raise EBuiltinError.Create('Partially applied built-in function ''' + builtin + ''' is not implemented yet');
 end;

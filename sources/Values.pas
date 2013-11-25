@@ -2,7 +2,7 @@ unit Values;
 {$mode objfpc}{$H+}
 interface
 
-uses SysUtils, AST;
+uses SysUtils;
 
 type
    TValue = class abstract

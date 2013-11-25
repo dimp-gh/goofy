@@ -87,10 +87,9 @@ begin
    begin
       apply := ast as TApply;
       fun := Evaluate(apply.Fun, env);
+      arg := Evaluate(apply.Argument, env);
       if (fun is TFunctionValue) then
       begin
-         // evaluate argument
-         arg := Evaluate(apply.Argument, env);
          // apply function
          fv := fun as TFunctionValue;
          newEnv := EnvInsert(fv.Env, fv.Lambda.Variable, arg);
@@ -99,12 +98,12 @@ begin
       else if (fun is TBuiltinFunctionValue) then
       begin
          bfv := fun as TBuiltinFunctionValue;
-         Result := Self.Builtins.ApplyBuiltin(bfv.Name, apply.Argument, env, Self);
+         Result := Self.Builtins.ApplyBuiltin(bfv.Name, arg, env);
       end
       else if (fun is TPABuiltinFunctionValue) then
       begin
          pabfv := fun as TPABuiltinFunctionValue;
-         Result := Self.Builtins.ApplyPABuiltin(pabfv.Name, pabfv.DefVal, apply.Argument, env, Self);
+         Result := Self.Builtins.ApplyPABuiltin(pabfv.Name, pabfv.DefVal, arg, env);
       end
       else
          raise EEvalError.Create('Value ' + fun.ToStr + ' is not a function and cannot be applied');
