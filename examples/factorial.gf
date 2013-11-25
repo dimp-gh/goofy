@@ -1,1 +1,1 @@
-(letrec fact = (fn n => (((if (zero n)) 1) ((times n) (fact (pred n))))) in (println (fact 5)))
+letrec fact = (fn n => if (zero n) then 1 else (n `times` (fact (pred n)))) in (println (fact 5))
