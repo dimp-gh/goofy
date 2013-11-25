@@ -16,6 +16,7 @@ uses
 %type <TExpression> expr
 %type <TExpression> expr2
 %type <TExpression> expr3
+%type <TExpression> expr4
 %type <TLambda> lambda
 %type <TApply> apply
 %type <TLet> let
@@ -54,8 +55,12 @@ expr	:  lambda		                 { $$ := $1; }
 expr2   :  expr2 expr3				 { $$ := Apply($1, $2); }
     	|  expr3 				 { $$ := $1; }
 
+/* Parses infix Function Application expressions */
+expr3   :  expr3 '`' expr4 '`' expr4		 { $$ := Apply(Apply($3, $1), $5); }
+    	|  expr4 				 { $$ := $1; }
+
 /* Parses numbers (Num), strings (Id) and expressions in parentheses */
-expr3   :  NUM					{ $$ := IntegerLiteral($1); }
+expr4   :  NUM					{ $$ := IntegerLiteral($1); }
     	|  IDENT                        	{ $$ := Identifier($1); }
 	|  '(' expr ')'         		{ $$ := $2; }
 
