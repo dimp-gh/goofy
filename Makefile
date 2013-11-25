@@ -15,7 +15,7 @@ lexer:
 	popd
 
 clean:
-	rm -rf lib goofy tests sources/*.o sources/*.ppu sources/*.compiled sources/Goofy
+	rm -rf lib goofy tests sources/{parser/,}*.o sources/{parser/,}*.ppu sources/{parser/,}*.compiled sources/Goofy sources/parser/expr.pas sources/parser/exprlex.pas
 
 extraclean: clean
 	rm -rf *.bak *~
