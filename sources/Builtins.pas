@@ -89,13 +89,26 @@ begin
    Self.Insert(Builtin('false', BooleanV(False), Bool));
    
    // built-in functions
+   // pair constructor and deconstructors
    Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
+   Self.Insert(Builtin('cons', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
    Self.Insert(Builtin('fst', BuiltinFunction('fst'), CreateFunType(CreatePairType(v3, v4), v3)));
    Self.Insert(Builtin('snd', BuiltinFunction('snd'), CreateFunType(CreatePairType(v5, v6), v6)));
+   // numeric functions
    Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
    Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
    Self.Insert(Builtin('succ', BuiltinFunction('succ'), CreateFunType(Int, Int)));
-   Self.Insert(Builtin('times', BuiltinFunction('times'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('times', BuiltinFunction('*'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('*', BuiltinFunction('*'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('plus', BuiltinFunction('+'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('+', BuiltinFunction('+'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('minus', BuiltinFunction('-'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('-', BuiltinFunction('-'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('div', BuiltinFunction('/'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('/', BuiltinFunction('/'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('mod', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('%', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
+   
    Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Int, CreateFunType(Int, Bool))));
    //Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Bool, CreateFunType(Bool, Bool))));
    // NOTE: Previous line breaks compilation because in value environment keys are names and name 'eq' is allready taken
@@ -138,8 +151,16 @@ begin
       Result := (arg as TPairValue).Snd
    else if (builtin = 'pair') then
       Result := PABuiltinFunction('pair', arg)
-   else if (builtin = 'times') then
-      Result := PABuiltinFunction('times', arg)
+   else if (builtin = '*') then
+      Result := PABuiltinFunction('*', arg)
+   else if (builtin = '+') then
+      Result := PABuiltinFunction('+', arg)
+   else if (builtin = '-') then
+      Result := PABuiltinFunction('-', arg)
+   else if (builtin = '/') then
+      Result := PABuiltinFunction('/', arg)
+   else if (builtin = '%') then
+      Result := PABuiltinFunction('%', arg)
    else if (builtin = 'println') then
    begin
       writeln(arg.ToStr);
@@ -156,8 +177,16 @@ function TGoofyBuiltins.ApplyPABuiltin(builtin: String;
 begin
    if (builtin = 'pair') then
       Result := PairV(oldarg, arg)
-   else if (builtin = 'times') then
+   else if (builtin = '*') then
       Result := IntegerV((oldarg as TIntegerValue).Value * (arg as TIntegerValue).Value)
+   else if (builtin = '+') then
+      Result := IntegerV((oldarg as TIntegerValue).Value + (arg as TIntegerValue).Value)
+   else if (builtin = '-') then
+      Result := IntegerV((oldarg as TIntegerValue).Value - (arg as TIntegerValue).Value)
+   else if (builtin = '/') then
+      Result := IntegerV((oldarg as TIntegerValue).Value div (arg as TIntegerValue).Value)
+   else if (builtin = '%') then
+      Result := IntegerV((oldarg as TIntegerValue).Value mod (arg as TIntegerValue).Value)
    else
       raise EBuiltinError.Create('Partially applied built-in function ''' + builtin + ''' is not implemented yet');
 end;
