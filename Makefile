@@ -1,9 +1,18 @@
-FPC=fpc
-FPCOPTS=-Mobjfpc -O1
+SHELL := /bin/bash
 
-Goofy:
+Goofy: lexer parser
 	lazbuild sources/Goofy.lpr
-	cp sources/Goofy ./goofy 
+	cp sources/Goofy ./goofy
+
+parser:
+	pushd sources/parser && \
+	../../bin/ndyacc expr.y && \
+	popd
+
+lexer:
+	pushd sources/parser && \
+	../../bin/ndlex exprlex.l && \
+	popd
 
 clean:
 	rm -rf lib goofy tests sources/*.o sources/*.ppu sources/*.compiled sources/Goofy
@@ -17,7 +26,7 @@ tests:
 
 run: Goofy
 	./goofy -r
-	
+
 runtests: clean tests
 	./tests
 
