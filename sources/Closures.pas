@@ -43,7 +43,7 @@ end;
 
 function IdentityFunctionV: TFunctionValue;
 begin
-   Result := FunctionV(Lambda('x', Ident('x')));
+   Result := FunctionV(Lambda('x', Identifier('x')));
 end;
 
 initialization

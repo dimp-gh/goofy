@@ -6,8 +6,8 @@ uses
    Classes,
    StrUtils,
    SysUtils,
+   expr in 'parser\expr.pas',
    AST,
-   Tokenizer,
    Parser,
    HMTypes,
    GoofyTypeSystem,
@@ -22,14 +22,14 @@ type
       Builtins: TGoofyBuiltins;
       Eval: TEvaluator;
       TypeSystem: TGoofyTypeSystem;
-      function ReadUserInput: TStringList;
+      function ReadUserInput: String;
       function IsCommandHelp(s: String): Boolean;
       function IsCommandGetType(s: String): Boolean;
       function IsCommandShow(s: String): Boolean;
       function IsCommandQuit(s: String): Boolean;
       function IsCommandMan(s: String): Boolean;
       function IsCommandBuiltins(s: String): Boolean;
-      procedure CutCommand(var input: TStringList);
+      procedure CutCommand(var input: String);
    public
       constructor Create;
       procedure RunRepl;
@@ -101,73 +101,57 @@ begin
    Self.Builtins.PrintBuiltins;
 end;
 
-procedure TGoofyRepl.CutCommand(var input: TStringList);
+procedure TGoofyRepl.CutCommand(var input: String);
 var
    i: Integer;
 begin
-   i := Pos(' ', input[0]);
-   input[0] := System.Copy(input[0], i + 1, Length(input[0]) - i);
+   i := Pos(' ', input);
+   input := System.Copy(input, i + 1, Length(input) - i);
 end;
 
 procedure TGoofyRepl.RunRepl;
 var
-   tokens: TTokenList;
    ast: TExpression;
    exprType: TType;
    value: TValue;
-   input: TStringList;
+   input: String;
 begin
    writeln('Welcome to Goofy REPL.');
    writeln('Enter :help to list available commands.');
    while True do
       try
          input := Self.ReadUserInput;
-         if (input = nil) or (Trim(input[0]) = '') then
+         if (input = '') then
             // do nothing
-         else if IsCommandQuit(input[0]) then
+         else if IsCommandQuit(input) then
             break
-         else if IsCommandHelp(input[0]) then
+         else if IsCommandHelp(input) then
             PrintHelp
-         else if IsCommandMan(input[0]) then
+         else if IsCommandMan(input) then
             PrintMan
-         else if IsCommandBuiltins(input[0]) then
+         else if IsCommandBuiltins(input) then
             PrintBuiltins
-         else if IsCommandGetType(input[0]) then            
+         else if IsCommandGetType(input) then       
          begin
             CutCommand(input);
-            // lexing
-            tokens := TokenizeStringList(input);
-            if Self.Verbose then
-               PrintTokenList(tokens);
-            ReportTokenizeErrors('<user input>', tokens);
             // parsing
-            ast := Parse(tokens);
+            ast := ParseString(input);
             // typechecking
             typeSystem.ResetGeneratorNames;
             exprType := typeSystem.GetExprType(ast);
             write(ast.ToStr);
             writeln(' :: ', exprType.ToStr);
          end
-         else if IsCommandShow(input[0]) then
+         else if IsCommandShow(input) then
          begin
             CutCommand(input);
-            // lexing
-            tokens := TokenizeStringList(input);
-            if Self.Verbose then
-               PrintTokenList(tokens);
-            ReportTokenizeErrors('<user input>', tokens);
-            ast := Parser.Parse(tokens);
+            ast := ParseString(input);
             writeln(ast.ToStr);
          end
          else // command is an expression
          begin
-            // lexing
-            tokens := TokenizeStringList(input);
-            if Self.Verbose then
-               PrintTokenList(tokens);
-            ReportTokenizeErrors('<user input>', tokens);
             // parsing
-            ast := Parse(tokens);
+            ast := ParseString(input);
             // typechecking
             typeSystem.ResetGeneratorNames;
             exprType := typeSystem.GetExprType(ast);
@@ -179,8 +163,8 @@ begin
             writeln(' => ', value.ToStr);
          end;
       except
-         on e: ETokenizeError do
-            writeln(e.Message);
+         on e: EExprParserException do
+            writeln('ExprParser error: ', e.Message);
          on e: EParseError do
             writeln('Parsing error: ', e.Message);
          on e: ETypeError do
@@ -194,14 +178,13 @@ begin
       end;      
 end;
 
-function TGoofyRepl.ReadUserInput: TStringList;
+function TGoofyRepl.ReadUserInput: String;
 var
    buff: String;
 begin
    write('> ');
    readln(buff);
-   Result := TStringList.Create;
-   Result.Add(buff);
+   Result := buff;
 end;
 
 initialization

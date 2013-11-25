@@ -5,7 +5,7 @@ uses
    cthreads,
    {$ENDIF}{$ENDIF}
    Classes, SysUtils, CustApp,
-   Tokenizer,
+   expr in 'parser\expr.pas',
    AST, Parser,
    HMTypes, GoofyTypeSystem,
    Values, Evaluator,
@@ -80,20 +80,14 @@ type
    
    procedure TMyApplication.InterpretPath(path: String);
    var
-      tokens: TTokenList;
       ast: TExpression;
       typeSystem: TGoofyTypeSystem;
       eval: TEvaluator;
       builtins: TGoofyBuiltins;
    begin
       try
-         // lexing
-         tokens := TokenizeFile(path);
-         if Self.Verbose then
-            PrintTokenList(tokens);
-         ReportTokenizeErrors(path, tokens);
          // parsing
-         ast := Parse(tokens);
+         ast := ParseFile(path);
          // typechecking
          builtins := TGoofyBuiltins.Create;
          typeSystem := TGoofyTypeSystem.Create(builtins);
@@ -105,16 +99,6 @@ type
          on e: EFOpenError do begin
             writeln;
             writeln('Cannot find file ', path);
-         end;
-         on e: ETokenizeError do
-         begin
-            writeln;
-            writeln(e.Message);
-         end;
-         on e: EParseError do
-         begin
-            writeln;
-            writeln(e.Message);
          end;
          on e: ETypeError do
          begin
