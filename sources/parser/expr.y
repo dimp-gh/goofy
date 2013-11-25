@@ -65,6 +65,7 @@ expr4   :  NUM					{ $$ := IntegerLiteral($1); }
 	|  '(' expr ')'         		{ $$ := $2; }
 
 lambda  :  LAMBDA_SYM IDENT LAMBDA_ARROW_SYM expr          { $$ := Lambda($2, $4); }
+	|  '(' lambda ')'                                  { $$ := $2; }
 	;
 
 let     :  LET_SYM IDENT EQUALS_SYM expr IN_SYM expr 	   { $$ := Let($2, $4, $6); }
