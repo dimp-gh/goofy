@@ -33,10 +33,12 @@ var
    letrec: TLetRec;
    lambda: TLambda;
    apply: TApply;
+   ifc: TIfThenElse;
    v, fun: TValue;
    newEnv: TValueEnvironment;
    fv: TFunctionValue;
    arg: TValue;
+   cond: TBooleanValue;
    bfv: TBuiltinFunctionValue;
    pabfv: TPABuiltinFunctionValue;
 begin
@@ -44,6 +46,15 @@ begin
       Result := IntegerV((ast as TIntegerLiteral).Value)
    else if (ast is TIdentifier) then
       Result := EnvLookup(env, (ast as TIdentifier).Name)
+   else if (ast is TIfThenElse) then
+   begin
+      ifc := ast as TIfThenElse;
+      cond := Evaluate(ifc.Cond, env) as TBooleanValue;
+      if cond.Value then
+         Result := Evaluate(ifc.Then_, env)
+      else
+         Result := Evaluate(ifc.Else_, env);
+   end
    else if (ast is TLet) then
    begin
       let := ast as TLet;

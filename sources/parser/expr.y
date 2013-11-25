@@ -20,6 +20,7 @@ uses
 %type <TApply> apply
 %type <TLet> let
 %type <TLetRec> letrec
+%type <TIfThenElse> ifc
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -27,6 +28,9 @@ uses
 %token LETREC_SYM
 %token EQUALS_SYM
 %token IN_SYM
+%token IF_SYM
+%token THEN_SYM
+%token ELSE_SYM
 
 %token ILLEGAL 		/* illegal token */
 
@@ -42,6 +46,7 @@ input	: /* empty */
 expr	:  lambda		                 { $$ := $1; }
 	|  let 	 				 { $$ := $1; }
       	|  letrec   	 			 { $$ := $1; }
+        |  ifc					 { $$ := $1; }
 	|  expr2				 { $$ := $1; }
  	;
 
@@ -62,6 +67,10 @@ let     :  LET_SYM IDENT EQUALS_SYM expr IN_SYM expr 	   { $$ := Let($2, $4, $6)
 
 letrec  :  LETREC_SYM IDENT EQUALS_SYM lambda IN_SYM expr  { $$ := LetRec($2, $4, $6); }
 	;
+
+ifc     :  IF_SYM expr THEN_SYM expr ELSE_SYM expr 	   { $$ := IfThenElse($2, $4, $6); }
+	;
+
 
 %%
 

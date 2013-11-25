@@ -49,11 +49,12 @@ end;
 function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
 var
    id: TIdentifier;
+   ifc: TIfThenElse;
    apply: TApply;
    lambda: TLambda;
    let: TLet;
    letrec: TLetRec;
-   funType, argType, resultType, defnType: TType;
+   funType, argType, resultType, defnType, condType, thenType, elseType: TType;
    newTypeVar: TTypeVariable;
    newEnv : TTypeEnvironment;
    newNongen: TTypeVariableList;
@@ -67,6 +68,16 @@ begin
    begin
       id := ast as TIdentifier;
       Result := Self.GetType(id.Name, env, nongen);
+   end
+   else if (ast is TIfThenElse) then
+   begin
+      ifc := ast as TIfThenElse;
+      condType := analyse(ifc.Cond, env, nongen);
+      Self.Unify(Self.Bool, condType);
+      thenType := analyse(ifc.Then_, env, nongen);
+      elseType := analyse(ifc.Else_, env, nongen);
+      Self.Unify(thenType, elseType);
+      Result := thenType;
    end
    else if (ast is TApply) then
    begin
@@ -104,7 +115,7 @@ begin
       Result := analyse(letrec.Body, newEnv, nongen);
    end
    else
-      Raise Exception.Create('Analysis error: Unknown type of AST node');
+      Raise ETypeError.Create('Unknown type of AST node');
 end;
 
 function THMTypeSystem.GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
@@ -112,7 +123,7 @@ begin
    if EnvFind(env, name) then
       Result := Self.Fresh(EnvLookup(env, name), nongen)
    else
-      raise EParseError.Create('Undefined symbol ' + name);
+      raise ETypeError.Create('Undefined symbol ' + name);
 end;
 
 procedure THMTypeSystem.Unify(t1,t2: TType);

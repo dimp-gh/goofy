@@ -16,6 +16,9 @@ let                             return(LET_SYM);
 letrec				return(LETREC_SYM);
 =				return(EQUALS_SYM);
 in				return(IN_SYM);
+if                              return(IF_SYM);
+then                            return(THEN_SYM);
+else                            return(ELSE_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;

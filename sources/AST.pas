@@ -24,6 +24,15 @@ type
       constructor Create(v: String);
    end;
    
+   TIfThenElse = class(TExpression)
+   public
+      Cond: TExpression;
+      Then_: TExpression;
+      Else_: TExpression;
+      function ToStr: String; override;
+      constructor Create(c, t, e: TExpression);
+   end;
+   
    TLambda = class(TExpression)
    public
       Variable: String;
@@ -61,6 +70,7 @@ type
 function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
+function IfThenElse(c, t, e: TExpression): TIfThenElse;
 function Lambda(v: String; b: TExpression): TLambda;
 function Apply(fn: TExpression; arg: TExpression): TApply;
 function Let(v: String; defn: TExpression; b: TExpression): TLet;
@@ -88,6 +98,18 @@ end;
 function TIdentifier.ToStr: String;
 begin
    Result := Self.Name;
+end;
+
+function TIfThenElse.ToStr: String;
+begin
+   Result := '(if ' + Self.Cond.ToStr + ' then ' + Self.Then_.ToStr + ' else ' + Self.Else_.ToStr + ')';
+end;
+
+constructor TIfThenElse.Create(c, t, e: TExpression);
+begin
+   Self.Cond := c;
+   Self.Then_ := t;
+   Self.Else_ := e;
 end;
 
 constructor TLambda.Create(v: String; b: TExpression);
@@ -156,6 +178,11 @@ begin
    Result := TIntegerLiteral.Create(v);
 end;
 
+function IfThenElse(c, t, e: TExpression): TIfThenElse;
+begin
+   Result := TIfThenElse.Create(c, t, e);
+end;
+
 function Lambda(v: String; b: TExpression): TLambda;
 begin
    Result := TLambda.Create(v, b);
@@ -175,7 +202,6 @@ function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
 begin
    Result := TLetRec.Create(v, defn, b);
 end;
-
 
 initialization
 
