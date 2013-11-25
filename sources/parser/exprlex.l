@@ -1,6 +1,5 @@
-L				[A-Za-z]
 D				[0-9]
-ID                              {L}+
+ID                              [A-Za-z][A-Za-z0-9\-]*
 
 %start
 %%
