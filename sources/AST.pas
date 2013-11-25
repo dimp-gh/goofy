@@ -58,7 +58,7 @@ type
       constructor Create(v: String; defn: TLambda; b: TExpression);
    end;
 
-function Ident(n: String): TIdentifier;
+function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
 function Lambda(v: String; b: TExpression): TLambda;
@@ -141,7 +141,7 @@ begin
 end;
 
 // A few convenient functions for creating AST
-function Ident(n: String): TIdentifier;
+function Identifier(n: String): TIdentifier;
 begin
    Result := TIdentifier.Create(n);
 end;
