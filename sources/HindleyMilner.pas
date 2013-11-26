@@ -51,12 +51,15 @@ end;
 function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
 var
    id: TIdentifier;
+   pair: TPairLiteral;
    ifc: TIfThenElse;
    apply: TApply;
    lambda: TLambda;
    let: TLet;
    letrec: TLetRec;
-   funType, argType, resultType, defnType, condType, thenType, elseType: TType;
+   funType, argType, resultType,
+      defnType, condType, thenType,
+      elseType, ftype, stype: TType;
    newTypeVar: TTypeVariable;
    newEnv : TTypeEnvironment;
    newNongen: TTypeVariableList;
@@ -68,6 +71,13 @@ begin
       Result := Self.UnitType
    else if (ast is TBooleanLiteral) then
       Result := Self.Bool
+   else if (ast is TPairLiteral) then
+   begin
+      pair := ast as TPairLiteral;
+      ftype := Self.Analyse(pair.Fst, env, nongen);
+      stype := Self.Analyse(pair.Snd, env, nongen);
+      Result := CreatePairType(ftype, stype);
+   end
    else if (ast is TIdentifier) then
    begin
       id := ast as TIdentifier;

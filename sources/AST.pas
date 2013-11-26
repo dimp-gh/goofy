@@ -37,6 +37,13 @@ type
       constructor Create;
    end;
    
+   TPairLiteral = class(TExpression)
+   public
+      Fst, Snd: TExpression;
+      function ToStr: String; override;
+      constructor Create(v1, v2: TExpression);
+   end;
+   
    TIfThenElse = class(TExpression)
    public
       Cond: TExpression;
@@ -84,6 +91,7 @@ function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
 function BooleanLiteral(v: Boolean): TBooleanLiteral;
+function PairLiteral(v1, v2: TExpression): TPairLiteral;
 function UnitLiteral: TUnitLiteral;
 function IfThenElse(c, t, e: TExpression): TIfThenElse;
 function Lambda(v: String; b: TExpression): TLambda;
@@ -121,6 +129,17 @@ end;
 function TUnitLiteral.ToStr: String;
 begin
    Result := '()';
+end;
+
+function TPairLiteral.ToStr: String;
+begin
+   Result := '(' + Self.Fst.ToStr + ', ' + Self.Snd.ToStr + ')';
+end;
+
+constructor TPairLiteral.Create(v1, v2: TExpression);
+begin
+   Self.Fst := v1;
+   Self.Snd := v2;
 end;
 
 constructor TUnitLiteral.Create;
@@ -226,6 +245,11 @@ end;
 function BooleanLiteral(v: Boolean): TBooleanLiteral;
 begin
    Result := TBooleanLiteral.Create(v);
+end;
+
+function PairLiteral(v1, v2: TExpression): TPairLiteral;
+begin
+   Result := TPairLiteral.Create(v1, v2);
 end;
 
 function IfThenElse(c, t, e: TExpression): TIfThenElse;

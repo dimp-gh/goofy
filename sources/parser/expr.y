@@ -62,11 +62,12 @@ expr2   :  expr2 expr3				 { $$ := Apply($1, $2); }
 expr3   :  expr3 '`' expr4 '`' expr4		 { $$ := Apply(Apply($3, $1), $5); }
     	|  expr4 				 { $$ := $1; }
 
-/* Parses numbers (Num), strings (Id) and expressions in parentheses */
+/* Parses literals, identifiers and expressions in parentheses */
 expr4   :  NUM					{ $$ := IntegerLiteral($1); }
     	|  IDENT                        	{ $$ := Identifier($1); }
 	|  TRUE_SYM				{ $$ := BooleanLiteral(True); }
 	|  FALSE_SYM				{ $$ := BooleanLiteral(False); }
+	|  '(' expr ',' expr ')'		{ $$ := PairLiteral($2, $4); }
 	|  '(' expr ')'         		{ $$ := $2; }
 	|  UNIT_SYM 				{ $$ := UnitLiteral; }
 

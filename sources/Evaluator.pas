@@ -34,10 +34,11 @@ var
    lambda: TLambda;
    apply: TApply;
    ifc: TIfThenElse;
+   pair: TPairLiteral;
    v, fun: TValue;
    newEnv: TValueEnvironment;
    fv: TFunctionValue;
-   arg: TValue;
+   arg, fval, sval: TValue;
    cond: TBooleanValue;
    bfv: TBuiltinFunctionValue;
    pabfv: TPABuiltinFunctionValue;
@@ -50,6 +51,13 @@ begin
       Result := UnitV
    else if (ast is TIdentifier) then
       Result := EnvLookup(env, (ast as TIdentifier).Name)
+   else if (ast is TPairLiteral) then
+   begin
+      pair := ast as TPairLiteral;
+      fval := Evaluate(pair.Fst, env);
+      sval := Evaluate(pair.Snd, env);
+      Result := PairV(fval, sval);
+   end
    else if (ast is TIfThenElse) then
    begin
       ifc := ast as TIfThenElse;
