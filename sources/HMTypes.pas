@@ -152,8 +152,10 @@ begin
    begin
       t1 := Self.Args[0].ToStr;
       t2 := Self.Args[1].ToStr;
-      if (Self.Name = '*') or (Self.Name = '->') then
-         Result := '(' + t1 + ' ' + Self.Name + ' ' + t2 + ')'
+      if (Self.Name = '->') then
+         Result := '(' + t1 + ' -> ' + t2 + ')'
+      else if (Self.Name = '*') then
+         Result := '(' + t1 + ', ' + t2 + ')'
       else
          Result := Self.Name + ' ' + t1 + ' ' + t2; 
    end
