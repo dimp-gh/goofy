@@ -180,11 +180,26 @@ end;
 
 function TGoofyRepl.ReadUserInput: String;
 var
-   buff: String;
+   code: String;
+   line: String;
 begin
-   write('> ');
-   readln(buff);
-   Result := buff;
+   code := '';
+   Write('> ');
+   while True do
+   begin
+      Readln(line);
+      if line[Length(line)] = '\' then
+      begin
+         line[Length(line)] := ' ';
+         code := code + line;
+      end
+      else
+      begin
+         code := code + line;
+         Break
+      end;
+   end;
+   Result := code;
 end;
 
 initialization
