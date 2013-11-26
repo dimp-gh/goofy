@@ -129,7 +129,7 @@ begin
       Result := analyse(letrec.Body, newEnv, nongen);
    end
    else
-      Raise ETypeError.Create('Unknown type of AST node');
+      Raise ETypeError.Create('Cannot typecheck this kind of AST');
 end;
 
 function THMTypeSystem.GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;

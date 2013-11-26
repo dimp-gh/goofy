@@ -53,6 +53,24 @@ type
       constructor Create(c, t, e: TExpression);
    end;
    
+   TClause = class
+   public
+      Pattern: TExpression;
+      Then_: TExpression;
+      function ToStr: String;
+      constructor Create(p, t: TExpression);      
+   end;
+   
+   TClauseList = array of TClause;
+   
+   TCaseOf = class(TExpression)
+   public
+      Expr: TExpression;
+      Clauses: TClauseList;
+      function ToStr: String; override;
+      constructor Create(e: TExpression; cs: TClauseList);
+   end;
+   
    TLambda = class(TExpression)
    public
       Variable: String;
@@ -98,6 +116,8 @@ function Lambda(v: String; b: TExpression): TLambda;
 function Apply(fn: TExpression; arg: TExpression): TApply;
 function Let(v: String; defn: TExpression; b: TExpression): TLet;
 function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
+function CaseOf(x: TExpression; cs: TClauseList): TCaseOf;
+function Clause(p, t: TExpression): TClause;
 
 implementation
 
@@ -169,6 +189,38 @@ begin
    Self.Cond := c;
    Self.Then_ := t;
    Self.Else_ := e;
+end;
+
+function TCaseOf.ToStr: String;
+var
+   i: Integer;
+begin
+   Result := '(case ' + Expr.ToStr + ' of' + #13#10;
+   for i := 0 to High(Clauses) - 1 do
+      Result := Result + '  ' + Clauses[i].ToStr + ';' + #13#10;
+   Result := Result + '  ' + Clauses[High(Clauses)].ToStr + #13#10;
+   Result := Result + 'end)';
+end;
+
+constructor TCaseOf.Create(e: TExpression; cs: TClauseList);
+var
+   i: Integer;
+begin
+   Self.Expr := e;
+   SetLength(Self.Clauses, Length(cs));
+   for i := 0 to High(cs) do
+      Self.Clauses[i] := cs[i];
+end;
+
+function TClause.ToStr: String;
+begin
+   Result := Self.Pattern.ToStr + ' -> ' + Self.Then_.ToStr;
+end;
+
+constructor TClause.Create(p, t: TExpression);      
+begin
+   Self.Pattern := p;
+   Self.Then_ := t;
 end;
 
 constructor TLambda.Create(v: String; b: TExpression);
@@ -275,6 +327,16 @@ end;
 function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
 begin
    Result := TLetRec.Create(v, defn, b);
+end;
+
+function CaseOf(x: TExpression; cs: TClauseList): TCaseOf;
+begin
+   Result := TCaseOf.Create(x, cs);
+end;
+
+function Clause(p, t: TExpression): TClause;
+begin
+   Result := TClause.Create(p, t);
 end;
 
 initialization

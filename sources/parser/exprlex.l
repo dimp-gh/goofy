@@ -21,6 +21,10 @@ then                            return(THEN_SYM);
 else                            return(ELSE_SYM);
 true                            return(TRUE_SYM);
 false                           return(FALSE_SYM);
+case                            return(CASE_SYM);
+of                              return(OF_SYM);
+->                              return(CASE_ARROW_SYM);
+end                             return(END_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;

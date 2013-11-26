@@ -7,7 +7,8 @@ uses
 	Classes,
 	yacclib,
 	lexlib,
-        AST;
+        AST,
+	ParserHelper;
 
 %}
 
@@ -22,6 +23,9 @@ uses
 %type <TLet> let
 %type <TLetRec> letrec
 %type <TIfThenElse> ifc
+%type <TCaseOf> casec
+%type <TClause> clause
+%type <TClauseList> clauses
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -35,6 +39,10 @@ uses
 %token UNIT_SYM
 %token TRUE_SYM
 %token FALSE_SYM
+%token CASE_SYM
+%token OF_SYM
+%token CASE_ARROW_SYM
+%token END_SYM
 
 %token ILLEGAL 		/* illegal token */
 
@@ -46,11 +54,12 @@ input	: /* empty */
 	| error '\n'             { yyerrok; }
 	;
 
-/* Parses the LET, LET REC, FUN, and IF expressions */
+/* Parses the LET, LETREC, FN, IF, CASE expressions */
 expr	:  lambda		                 { $$ := $1; }
 	|  let 	 				 { $$ := $1; }
       	|  letrec   	 			 { $$ := $1; }
         |  ifc					 { $$ := $1; }
+	|  casec				 { $$ := $1; }
 	|  expr2				 { $$ := $1; }
  	;
 
@@ -84,6 +93,15 @@ letrec  :  LETREC_SYM IDENT EQUALS_SYM lambda IN_SYM expr  { $$ := LetRec($2, $4
 ifc     :  IF_SYM expr THEN_SYM expr ELSE_SYM expr 	   { $$ := IfThenElse($2, $4, $6); }
 	;
 
+casec   :  CASE_SYM expr OF_SYM clauses END_SYM 	   { $$ := CaseOf($2, $4); }
+	;
+
+clauses :  clause ';' clauses				   { $$ := PrependClause($1, $3); }
+	|  clause 					   { $$ := SingleClause($1); }
+	;
+
+clause  :  expr4 CASE_ARROW_SYM expr			   { $$ := Clause($1, $3) }
+	;
 
 %%
 
