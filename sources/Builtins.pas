@@ -84,10 +84,6 @@ begin
    v7 := VarGen.GenerateVariable;
    // TODO: add method TVariableGenerator.GenerateNVars
    
-   // built-in values
-   Self.Insert(Builtin('true', BooleanV(True), Bool));
-   Self.Insert(Builtin('false', BooleanV(False), Bool));
-   
    // built-in functions
    // pair constructor and deconstructors
    Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));

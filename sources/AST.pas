@@ -24,6 +24,13 @@ type
       constructor Create(v: String);
    end;
    
+   TBooleanLiteral = class(TExpression)
+   public
+      Value: Boolean;
+      function ToStr: String; override;
+      constructor Create(v: Boolean);
+   end;
+   
    TUnitLiteral = class(TExpression)
    public
       function ToStr: String; override;
@@ -76,6 +83,7 @@ type
 function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
+function BooleanLiteral(v: Boolean): TBooleanLiteral;
 function UnitLiteral: TUnitLiteral;
 function IfThenElse(c, t, e: TExpression): TIfThenElse;
 function Lambda(v: String; b: TExpression): TLambda;
@@ -94,6 +102,20 @@ end;
 function TIntegerLiteral.ToStr: String;
 begin
    Result := IntToStr(Self.Value);
+end;
+
+constructor TBooleanLiteral.Create(v: Boolean);
+begin
+   Self.Value := v;
+   inherited Create;
+end;
+
+function TBooleanLiteral.ToStr: String;
+begin
+   if Self.Value then
+      Result := 'true'
+   else
+      Result := 'false';
 end;
 
 function TUnitLiteral.ToStr: String;
@@ -191,14 +213,19 @@ begin
    Result := TIntegerLiteral.Create(IntToStr(v));
 end;
 
+function IntegerLiteral(v: String): TIntegerLiteral;
+begin
+   Result := TIntegerLiteral.Create(v);
+end;
+
 function UnitLiteral: TUnitLiteral;
 begin
    Result := TUnitLiteral.Create;
 end;
 
-function IntegerLiteral(v: String): TIntegerLiteral;
+function BooleanLiteral(v: Boolean): TBooleanLiteral;
 begin
-   Result := TIntegerLiteral.Create(v);
+   Result := TBooleanLiteral.Create(v);
 end;
 
 function IfThenElse(c, t, e: TExpression): TIfThenElse;

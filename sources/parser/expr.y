@@ -33,6 +33,8 @@ uses
 %token THEN_SYM
 %token ELSE_SYM
 %token UNIT_SYM
+%token TRUE_SYM
+%token FALSE_SYM
 
 %token ILLEGAL 		/* illegal token */
 
@@ -63,6 +65,8 @@ expr3   :  expr3 '`' expr4 '`' expr4		 { $$ := Apply(Apply($3, $1), $5); }
 /* Parses numbers (Num), strings (Id) and expressions in parentheses */
 expr4   :  NUM					{ $$ := IntegerLiteral($1); }
     	|  IDENT                        	{ $$ := Identifier($1); }
+	|  TRUE_SYM				{ $$ := BooleanLiteral(True); }
+	|  FALSE_SYM				{ $$ := BooleanLiteral(False); }
 	|  '(' expr ')'         		{ $$ := $2; }
 	|  UNIT_SYM 				{ $$ := UnitLiteral; }
 

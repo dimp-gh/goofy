@@ -44,6 +44,8 @@ var
 begin
    if (ast is TIntegerLiteral) then
       Result := IntegerV((ast as TIntegerLiteral).Value)
+   else if (ast is TBooleanLiteral) then
+      Result := BooleanV((ast as TBooleanLiteral).Value)
    else if (ast is TUnitLiteral) then
       Result := UnitV
    else if (ast is TIdentifier) then

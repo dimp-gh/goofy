@@ -19,6 +19,8 @@ in				return(IN_SYM);
 if                              return(IF_SYM);
 then                            return(THEN_SYM);
 else                            return(ELSE_SYM);
+true                            return(TRUE_SYM);
+false                           return(FALSE_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;

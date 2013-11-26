@@ -63,11 +63,11 @@ var
    argTypeVar: TTypeVariable;
 begin
    if (ast is TIntegerLiteral) then
-   begin
-      Result := Self.Int;
-   end
+      Result := Self.Int
    else if (ast is TUnitLiteral) then
       Result := Self.UnitType
+   else if (ast is TBooleanLiteral) then
+      Result := Self.Bool
    else if (ast is TIdentifier) then
    begin
       id := ast as TIdentifier;
