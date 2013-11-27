@@ -121,6 +121,7 @@ function Let(v: String; defn: TExpression; b: TExpression): TLet;
 function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
 function CaseOf(x: TExpression; cs: TClauseList): TCaseOf;
 function Clause(p, t: TExpression): TClause;
+function FunctionDecl(name: String; cs: TClauseList): TLetRec;
 
 implementation
 
@@ -340,6 +341,11 @@ end;
 function Clause(p, t: TExpression): TClause;
 begin
    Result := TClause.Create(p, t);
+end;
+
+function FunctionDecl(name: String; cs: TClauseList): TLetRec;
+begin
+   Result := LetRec(name, Lambda('<some id>', CaseOf(Identifier('<some id>'), cs)), Identifier(name));
 end;
 
 initialization

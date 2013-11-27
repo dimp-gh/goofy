@@ -26,6 +26,9 @@ uses
 %type <TCaseOf> casec
 %type <TClause> clause
 %type <TClauseList> clauses
+%type <TLetRec> function_declaration
+%type <TLetRec> fun_clauses
+%type <TClause> fun_clause
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -43,6 +46,7 @@ uses
 %token OF_SYM
 %token CASE_ARROW_SYM
 %token END_SYM
+%token FUN_SYM
 
 %token ILLEGAL 		/* illegal token */
 
@@ -60,6 +64,7 @@ expr	:  lambda		                 { $$ := $1; }
       	|  letrec   	 			 { $$ := $1; }
         |  ifc					 { $$ := $1; }
 	|  casec				 { $$ := $1; }
+	|  function_declaration			 { $$ := $1; }
 	|  expr2				 { $$ := $1; }
  	;
 
@@ -102,6 +107,17 @@ clauses :  clause ';' clauses				   { $$ := PrependClause($1, $3); }
 
 clause  :  expr4 CASE_ARROW_SYM expr			   { $$ := Clause($1, $3) }
 	;
+
+function_declaration  :  FUN_SYM fun_clauses               { $$ := $2; }
+ 		      ;
+
+fun_clauses :  IDENT fun_clause '|' fun_clauses		   { $$ := FunctionDecl($1, PrependClause($2, GetClauses($4))); }
+	    |  IDENT fun_clause 			   { $$ := FunctionDecl($1, SingleClause($2)); }
+	    ;
+
+fun_clause  :  expr4 EQUALS_SYM expr			   { $$ := Clause($1, $3); }
+	    ;
+
 
 %%
 

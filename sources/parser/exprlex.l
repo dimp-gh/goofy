@@ -1,6 +1,6 @@
 D				[0-9]
-ND                              [A-Za-z\-\+\*/|%]
-ID                              [A-Za-z\-\+\*/|%_\.][0-9A-Za-z\-\+\*/|%_]*
+ND                              [A-Za-z\-\+\*/%]
+ID                              [A-Za-z\-\+\*/%_\.][0-9A-Za-z\-\+\*/%_]*
 
 %start
 %%
@@ -25,6 +25,7 @@ case                            return(CASE_SYM);
 of                              return(OF_SYM);
 ->                              return(CASE_ARROW_SYM);
 end                             return(END_SYM);
+fun                             return(FUN_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;
