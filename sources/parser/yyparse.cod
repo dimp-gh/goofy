@@ -24,7 +24,7 @@ type
   private
     x: array [1..26] of Real;
   public
-    Parsed: TExpression;
+    Parsed: TAST;
     constructor Create;
     function parse(AStream: TStream): integer; reintroduce;
   end;

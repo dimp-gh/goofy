@@ -16,6 +16,7 @@ uses
    Evaluator;
 
 type
+   EInputError = class(Exception);
    TGoofyRepl = class
    private
       Verbose: Boolean;
@@ -111,7 +112,9 @@ end;
 
 procedure TGoofyRepl.RunRepl;
 var
-   ast: TExpression;
+   ast: TAST;
+   expr: TExpression;
+   stmt: TStatement;
    exprType: TType;
    value: TValue;
    input: String;
@@ -137,9 +140,12 @@ begin
             // parsing
             ast := ParseString(input);
             // typechecking
+            if not(ast is TExpression) then
+               raise EInputError.Create('Command :type expects expression, not statement');
+            expr := ast as TExpression;
             typeSystem.ResetGeneratorNames;
-            exprType := typeSystem.GetExprType(ast);
-            write(ast.ToStr);
+            exprType := typeSystem.GetExprType(expr);
+            write(input);
             writeln(' :: ', exprType.ToStr);
          end
          else if IsCommandShow(input) then
@@ -148,21 +154,34 @@ begin
             ast := ParseString(input);
             writeln(ast.ToStr);
          end
-         else // command is an expression
+         else // command is an expression or statement
          begin
             // parsing
             ast := ParseString(input);
-            // typechecking
-            typeSystem.ResetGeneratorNames;
-            exprType := typeSystem.GetExprType(ast);
-            // evaluating
-            value := eval.Evaluate(ast);
-            // printing results
-            write(input);
-            write(' :: ', exprType.ToStr);
-            writeln(' => ', value.ToStr);
+            if (ast is TExpression) then
+            begin
+               expr := ast as TExpression;
+               // typechecking
+               typeSystem.ResetGeneratorNames;
+               exprType := typeSystem.GetExprType(expr);
+               // evaluating
+               value := eval.Evaluate(expr);
+               // printing results
+               write(input);
+               write(' :: ', exprType.ToStr);
+               writeln(' => ', value.ToStr);
+            end
+            else if (ast is TStatement) then
+            begin
+               stmt := ast as TStatement;
+               writeln('we can''t evaluate statements right now, sorry');
+            end
+            else
+               raise EInputError.Create('Input is not a statement nor expression');
          end;
       except
+         on e: EInputError do
+            writeln('User input error: ', e.Message);
          on e: EExprParserException do
             writeln('ExprParser error: ', e.Message);
          on e: EParseError do

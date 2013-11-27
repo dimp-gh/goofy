@@ -6,7 +6,7 @@ uses AST;
 
 function SingleClause(c: TClause): TClauseList;
 function PrependClause(c: TClause; cs: TClauseList): TClauseList;
-function GetClauses(decl: TLetRec): TClauseList;
+function GetClauses(decl: TValueDeclaration): TClauseList;
 
 implementation
 
@@ -32,12 +32,14 @@ begin
    Result := res;
 end;
 
-function GetClauses(decl: TLetRec): TClauseList;
+function GetClauses(decl: TValueDeclaration): TClauseList;
 var
+   lr: TLetRec;
    l: TLambda;
    c: TCaseOf;
 begin
-   l := decl.Definition as TLambda;
+   lr := decl.Expr as TLetRec;
+   l := lr.Definition as TLambda;
    c := l.body as TCaseOf;
    Result := c.Clauses;
 end;

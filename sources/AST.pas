@@ -6,9 +6,11 @@ uses
    Sysutils;
 
 type
-   TExpression = class abstract
+   TAST = class abstract
       function ToStr: String; virtual; abstract;
    end;
+   
+   TExpression = class(TAST);
 
    TIdentifier = class(TExpression)
    public
@@ -107,7 +109,18 @@ type
       function ToStr: String; override;
       constructor Create(v: String; defn: TLambda; b: TExpression);
    end;
-
+   
+   TStatement = class(TAST);
+   
+   TValueDeclaration = class(TStatement)
+   public
+      Name: String;
+      Expr: TExpression;
+      function ToStr: String; override;
+      constructor Create(n: String; e: TExpression);
+   end;
+      
+// expressions   
 function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
@@ -121,7 +134,9 @@ function Let(v: String; defn: TExpression; b: TExpression): TLet;
 function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
 function CaseOf(x: TExpression; cs: TClauseList): TCaseOf;
 function Clause(p, t: TExpression): TClause;
-function FunctionDecl(name: String; cs: TClauseList): TLetRec;
+// statements
+function FunctionDecl(name: String; cs: TClauseList): TValueDeclaration;
+function ValueDecl(n: String; e: TExpression): TValueDeclaration;
 
 implementation
 
@@ -277,6 +292,17 @@ begin
    Result := '(' + 'letrec ' + Self.Variable + ' = ' + Self.Definition.ToStr + ' in ' + Self.Body.ToStr + ')';
 end;
 
+function TValueDeclaration.ToStr: String;
+begin
+   Result := 'val ' + Self.Name + ' = ' + Self.Expr.ToStr;
+end;
+
+constructor TValueDeclaration.Create(n: String; e: TExpression);
+begin
+   Self.Name := n;
+   Self.Expr := e;
+end;
+
 // A few convenient functions for creating AST
 function Identifier(n: String): TIdentifier;
 begin
@@ -343,9 +369,19 @@ begin
    Result := TClause.Create(p, t);
 end;
 
-function FunctionDecl(name: String; cs: TClauseList): TLetRec;
+function FunctionDecl(name: String; cs: TClauseList): TValueDeclaration;
 begin
-   Result := LetRec(name, Lambda('<some id>', CaseOf(Identifier('<some id>'), cs)), Identifier(name));
+   Result := ValueDecl(name,
+                       LetRec(name,
+                              Lambda('<some id>',
+                                     CaseOf(Identifier('<some id>'),
+                                            cs)),
+                              Identifier(name)));
+end;
+
+function ValueDecl(n: String; e: TExpression): TValueDeclaration;
+begin
+   Result := TValueDeclaration.Create(n, e);
 end;
 
 initialization

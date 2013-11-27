@@ -120,7 +120,7 @@ begin
             Self.Unify(varType, patternType);
          end
          else
-            raise ETypeError.Create('Cannot determine type of unknown case-pattern');
+            raise ETypeError.Create('Cannot determine type of case-pattern');
          bodyType := analyse(casec.Clauses[i].Then_, newEnv, nongen);
          Self.Unify(resultType, bodyType);
       end;

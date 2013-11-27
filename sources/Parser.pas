@@ -9,13 +9,13 @@ uses
    Classes,
    expr in 'sources/parser/expr.pas';
 
-function ParseString(s: String): TExpression;
-function ParseFile(path: String): TExpression;
-function ParseStringList(sl: TStringList): TExpression;
+function ParseString(s: String): TAST;
+function ParseFile(path: String): TAST;
+function ParseStringList(sl: TStringList): TAST;
 
 implementation
 
-function ParseString(s: String): TExpression;
+function ParseString(s: String): TAST;
 var
    parser: TExprParser;
    StrStream: TStringStream;
@@ -28,7 +28,7 @@ begin
    Result := parser.parsed;
 end;
 
-function ParseFile(path: String): TExpression;
+function ParseFile(path: String): TAST;
 var
    lines: TStringList;
 begin
@@ -38,7 +38,7 @@ begin
    Result := ParseStringList(lines);   
 end;
 
-function ParseStringList(sl: TStringList): TExpression;
+function ParseStringList(sl: TStringList): TAST;
 begin
    
 end;

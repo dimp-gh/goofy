@@ -85,9 +85,10 @@ type
       eval: TEvaluator;
       builtins: TGoofyBuiltins;
    begin
+      // TODO: fix that mess
       try
          // parsing
-         ast := ParseFile(path);
+         ast := ParseFile(path) as TExpression;
          // typechecking
          builtins := TGoofyBuiltins.Create;
          typeSystem := TGoofyTypeSystem.Create(builtins);
