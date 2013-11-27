@@ -158,7 +158,7 @@ begin
             // evaluating
             value := eval.Evaluate(ast);
             // printing results
-            write(ast.ToStr);
+            write(input);
             write(' :: ', exprType.ToStr);
             writeln(' => ', value.ToStr);
          end;

@@ -80,9 +80,9 @@
         <UnitName Value="ValueEnvironment"/>
       </Unit6>
       <Unit7>
-        <Filename Value="Closures.pas"/>
+        <Filename Value="ParserHelper.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Closures"/>
+        <UnitName Value="ParserHelper"/>
       </Unit7>
       <Unit8>
         <Filename Value="Evaluator.pas"/>
