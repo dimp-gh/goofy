@@ -65,6 +65,8 @@ function PABuiltinFunction(name: String; v: TValue): TPABuiltinFunctionValue;
 function PairV(v1, v2: TValue): TPairValue;
 function UnitV: TUnitValue;
 
+function EqualValues(v1, v2: TValue): Boolean;
+
 implementation
 
 function TIntegerValue.ToStr: String;
@@ -164,6 +166,15 @@ end;
 function UnitV: TUnitValue;
 begin
    Result := TUnitValue.Create;
+end;
+
+function EqualValues(v1, v2: TValue): Boolean;
+begin
+   if (v1 is TIntegerValue) and (v2 is TIntegerValue) then
+      Result := (v1 as TIntegerValue).Value = (v2 as TIntegerValue).Value
+   else if (v1 is TBooleanValue) and (v2 is TBooleanValue) then
+      Result := (v1 as TBooleanValue).Value = (v2 as TBooleanValue).Value
+   else Result := False;
 end;
 
 initialization

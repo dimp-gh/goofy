@@ -17,27 +17,30 @@ type
       constructor Create(n: String);
    end;
    
-   TIntegerLiteral = class(TExpression)
+   TLiteral = class(TExpression)
+   end;
+   
+   TIntegerLiteral = class(TLiteral)
    public
       Value: Integer;
       function ToStr: String; override;
       constructor Create(v: String);
    end;
    
-   TBooleanLiteral = class(TExpression)
+   TBooleanLiteral = class(TLiteral)
    public
       Value: Boolean;
       function ToStr: String; override;
       constructor Create(v: Boolean);
    end;
    
-   TUnitLiteral = class(TExpression)
+   TUnitLiteral = class(TLiteral)
    public
       function ToStr: String; override;
       constructor Create;
    end;
    
-   TPairLiteral = class(TExpression)
+   TPairLiteral = class(TExpression) // shouldn't it inherit from TLiteral?
    public
       Fst, Snd: TExpression;
       function ToStr: String; override;

@@ -34,6 +34,11 @@ var
    lambda: TLambda;
    apply: TApply;
    ifc: TIfThenElse;
+   casec: TCaseOf;
+   value, litval: TValue;
+   matched: Boolean;
+   i: Integer;
+   id: TIdentifier;
    pair: TPairLiteral;
    v, fun: TValue;
    newEnv: TValueEnvironment;
@@ -120,8 +125,52 @@ begin
       else
          raise EEvalError.Create('Value ' + fun.ToStr + ' is not a function and cannot be applied');
    end
+   else if (ast is TCaseOf) then
+   begin
+      casec := ast as TCaseOf;
+      value := Evaluate(casec.Expr, env);
+      Matched := false;
+      for i := 0 to High(casec.Clauses) do
+      begin
+         // if pattern is literal and equals to `value` -> evaluate clause body
+         // if pattern is identifier _ -> evaluate clause body
+         // if pattern is identifier -> bind identifier to `value` and evaluate body with new environment   
+         if casec.Clauses[i].Pattern is TLiteral then
+         begin
+            litVal := Evaluate(casec.Clauses[i].Pattern, env);
+            if EqualValues(litVal, value) then
+            begin
+               Result := Evaluate(casec.Clauses[i].Then_, env);
+               Matched := True;
+               Break;
+            end;
+         end
+         else if casec.Clauses[i].Pattern is TIdentifier then
+         begin
+            id := casec.Clauses[i].Pattern as TIdentifier;
+            if id.Name = '_' then
+            begin
+               Result := Evaluate(casec.Clauses[i].Then_, env);
+               Matched := True;
+               Break;
+            end
+            else
+            begin
+               newEnv := EnvInsert(env, id.Name, value);
+               Result := Evaluate(casec.Clauses[i].Then_, newEnv);
+               Matched := True;
+               Break;
+            end;
+         end
+         else if casec.Clauses[i].Pattern is TPairLiteral then
+            raise EEvalError.Create('Pair literals cannot appear in case-patterns')
+      end;
+      // if no clause matched - report an error
+      if not Matched then
+         raise EEvalError.Create('Non-exhaustive patterns in case');
+   end
    else
-      raise EEvalError.Create('AST has unknown type');
+      raise EEvalError.Create('Cannot evaluate this kind of AST');
 end;
 
 function TEvaluator.Evaluate(ast: TExpression): TValue;
