@@ -103,9 +103,25 @@ begin
       resultType := Self.VarGen.GenerateVariable;
       for i := 0 to High(casec.Clauses) do
       begin
-         patternType := analyse(casec.Clauses[i].Pattern, env, nongen);
-         Self.Unify(varType, patternType);
-         bodyType := analyse(casec.Clauses[i].Then_, env, nongen);
+         if casec.Clauses[i].Pattern is TLiteral then
+         begin
+            patternType := analyse(casec.Clauses[i].Pattern, env, nongen);
+            Self.Unify(varType, patternType);
+            newEnv := env;
+         end
+         else if casec.Clauses[i].Pattern is TIdentifier then
+         begin
+            id := casec.Clauses[i].Pattern as TIdentifier;
+            if id.Name = '_' then
+               newEnv := env
+            else
+               newEnv := EnvInsert(env, id.Name, varType);
+            patternType := Self.VarGen.GenerateVariable;
+            Self.Unify(varType, patternType);
+         end
+         else
+            raise ETypeError.Create('Cannot determine type of unknown case-pattern');
+         bodyType := analyse(casec.Clauses[i].Then_, newEnv, nongen);
          Self.Unify(resultType, bodyType);
       end;
       Result := resultType;
