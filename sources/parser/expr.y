@@ -26,9 +26,11 @@ uses
 %type <TCaseOf> casec
 %type <TClause> clause
 %type <TClauseList> clauses
-%type <TLetRec> function_declaration
-%type <TLetRec> fun_clauses
+%type <TValueDeclaration> function_declaration
+%type <TValueDeclaration> fun_clauses
 %type <TClause> fun_clause
+%type <TStatement> statement
+%type <TValueDeclaration> value_assignment
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -47,6 +49,7 @@ uses
 %token CASE_ARROW_SYM
 %token END_SYM
 %token FUN_SYM
+%token VAL_SYM
 
 %token ILLEGAL 		/* illegal token */
 
@@ -55,6 +58,8 @@ uses
 input	: /* empty */
 	| input '\n'		 { yyaccept; }
         | input expr '\n'	 { begin parsed := $2; yyaccept; end; }
+	| input statement '\n'   { begin parsed := $2; yyaccept; end; }
+/*	| input module '\n'	 { begin parsed := $2; yyaccept; end; }*/
 	| error '\n'             { yyerrok; }
 	;
 
@@ -64,9 +69,23 @@ expr	:  lambda		                 { $$ := $1; }
       	|  letrec   	 			 { $$ := $1; }
         |  ifc					 { $$ := $1; }
 	|  casec				 { $$ := $1; }
-	|  function_declaration			 { $$ := $1; }
 	|  expr2				 { $$ := $1; }
  	;
+
+statement  :  function_declaration		 { $$ := $1; }
+	   |  value_assignment			 { $$ := $1; }
+	   ;
+
+value_assignment : VAL_SYM IDENT EQUALS_SYM expr { $$ := ValueDecl($2, $4); }
+		 ;
+
+/*
+statements  :  statement statements		 { $$ := PrependStmt($1, $2); }
+     	    |  statement 			 { $$ := SingleStmt($1, $2); }
+     	    ;
+
+module  :  statements				 { $$ := Module($1); }
+*/
 
 /* Parses Function Application expressions */
 expr2   :  expr2 expr3				 { $$ := Apply($1, $2); }

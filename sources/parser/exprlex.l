@@ -26,6 +26,7 @@ of                              return(OF_SYM);
 ->                              return(CASE_ARROW_SYM);
 end                             return(END_SYM);
 fun                             return(FUN_SYM);
+val                             return(VAL_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;
