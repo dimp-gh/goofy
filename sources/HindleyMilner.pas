@@ -52,6 +52,7 @@ function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment; nongen: 
 var
    id: TIdentifier;
    pair: TPairLiteral;
+   casec: TCaseOf;
    ifc: TIfThenElse;
    apply: TApply;
    lambda: TLambda;
@@ -59,11 +60,13 @@ var
    letrec: TLetRec;
    funType, argType, resultType,
       defnType, condType, thenType,
-      elseType, ftype, stype: TType;
+      elseType, ftype, stype,
+      varType, patternType, bodyType: TType;
    newTypeVar: TTypeVariable;
    newEnv : TTypeEnvironment;
    newNongen: TTypeVariableList;
    argTypeVar: TTypeVariable;
+   i: Integer;
 begin
    if (ast is TIntegerLiteral) then
       Result := Self.Int
@@ -92,6 +95,23 @@ begin
       elseType := analyse(ifc.Else_, env, nongen);
       Self.Unify(thenType, elseType);
       Result := thenType;
+   end
+   else if (ast is TCaseOf) then
+   begin
+      casec := ast as TCaseOf;
+      varType := analyse(casec.Expr, env, nongen);
+      resultType := Self.VarGen.GenerateVariable;
+      for i := 0 to High(casec.Clauses) do
+      begin
+         patternType := analyse(casec.Clauses[i].Pattern, env, nongen);
+         Self.Unify(varType, patternType);
+         bodyType := analyse(casec.Clauses[i].Then_, env, nongen);
+         Self.Unify(resultType, bodyType);
+      end;
+      Result := resultType;
+      // Question: Should pattern-matching have function type (varType -> resType)
+      // or just simple expression type?
+      // In Haskell, case-expressions have simple result type. 
    end
    else if (ast is TApply) then
    begin
