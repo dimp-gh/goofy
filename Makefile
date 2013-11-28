@@ -14,10 +14,16 @@ lexer:
 	../../bin/ndlex exprlex.l && \
 	popd
 
-clean:
-	rm -rf lib goofy tests sources/{parser/,}*.o sources/{parser/,}*.ppu sources/{parser/,}*.compiled sources/Goofy sources/parser/expr.pas sources/parser/exprlex.pas
+clean: parser_clean
+	rm -rf lib goofy tests sources/*.o sources/*.ppu sources/*.compiled sources/Goofy
 
-extraclean: clean
+parser_clean:
+	rm -rf  sources/parser/*.o sources/parser/*.ppu sources/parser/*.compiled  sources/parser/expr.pas sources/parser/exprlex.pas
+
+lexyacc_clean:
+	rm -rf bin/ndlex bin/ndyacc
+
+extraclean: clean lexyacc_clean
 	rm -rf *.bak *~
 
 tests:
