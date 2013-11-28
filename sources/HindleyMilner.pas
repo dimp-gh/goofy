@@ -14,7 +14,7 @@ type
    THMTypeSystem = class
    private
       function GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
-      procedure Unify(t1, t2: TType);
+      procedure Unify(t1, t2: TType; errorMsg: String = '');
       function Fresh(t: TType; nongen: TTypeVariableList): TType;
       function Prune(t: TType): TType;
       function IsGeneric(v: TTypeVariable; nongen: TTypeVariableList): Boolean;
@@ -95,10 +95,10 @@ begin
    begin
       ifc := ast as TIfThenElse;
       condType := analyse(ifc.Cond, env, nongen);
-      Self.Unify(Self.Bool, condType);
+      Self.Unify(Self.Bool, condType, 'if condition should have Bool type');
       thenType := analyse(ifc.Then_, env, nongen);
       elseType := analyse(ifc.Else_, env, nongen);
-      Self.Unify(thenType, elseType);
+      Self.Unify(thenType, elseType, 'types of then- and else- branches should match');
       Result := thenType;
    end
    else if (ast is TCaseOf) then
@@ -120,7 +120,7 @@ begin
       funType := analyse(apply.Fun, env, nongen);
       argType := analyse(apply.Argument, env, nongen);
       resultType := Self.VarGen.GenerateVariable;
-      Self.Unify(CreateFunType(argType, resultType), funType);
+      Self.Unify(CreateFunType(argType, resultType), funType, 'argument type didn''t match expected type');
       Result := resultType;
    end
    else if (ast is TLambda) then
@@ -161,12 +161,13 @@ begin
       raise ETypeError.Create('Undefined symbol ' + name);
 end;
 
-procedure THMTypeSystem.Unify(t1,t2: TType);
+procedure THMTypeSystem.Unify(t1, t2: TType; errorMsg: String = '');
 var
    pt1, pt2: TType;
    o1, o2: TParameterizedType;
    v: TTypeVariable;
    i: Integer;
+   diagnosis: String;
 begin
    pt1 := Self.Prune(t1);
    pt2 := Self.Prune(t2);
@@ -183,15 +184,21 @@ begin
       end;
    end
    else if (pt1 is TParameterizedType) and (pt2 is TTypeVariable) then
-      Self.Unify(pt2, pt1)
+      Self.Unify(pt2, pt1, errorMsg)
    else if (pt1 is TParameterizedType) and (pt2 is TParameterizedType) then
    begin
       o1 := pt1 as TParameterizedType;
       o2 := pt2 as TParameterizedType;
       if (o1.Name <> o2.Name) or (Length(o1.Args) <> Length(o2.Args)) then
-         raise ETypeError.Create('Type mismatch: ' + o1.ToStr + ' /= ' + o2.ToStr);
+      begin
+         if errorMsg <> '' then
+            diagnosis := '. Diagnosis: ' + errorMsg + '.'
+         else
+            diagnosis := '';
+         raise ETypeError.Create('Type mismatch: ' + o1.ToStr + ' /= ' + o2.ToStr + diagnosis);
+      end;
       for i := 0 to Length(o1.Args) - 1 do
-         Self.Unify(o1.Args[i], o2.Args[i]);
+         Self.Unify(o1.Args[i], o2.Args[i], errorMsg);
    end;
 end;
 
@@ -311,7 +318,7 @@ procedure THMTypeSystem.TypecheckPatterns(pattern: TExpression;
                                           env: TTypeEnvironment;
                                           nongen: TTypeVariableList);
 var
-   patternType, bodyType: TType;
+   patternType, bodyType, fstType, sndType: TType;
    newEnv: TTypeEnvironment;
    id: TIdentifier;
    pair: TPairLiteral;
@@ -319,7 +326,7 @@ begin
    if pattern is TLiteral then
    begin
       patternType := analyse(pattern, env, nongen);
-      Self.Unify(exprType, patternType);
+      Self.Unify(exprType, patternType, 'pattern didn''t match the type of value');
       newEnv := env;
    end
    else if pattern is TIdentifier then
@@ -334,10 +341,43 @@ begin
    end
    else if pattern is TPairLiteral then
    begin
+      // TODO: shorten it out
       pair := pattern as TPairLiteral;
-      patternType := analyse(pair, env, nongen);
-      Self.Unify(exprType, patternType);
-      // raise ETypeError.Create('Cannot typecheck pair pattern');
+      if pair.Fst is TIdentifier then
+      begin
+         id := pair.Fst as TIdentifier;
+         if id.Name = '_' then
+            newEnv := env
+         else
+            newEnv := EnvInsert(env, id.Name, exprType);
+         fstType := Self.VarGen.GenerateVariable;
+      end
+      else if pair.Fst is TLiteral then
+      begin
+         fstType := analyse(pair.Fst, env, nongen);
+         newEnv := env;
+      end
+      else
+         raise ETypeError.Create('Cannot typecheck pair-pattern with pair-patterns inside');
+      if pair.Snd is TIdentifier then
+      begin
+         id := pair.Snd as TIdentifier;
+         if id.Name = '_' then
+            newEnv := newEnv
+         else
+            newEnv := EnvInsert(newEnv, id.Name, exprType);
+         sndType := Self.VarGen.GenerateVariable;
+      end
+      else if pair.Snd is TLiteral then
+      begin
+         sndType := analyse(pair.Snd, newEnv, nongen);
+      end
+      else
+         raise ETypeError.Create('Cannot typecheck pair-pattern with pair-patterns inside');
+      patternType := CreatePairType(fstType, sndType);
+      writeln('patternType is ', patternType.ToStr);
+      // raise ETypeError.Create('Cannot typecheck pair-pattern with non-literals inside');
+      Self.Unify(exprType, patternType, 'pair pattern type didn''t match value type');
    end
    else
       raise ETypeError.Create('Cannot determine type of case-pattern');
