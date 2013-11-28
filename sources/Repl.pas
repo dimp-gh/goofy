@@ -82,6 +82,7 @@ procedure TGoofyRepl.PrintHelp;
 begin
    writeln('The followind commands are available:');
    writeln('  <expression>                     typecheck and evaluate given expression');
+   writeln('  <statement>                      typecheck and evaluate given statement');
    writeln('  :type <expr>, :t <expr>          infer type for given expression');
    writeln('  :show <expr>, :s <expr>          parse and prettyprint given expression');
    writeln('  :help, :h                        print that message');
