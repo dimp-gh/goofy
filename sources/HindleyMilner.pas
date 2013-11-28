@@ -20,7 +20,8 @@ type
       function IsGeneric(v: TTypeVariable; nongen: TTypeVariableList): Boolean;
       function OccursIn(v: TTypeVariable; types: TTypeList): Boolean;
       function OccursInType(v: TTypeVariable; t: TType): Boolean;
-      procedure TypecheckPatterns(clause: TClause;
+      procedure TypecheckPatterns(pattern: TExpression;
+                                  body: TExpression;
                                   var exprType, resultType: TType;
                                   env: TTypeEnvironment;
                                   nongen: TTypeVariableList);
@@ -106,11 +107,12 @@ begin
       varType := analyse(casec.Expr, env, nongen);
       resultType := Self.VarGen.GenerateVariable;
       for i := 0 to High(casec.Clauses) do
-	 TypecheckPatterns(casec.Clauses[i], varType, resultType, env, nongen);
+	 TypecheckPatterns(casec.Clauses[i].Pattern,
+                           casec.Clauses[i].Then_,
+                           varType, resultType,
+                           env,
+                           nongen);
       Result := resultType;
-      // Question: Should pattern-matching have function type (varType -> resType)
-      // or just simple expression type?
-      // In Haskell, case-expressions have simple result type. 
    end
    else if (ast is TApply) then
    begin
@@ -303,7 +305,8 @@ begin
    Self.VarGen.ResetNameGenerator;
 end;
 
-procedure THMTypeSystem.TypecheckPatterns(clause: TClause;
+procedure THMTypeSystem.TypecheckPatterns(pattern: TExpression;
+                                          body: TExpression;
                                           var exprType, resultType: TType;
                                           env: TTypeEnvironment;
                                           nongen: TTypeVariableList);
@@ -311,16 +314,17 @@ var
    patternType, bodyType: TType;
    newEnv: TTypeEnvironment;
    id: TIdentifier;
+   pair: TPairLiteral;
 begin
-   if clause.Pattern is TLiteral then
+   if pattern is TLiteral then
    begin
-      patternType := analyse(clause.Pattern, env, nongen);
+      patternType := analyse(pattern, env, nongen);
       Self.Unify(exprType, patternType);
       newEnv := env;
    end
-   else if clause.Pattern is TIdentifier then
+   else if pattern is TIdentifier then
    begin
-      id := clause.Pattern as TIdentifier;
+      id := pattern as TIdentifier;
       if id.Name = '_' then
 	 newEnv := env
       else
@@ -328,9 +332,16 @@ begin
       patternType := Self.VarGen.GenerateVariable;
       Self.Unify(exprType, patternType);
    end
+   else if pattern is TPairLiteral then
+   begin
+      pair := pattern as TPairLiteral;
+      patternType := analyse(pair, env, nongen);
+      Self.Unify(exprType, patternType);
+      // raise ETypeError.Create('Cannot typecheck pair pattern');
+   end
    else
       raise ETypeError.Create('Cannot determine type of case-pattern');
-   bodyType := analyse(clause.Then_, newEnv, nongen);
+   bodyType := analyse(body, newEnv, nongen);
    Self.Unify(resultType, bodyType);
 end;
 
