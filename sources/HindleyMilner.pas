@@ -20,6 +20,10 @@ type
       function IsGeneric(v: TTypeVariable; nongen: TTypeVariableList): Boolean;
       function OccursIn(v: TTypeVariable; types: TTypeList): Boolean;
       function OccursInType(v: TTypeVariable; t: TType): Boolean;
+      procedure TypecheckPatterns(clause: TClause;
+                                  var exprType, resultType: TType;
+                                  env: TTypeEnvironment;
+                                  nongen: TTypeVariableList);
    protected
       VarGen: TVariableGenerator;
       procedure PrintEnvironment(env: TTypeEnvironment);
@@ -61,7 +65,7 @@ var
    funType, argType, resultType,
       defnType, condType, thenType,
       elseType, ftype, stype,
-      varType, patternType, bodyType: TType;
+      varType: TType;
    newTypeVar: TTypeVariable;
    newEnv : TTypeEnvironment;
    newNongen: TTypeVariableList;
@@ -102,28 +106,7 @@ begin
       varType := analyse(casec.Expr, env, nongen);
       resultType := Self.VarGen.GenerateVariable;
       for i := 0 to High(casec.Clauses) do
-      begin
-         if casec.Clauses[i].Pattern is TLiteral then
-         begin
-            patternType := analyse(casec.Clauses[i].Pattern, env, nongen);
-            Self.Unify(varType, patternType);
-            newEnv := env;
-         end
-         else if casec.Clauses[i].Pattern is TIdentifier then
-         begin
-            id := casec.Clauses[i].Pattern as TIdentifier;
-            if id.Name = '_' then
-               newEnv := env
-            else
-               newEnv := EnvInsert(env, id.Name, varType);
-            patternType := Self.VarGen.GenerateVariable;
-            Self.Unify(varType, patternType);
-         end
-         else
-            raise ETypeError.Create('Cannot determine type of case-pattern');
-         bodyType := analyse(casec.Clauses[i].Then_, newEnv, nongen);
-         Self.Unify(resultType, bodyType);
-      end;
+	 TypecheckPatterns(casec.Clauses[i], varType, resultType, env, nongen);
       Result := resultType;
       // Question: Should pattern-matching have function type (varType -> resType)
       // or just simple expression type?
@@ -318,6 +301,37 @@ end;
 procedure THMTypeSystem.ResetGeneratorNames;
 begin
    Self.VarGen.ResetNameGenerator;
+end;
+
+procedure THMTypeSystem.TypecheckPatterns(clause: TClause;
+                                          var exprType, resultType: TType;
+                                          env: TTypeEnvironment;
+                                          nongen: TTypeVariableList);
+var
+   patternType, bodyType: TType;
+   newEnv: TTypeEnvironment;
+   id: TIdentifier;
+begin
+   if clause.Pattern is TLiteral then
+   begin
+      patternType := analyse(clause.Pattern, env, nongen);
+      Self.Unify(exprType, patternType);
+      newEnv := env;
+   end
+   else if clause.Pattern is TIdentifier then
+   begin
+      id := clause.Pattern as TIdentifier;
+      if id.Name = '_' then
+	 newEnv := env
+      else
+	 newEnv := EnvInsert(env, id.Name, exprType);
+      patternType := Self.VarGen.GenerateVariable;
+      Self.Unify(exprType, patternType);
+   end
+   else
+      raise ETypeError.Create('Cannot determine type of case-pattern');
+   bodyType := analyse(clause.Then_, newEnv, nongen);
+   Self.Unify(resultType, bodyType);
 end;
 
 initialization   
