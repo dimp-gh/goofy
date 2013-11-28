@@ -6,14 +6,15 @@ uses
    Classes,
    StrUtils,
    SysUtils,
-   expr in 'parser\expr.pas',
    AST,
+   expr in 'parser\expr.pas',
    Parser,
    HMTypes,
    GoofyTypeSystem,
    Values,
    Builtins,
-   Evaluator;
+   Evaluator,
+   Executor;
 
 type
    EInputError = class(Exception);
@@ -21,8 +22,7 @@ type
    private
       Verbose: Boolean;
       Builtins: TGoofyBuiltins;
-      Eval: TEvaluator;
-      TypeSystem: TGoofyTypeSystem;
+      Exec: TGoofyExecutor;
       function ReadUserInput: String;
       function IsCommandHelp(s: String): Boolean;
       function IsCommandGetType(s: String): Boolean;
@@ -44,8 +44,7 @@ implementation
 constructor TGoofyRepl.Create;
 begin
    Builtins := TGoofyBuiltins.Create;
-   TypeSystem := TGoofyTypeSystem.Create(Builtins);
-   Eval := TEvaluator.Create(Builtins);
+   Exec := TGoofyExecutor.Create(Builtins);
    Verbose := False;
 end;
 
@@ -143,8 +142,8 @@ begin
             if not(ast is TExpression) then
                raise EInputError.Create('Command :type expects expression, not statement');
             expr := ast as TExpression;
-            typeSystem.ResetGeneratorNames;
-            exprType := typeSystem.GetExprType(expr);
+            //Exec.TypeSystem.ResetGeneratorNames;
+            exprType := Exec.Typecheck(expr);
             write(input);
             writeln(' :: ', exprType.ToStr);
          end
@@ -156,28 +155,27 @@ begin
          end
          else // command is an expression or statement
          begin
-            // parsing
             ast := ParseString(input);
             if (ast is TExpression) then
             begin
                expr := ast as TExpression;
-               // typechecking
-               typeSystem.ResetGeneratorNames;
-               exprType := typeSystem.GetExprType(expr);
+               stmt := ValueDecl('it', expr);
+               // typeSystem.ResetGeneratorNames;
+               exprType := Exec.Typecheck(expr);
                // evaluating
-               value := eval.Evaluate(expr);
+               Exec.Execute(stmt);
+               value := Exec.GetValue('it');
                // printing results
-               write(input);
-               write(' :: ', exprType.ToStr);
+               write('it', ' :: ', exprType.ToStr);
                writeln(' => ', value.ToStr);
             end
             else if (ast is TStatement) then
             begin
                stmt := ast as TStatement;
-               writeln('we can''t evaluate statements right now, sorry');
+               writeln('We don''t know how to execute plain statements right now');
             end
             else
-               raise EInputError.Create('Input is not a statement nor expression');
+               Raise EInputError.Create('Parsed AST is neither expression nor statement');
          end;
       except
          on e: EInputError do
@@ -192,6 +190,8 @@ begin
             writeln('Evaluation error: ', e.Message);
          on e: EBuiltinError do
             writeln('Builtin error: ', e.Message);
+         on e: EExecError do
+            writeln('Execution error: ', e.Message);
          on e: Exception do
             writeln('Weird error: ', e.Message);
       end;      
