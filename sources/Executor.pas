@@ -23,8 +23,10 @@ type
       procedure Execute(ast: TStatement);
       constructor Create(bs: TGoofyBuiltins);
       function GetValue(name: String): TValue;
-   end;		    
-   
+      procedure PrintTypeEnv;
+      procedure PrintValueEnv;
+   end;
+
 implementation
 
 procedure TGoofyExecutor.Execute(ast: TStatement);
@@ -56,7 +58,7 @@ end;
 
 function TGoofyExecutor.Typecheck(e: TExpression): TType;
 begin
-   Result := Self.TypeSystem.GetExprType(e);
+   Result := Self.TypeSystem.Analyse(e, Self.TypeEnv);
 end;
 
 function TGoofyExecutor.GetValue(name: String): TValue;
@@ -65,6 +67,16 @@ begin
       Result := EnvLookup(Self.ValueEnv, name)
    else
       raise EExecError.Create('Unbound identifier ' + name);
+end;
+
+procedure TGoofyExecutor.PrintTypeEnv;
+begin
+   HMDataStructures.EnvPrint(Self.TypeEnv);
+end;
+
+procedure TGoofyExecutor.PrintValueEnv;
+begin
+   ValueEnvironment.EnvPrint(Self.ValueEnv);
 end;
 
 initialization

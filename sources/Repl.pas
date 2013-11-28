@@ -110,6 +110,8 @@ begin
 end;
 
 procedure TGoofyRepl.RunRepl;
+const
+   resName = 'it';
 var
    ast: TAST;
    expr: TExpression;
@@ -159,20 +161,20 @@ begin
             if (ast is TExpression) then
             begin
                expr := ast as TExpression;
-               stmt := ValueDecl('it', expr);
+               stmt := ValueDecl(resName, expr);
                // typeSystem.ResetGeneratorNames;
                exprType := Exec.Typecheck(expr);
                // evaluating
                Exec.Execute(stmt);
-               value := Exec.GetValue('it');
+               value := Exec.GetValue(resName);
                // printing results
-               write('it', ' :: ', exprType.ToStr);
+               write(resName, ' :: ', exprType.ToStr);
                writeln(' => ', value.ToStr);
             end
             else if (ast is TStatement) then
             begin
                stmt := ast as TStatement;
-               writeln('We don''t know how to execute plain statements right now');
+               Exec.Execute(stmt);
             end
             else
                Raise EInputError.Create('Parsed AST is neither expression nor statement');

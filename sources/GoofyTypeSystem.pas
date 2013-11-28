@@ -10,6 +10,7 @@ type
    public
       constructor Create(bs: TGoofyBuiltins);
       function GetExprType(ast: TExpression): TType;
+      function GetExprType(ast: TExpression; environ: TTypeEnvironment): TType;
       function GetExprTypeStr(ast: TExpression): String;
    end;
 
@@ -25,6 +26,11 @@ end;
 function TGoofyTypeSystem.GetExprType(ast: TExpression): TType;
 begin
    Result := Self.Analyse(ast, Self.Env);
+end;
+
+function TGoofyTypeSystem.GetExprType(ast: TExpression; environ: TTypeEnvironment): TType;
+begin
+   Result := Self.Analyse(ast, environ);
 end;
 
 function TGoofyTypeSystem.GetExprTypeStr(ast: TExpression): String;
