@@ -170,7 +170,7 @@ begin
                value := Exec.GetValue(resName);
                // printing results
                write(resName, ' :: ', exprType.ToStr);
-               writeln(' => ', value.ToStr);
+               writeln(' ~> ', value.ToStr);
             end
             else if (ast is TStatement) then
             begin
@@ -210,7 +210,7 @@ begin
    while True do
    begin
       Readln(line);
-      if line[Length(line)] = '\' then
+      if (line <> '') and (line[Length(line)] = '\') then
       begin
          line[Length(line)] := ' ';
          code := code + line;
@@ -218,7 +218,7 @@ begin
       else
       begin
          code := code + line;
-         Break
+         Break;
       end;
    end;
    Result := code;
