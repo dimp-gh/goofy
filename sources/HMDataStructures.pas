@@ -29,6 +29,7 @@ function EnvInsert(env: TTypeEnvironment; key: String; value: TType): TTypeEnvir
 function EnvFind(env: TTypeEnvironment; key: String): Boolean;
 function EnvLookup(env: TTypeEnvironment; key: String): TType;
 function EnvDelete(env: TTypeEnvironment; key: String): TTypeEnvironment;
+function EnvUpdate(env: TTypeEnvironment; key: String; value: TType): TTypeEnvironment;
 procedure EnvPrint(env: TTypeEnvironment);
 
 function VarListNew: TTypeVariableList;
@@ -61,12 +62,15 @@ begin
    if (len <> 0) then
    begin
       if EnvFind(env, key) then
-         raise Exception.Create('Cannot insert an existing key:' + key);
-      SetLength(newEnv, len + 1);
-      for i := 0 to len - 1 do
-         newEnv[i] := env[i];
-      newEnv[len].Key := key;
-      newEnv[len].Value := value;
+         newEnv := EnvUpdate(env, key, value)
+      else
+      begin
+         SetLength(newEnv, len + 1);
+         for i := 0 to len - 1 do
+            newEnv[i] := env[i];
+         newEnv[len].Key := key;
+         newEnv[len].Value := value;
+      end
    end
    else
    begin
@@ -118,6 +122,22 @@ begin
       end;
    Result := newEnv;
 end;
+
+function EnvUpdate(env: TTypeEnvironment; key: String; value: TType): TTypeEnvironment;
+var
+   newEnv: TTypeEnvironment;
+   i: Integer;
+begin
+   SetLength(newEnv, Length(env));
+   for i := 0 to High(Env) do
+   begin
+      newEnv[i] := env[i];
+      if env[i].Key = key then
+         newEnv[i].Value := value;
+   end;
+   Result := newEnv;
+end;
+
 
 procedure EnvPrint(env: TTypeEnvironment);
 var
