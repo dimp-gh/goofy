@@ -36,7 +36,7 @@ begin
    if (len <> 0) then
    begin
       if EnvFind(env, key) then
-         Result := EnvUpdate(env, key, value)
+         newEnv := EnvUpdate(env, key, value)
       else
       begin
          SetLength(newEnv, len + 1);
