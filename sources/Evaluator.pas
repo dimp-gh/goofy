@@ -13,6 +13,10 @@ type
    private
       BuiltinValues: TValueEnvironment;
       Builtins: TGoofyBuiltins;
+      function MatchClause(clause: TClause;
+                           value: TValue;
+                           env: TValueEnvironment;
+                           var matched: Boolean): TValue;
    public
       function Evaluate(ast: TExpression; env: TValueEnvironment): TValue;
       function Evaluate(ast: TExpression): TValue;
@@ -132,38 +136,9 @@ begin
       Matched := false;
       for i := 0 to High(casec.Clauses) do
       begin
-         // if pattern is literal and equals to `value` -> evaluate clause body
-         // if pattern is identifier _ -> evaluate clause body
-         // if pattern is identifier -> bind identifier to `value` and evaluate body with new environment   
-         if casec.Clauses[i].Pattern is TLiteral then
-         begin
-            litVal := Evaluate(casec.Clauses[i].Pattern, env);
-            if EqualValues(litVal, value) then
-            begin
-               Result := Evaluate(casec.Clauses[i].Then_, env);
-               Matched := True;
-               Break;
-            end;
-         end
-         else if casec.Clauses[i].Pattern is TIdentifier then
-         begin
-            id := casec.Clauses[i].Pattern as TIdentifier;
-            if id.Name = '_' then
-            begin
-               Result := Evaluate(casec.Clauses[i].Then_, env);
-               Matched := True;
-               Break;
-            end
-            else
-            begin
-               newEnv := EnvInsert(env, id.Name, value);
-               Result := Evaluate(casec.Clauses[i].Then_, newEnv);
-               Matched := True;
-               Break;
-            end;
-         end
-         else if casec.Clauses[i].Pattern is TPairLiteral then
-            raise EEvalError.Create('Pair literals cannot appear in case-patterns')
+         Result := MatchClause(casec.Clauses[i], value, env, Matched);
+         if Matched then
+            break;
       end;
       // if no clause matched - report an error
       if not Matched then
@@ -171,6 +146,85 @@ begin
    end
    else
       raise EEvalError.Create('Cannot evaluate this kind of AST');
+end;
+
+function TEvaluator.MatchClause(clause: TClause;
+                                value: TValue;
+                                env: TValueEnvironment;
+                                var matched: Boolean): TValue;
+var
+   litVal: TValue;
+   newEnv: TValueEnvironment;
+   id: TIdentifier;
+   pair: TPairLiteral;
+   pairval: TPairValue;
+   matchedFst, matchedSnd: Boolean;
+begin
+   matched := False;
+   if clause.Pattern is TLiteral then
+   begin
+      litVal := Evaluate(clause.Pattern, env);
+      if EqualValues(litVal, value) then
+      begin
+         Result := Evaluate(clause.Then_, env);
+         matched := True;
+      end;
+   end
+   else if clause.Pattern is TIdentifier then
+   begin
+      id := clause.Pattern as TIdentifier;
+      if id.Name = '_' then
+         newEnv := env
+      else
+         newEnv := EnvInsert(env, id.Name, value);
+      Result := Evaluate(clause.Then_, newEnv);
+      matched := True;
+   end
+   else if clause.Pattern is TPairLiteral then
+   begin
+      matchedFst := False;
+      matchedSnd := False;
+      pair := clause.Pattern as TPairLiteral;
+      pairval := value as TPairValue;
+      if pair.Fst is TLiteral then
+      begin
+         litVal := Evaluate(pair.Fst, env);
+         if EqualValues(litVal, pairval.Fst) then
+            matchedFst := True;
+      end
+      else if pair.Fst is TIdentifier then
+      begin
+         id := pair.Fst as TIdentifier;
+         if id.Name = '_' then
+            newEnv := env
+         else
+            newEnv := EnvInsert(env, id.Name, pairval.Fst);
+         matchedFst := True;
+      end;
+      
+      if pair.Snd is TLiteral then
+      begin
+         litVal := Evaluate(pair.Snd, newEnv);
+         if EqualValues(litVal, pairval.Snd) then
+            matchedSnd := True;
+      end
+      else if pair.Snd is TIdentifier then
+      begin
+         id := pair.Snd as TIdentifier;
+         if id.Name = '_' then
+            newEnv := newEnv
+         else
+            newEnv := EnvInsert(newEnv, id.Name, pairval.Snd);
+         matchedSnd := True;
+      end;
+      
+      if matchedFst and matchedSnd then
+      begin
+         matched := True;
+         Result := Evaluate(clause.Then_, newEnv);
+      end;
+      // raise EEvalError.Create('Pair literals cannot appear in case-patterns');
+   end;
 end;
 
 function TEvaluator.Evaluate(ast: TExpression): TValue;
