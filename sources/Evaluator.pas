@@ -39,10 +39,9 @@ var
    apply: TApply;
    ifc: TIfThenElse;
    casec: TCaseOf;
-   value, litval: TValue;
+   value: TValue;
    matched: Boolean;
    i: Integer;
-   id: TIdentifier;
    pair: TPairLiteral;
    v, fun: TValue;
    newEnv: TValueEnvironment;

@@ -16,9 +16,9 @@ type
    private
       ValueEnv: TValueEnvironment;
       TypeEnv: TTypeEnvironment;
+   public
       Eval: TEvaluator;
       TypeSystem: TGoofyTypeSystem;
-   public
       function Typecheck(e: TExpression): TType;
       procedure Execute(ast: TStatement);
       constructor Create(bs: TGoofyBuiltins);

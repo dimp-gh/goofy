@@ -10,7 +10,6 @@ uses
    expr in 'parser\expr.pas',
    Parser,
    HMTypes,
-   GoofyTypeSystem,
    Values,
    Builtins,
    Evaluator,
@@ -145,7 +144,7 @@ begin
             if not(ast is TExpression) then
                raise EInputError.Create('Command :type expects expression, not statement');
             expr := ast as TExpression;
-            //Exec.TypeSystem.ResetGeneratorNames;
+            Exec.TypeSystem.ResetGeneratorNames;
             exprType := Exec.Typecheck(expr);
             write(input);
             writeln(' :: ', exprType.ToStr);
@@ -163,7 +162,7 @@ begin
             begin
                expr := ast as TExpression;
                stmt := ValueDecl(resName, expr);
-               // typeSystem.ResetGeneratorNames;
+               Exec.TypeSystem.ResetGeneratorNames;
                exprType := Exec.Typecheck(expr);
                // evaluating
                Exec.Execute(stmt);
