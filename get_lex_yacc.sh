@@ -8,13 +8,17 @@ echo "$0: Unpacking ndyacclex"
 tar -xf "$ARCHIVENAME" -C /tmp/
 rm "$ARCHIVENAME"
 pushd /tmp/ndyacclex-1.0
-pushd src/lex
+pushd src/
+echo "$0: Building yacclexlib"
+lazbuild ndyacclexlib.lpk
+pushd lex
 echo "$0: Building lex"
 lazbuild ndlex.lpr
 popd
-pushd src/yacc
+pushd yacc
 echo "$0: Building yacc"
 lazbuild ndyacc.lpr
+popd
 popd
 popd
 echo "$0: Copying binaries"
