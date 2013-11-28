@@ -332,25 +332,26 @@ begin
    else if pattern is TIdentifier then
    begin
       id := pattern as TIdentifier;
+      patternType := Self.VarGen.GenerateVariable;
       if id.Name = '_' then
 	 newEnv := env
       else
-	 newEnv := EnvInsert(env, id.Name, exprType);
-      patternType := Self.VarGen.GenerateVariable;
+	 newEnv := EnvInsert(env, id.Name, patternType);
       Self.Unify(exprType, patternType);
    end
    else if pattern is TPairLiteral then
    begin
       // TODO: shorten it out
+      // Fails to infer types for x and y 'fun f (x, y) = + x y'
       pair := pattern as TPairLiteral;
       if pair.Fst is TIdentifier then
       begin
          id := pair.Fst as TIdentifier;
+         fstType := Self.VarGen.GenerateVariable;
          if id.Name = '_' then
             newEnv := env
          else
-            newEnv := EnvInsert(env, id.Name, exprType);
-         fstType := Self.VarGen.GenerateVariable;
+            newEnv := EnvInsert(env, id.Name, fstType);
       end
       else if pair.Fst is TLiteral then
       begin
@@ -359,14 +360,15 @@ begin
       end
       else
          raise ETypeError.Create('Cannot typecheck pair-pattern with pair-patterns inside');
+      
       if pair.Snd is TIdentifier then
       begin
          id := pair.Snd as TIdentifier;
+         sndType := Self.VarGen.GenerateVariable;
          if id.Name = '_' then
             newEnv := newEnv
          else
-            newEnv := EnvInsert(newEnv, id.Name, exprType);
-         sndType := Self.VarGen.GenerateVariable;
+            newEnv := EnvInsert(newEnv, id.Name, sndType);
       end
       else if pair.Snd is TLiteral then
       begin
@@ -375,7 +377,6 @@ begin
       else
          raise ETypeError.Create('Cannot typecheck pair-pattern with pair-patterns inside');
       patternType := CreatePairType(fstType, sndType);
-      writeln('patternType is ', patternType.ToStr);
       // raise ETypeError.Create('Cannot typecheck pair-pattern with non-literals inside');
       Self.Unify(exprType, patternType, 'pair pattern type didn''t match value type');
    end

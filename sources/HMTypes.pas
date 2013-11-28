@@ -6,16 +6,15 @@ uses
    SysUtils; // for exceptions
 
 type
-
    ETypeError = class(Exception);
    EParseError = class(Exception);
-   
+
    PNameGenerator = ^TNameGenerator;
 
    TType = class(TObject)
       function ToStr: String; virtual; abstract;
    end;
-   
+
    TTypeVariable = class(TType)
    private
       Namegen: PNameGenerator;
@@ -30,7 +29,7 @@ type
       procedure SetInstance(inst: TType);
       function GetInstance: TType;
    end;
-      
+
    TParameterizedType = class(TType)
    public
       Name: String;
