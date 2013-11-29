@@ -116,14 +116,11 @@ begin
    // * First is to create different comparison functions for different types
    // * Second is to implement fucntion overloading.
    //   (Probably through some sort of embedding function signature into environment key)
-   // * Third is to assign type a -> a -> Bool to this function and then
+   // * Third (this was actually used) is to assign type a -> a -> Bool to this function and then
    //   use general comparison from Values unit
    Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v8, UnitType)));
    Self.Insert(Builtin('error', BuiltinFunction('error'), CreateFunType(StringType, v9)));
    
-   // built-ins for debugging purposes
-   Self.Insert(Builtin('forty-two', IntegerV(42), Int));
-   Self.Insert(Builtin('one-two', PairV(IntegerV(1), IntegerV(2)), CreatePairType(Int, Int)));
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);

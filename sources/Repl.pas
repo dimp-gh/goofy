@@ -173,7 +173,7 @@ begin
             module := ParseModule('./' + input + '.gf');
             Exec.LoadModule(module);
             writeln('Loaded ', module.ToStr);
-         end            
+         end
          else // command is an expression or statement
          begin
             ast := ParseString(input);

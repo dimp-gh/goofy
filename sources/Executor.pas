@@ -66,7 +66,7 @@ begin
    if EnvFind(Self.ValueEnv, name) then
       Result := EnvLookup(Self.ValueEnv, name)
    else
-      raise EExecError.Create('Unbound identifier ' + name);
+      raise EExecError.Create('Undefined identifier ' + name);
 end;
 
 procedure TGoofyExecutor.LoadModule(module: TModule);

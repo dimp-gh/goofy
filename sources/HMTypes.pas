@@ -61,7 +61,7 @@ type
    end;
    
 function CreateType(name: String): TParameterizedType;
-function CreateFunType(from	  : TType; into: TType): TParameterizedType;
+function CreateFunType(from: TType; into: TType): TParameterizedType;
 function CreatePairType(t1,t2: TType): TParameterizedType;
 
 implementation
