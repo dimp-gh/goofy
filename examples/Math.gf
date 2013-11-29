@@ -8,3 +8,5 @@ fun gcd (x, 0) = x
 
 fun factorial 0 = 1
   | factorial x = x `times` (factorial (x `minus` 1))
+
+fun main _ = println (factorial 10)
