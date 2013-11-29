@@ -31,6 +31,9 @@ uses
 %type <TClause> fun_clause
 %type <TStatement> statement
 %type <TValueDeclaration> value_assignment
+%type <TStatementList> statements
+%type <TModule> module
+%type <String> module_header
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -50,17 +53,33 @@ uses
 %token END_SYM
 %token FUN_SYM
 %token VAL_SYM
+%token MODULE_SYM
+%token WHERE_SYM
 
 %token ILLEGAL 		/* illegal token */
 
 %%
 
 input	: /* empty */
-	| input '\n'		 { yyaccept; }
-        | input expr '\n'	 { begin parsed := $2; yyaccept; end; }
-	| input statement '\n'   { begin parsed := $2; yyaccept; end; }
-/*	| input module '\n'	 { begin parsed := $2; yyaccept; end; }*/
-	| error '\n'             { yyerrok; }
+        | input expr     	 { begin parsed := $2; yyaccept; end; }
+	| input statement	 { begin parsed := $2; yyaccept; end; }
+	| input module     	 { begin parsed := $2; yyaccept; end; }
+	| error                  { yyerrok; }
+	;
+
+statement  :  function_declaration		 { $$ := $1; }
+	   |  value_assignment			 { $$ := $1; }
+	   ;
+
+value_assignment : VAL_SYM IDENT EQUALS_SYM expr { $$ := ValueDecl($2, $4); }
+		 ;
+
+
+statements  :  statement statements	         { $$ := PrependStmt($1, $2); }
+     	    |  statement 			 { $$ := SingleStmt($1); }
+     	    ;
+
+module  :  module_header statements		 { $$ := Module($1, $2); }
 	;
 
 /* Parses the LET, LETREC, FN, IF, CASE expressions */
@@ -72,20 +91,8 @@ expr	:  lambda		                 { $$ := $1; }
 	|  expr2				 { $$ := $1; }
  	;
 
-statement  :  function_declaration		 { $$ := $1; }
-	   |  value_assignment			 { $$ := $1; }
-	   ;
+module_header  :  MODULE_SYM IDENT WHERE_SYM	 { $$ := $2; }	 
 
-value_assignment : VAL_SYM IDENT EQUALS_SYM expr { $$ := ValueDecl($2, $4); }
-		 ;
-
-/*
-statements  :  statement statements		 { $$ := PrependStmt($1, $2); }
-     	    |  statement 			 { $$ := SingleStmt($1, $2); }
-     	    ;
-
-module  :  statements				 { $$ := Module($1); }
-*/
 
 /* Parses Function Application expressions */
 expr2   :  expr2 expr3				 { $$ := Apply($1, $2); }

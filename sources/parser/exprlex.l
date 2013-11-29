@@ -26,6 +26,8 @@ of                              return(OF_SYM);
 end                             return(END_SYM);
 fun                             return(FUN_SYM);
 val                             return(VAL_SYM);
+module                          return(MODULE_SYM);
+where                           return(WHERE_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;
@@ -36,5 +38,5 @@ val                             return(VAL_SYM);
 
 " "             		;
 
-.				|
-\n				returnc(yytext[1]);
+.				returnc(yytext[1]);
+\n 				;

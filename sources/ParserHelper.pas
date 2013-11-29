@@ -7,6 +7,9 @@ uses AST;
 function SingleClause(c: TClause): TClauseList;
 function PrependClause(c: TClause; cs: TClauseList): TClauseList;
 function GetClauses(decl: TValueDeclaration): TClauseList;
+function SingleStmt(s: TStatement): TStatementList;
+function PrependStmt(s: TStatement; ss: TStatementList): TStatementList;
+
 
 implementation
 
@@ -42,6 +45,28 @@ begin
    l := lr.Definition as TLambda;
    c := l.body as TCaseOf;
    Result := c.Clauses;
+end;
+
+function SingleStmt(s: TStatement): TStatementList;
+var
+   r: TStatementList;
+begin
+   SetLength(r, 1);
+   r[0] := s;
+   Result := r;
+end;
+
+function PrependStmt(s: TStatement; ss: TStatementList): TStatementList;
+var
+   i, len: Integer;
+   res: TStatementList;
+begin
+   len := Length(ss);
+   SetLength(res, len + 1);
+   res[0] := s;
+   for i := 0 to High(ss) do
+      res[i + 1] := ss[i];
+   Result := res;
 end;
 
 initialization

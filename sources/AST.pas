@@ -119,7 +119,17 @@ type
       function ToStr: String; override;
       constructor Create(n: String; e: TExpression);
    end;
-      
+   
+   TStatementList = array of TStatement;
+   
+   TModule = class(TAST)
+   public
+      Name: String;
+      Stmts: TStatementList;
+      function ToStr: String; override;
+      constructor Create(n: String; ss: TStatementList);
+   end;
+   
 // expressions   
 function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
@@ -137,6 +147,8 @@ function Clause(p, t: TExpression): TClause;
 // statements
 function FunctionDecl(name: String; cs: TClauseList): TValueDeclaration;
 function ValueDecl(n: String; e: TExpression): TValueDeclaration;
+// modules
+function Module(name: String; ss: TStatementList): TModule;
 
 implementation
 
@@ -303,6 +315,17 @@ begin
    Self.Expr := e;
 end;
 
+function TModule.ToStr: String;
+begin
+   Result := '<module ' + Name + ' with ' + IntToStr(Length(Stmts)) + ' statements>';
+end;
+
+constructor TModule.Create(n: String; ss: TStatementList);
+begin
+   Self.Name := n;
+   Self.Stmts := ss;
+end;
+
 // A few convenient functions for creating AST
 function Identifier(n: String): TIdentifier;
 begin
@@ -382,6 +405,11 @@ end;
 function ValueDecl(n: String; e: TExpression): TValueDeclaration;
 begin
    Result := TValueDeclaration.Create(n, e);
+end;
+
+function Module(name: String; ss: TStatementList): TModule;
+begin
+   Result := TModule.Create(name, ss);
 end;
 
 initialization

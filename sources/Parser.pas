@@ -10,8 +10,7 @@ uses
    expr in 'sources/parser/expr.pas';
 
 function ParseString(s: String): TAST;
-function ParseFile(path: String): TAST;
-function ParseStringList(sl: TStringList): TAST;
+function ParseModule(path: String): TModule;
 
 implementation
 
@@ -28,19 +27,30 @@ begin
    Result := parser.parsed;
 end;
 
-function ParseFile(path: String): TAST;
+function ParseModule(path: String): TModule;
 var
-   lines: TStringList;
+   stream: TFileStream;
+   parser: TExprParser;
+   ast: TAST;
 begin
+   parser := TExprParser.Create;
    // TODO: check is path exists
-   lines := TStringList.Create;
-   lines.LoadFromFile(path);
-   Result := ParseStringList(lines);   
-end;
-
-function ParseStringList(sl: TStringList): TAST;
-begin
-   
+   stream := TFileStream.Create(path, fmOpenRead);
+   stream.Position := 0;
+   try
+      parser.Parse(stream);
+   except
+      on e: EExprParserException do
+      begin
+         stream.Destroy;
+         raise EExprParserException.Create(e.Message);
+      end;
+   end;
+   stream.Destroy;
+   ast := parser.parsed;
+   if (ast is TExpression) or (ast is TStatement) then
+      raise EExprParserException.Create('Module content is neither expression nor statement');
+   Result := ast as TModule;
 end;
 
 initialization
