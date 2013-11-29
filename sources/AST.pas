@@ -317,7 +317,7 @@ end;
 
 function TModule.ToStr: String;
 begin
-   Result := '<module ' + Name + ' with ' + IntToStr(Length(Stmts)) + ' statements>';
+   Result := '<module ' + Name + ' with ' + IntToStr(Length(Stmts)) + ' definitions>';
 end;
 
 constructor TModule.Create(n: String; ss: TStatementList);
