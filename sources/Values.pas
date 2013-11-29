@@ -202,6 +202,8 @@ begin
       Result := (v1 as TBooleanValue).Value = (v2 as TBooleanValue).Value
    else if (v1 is TStringValue) and (v2 is TStringValue) then
       Result := (v1 as TStringValue).Value = (v2 as TStringValue).Value
+   else if (v1 is TUnitValue) and (v2 is TUnitValue) then
+      Result := True
    else Result := False;
 end;
 
