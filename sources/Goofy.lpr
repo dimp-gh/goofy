@@ -10,7 +10,8 @@ uses
    HMTypes, GoofyTypeSystem,
    Evaluator,
    Builtins,
-   Repl;
+   Repl,
+   Executor;
 
 type
 
@@ -80,12 +81,36 @@ type
    
    procedure TMyApplication.InterpretPath(path: String);
    var
-      ast: TExpression;
-      typeSystem: TGoofyTypeSystem;
-      eval: TEvaluator;
       builtins: TGoofyBuiltins;
+      exec: TGoofyExecutor;
+      prelude, module: TModule;
+      main: TStatement;
    begin
-       // TODO
+      try
+         builtins := TGoofyBuiltins.Create;
+         exec := TGoofyExecutor.Create(builtins);
+         prelude := ParseModule('./Prelude.gf');
+         exec.LoadModule(prelude);
+         module := ParseModule(path);
+         exec.LoadModule(module);
+         main := ValueDecl('it', Apply(Identifier('main'), UnitLiteral));
+         exec.Execute(main);
+      except
+         on e: EExprParserException do
+            writeln('ExprParser error: ', e.Message);
+         on e: EParseError do
+            writeln('Parsing error: ', e.Message);
+         on e: ETypeError do
+            writeln('Typecheck error: ', e.Message);
+         on e: EEvalError do
+            writeln('Evaluation error: ', e.Message);
+         on e: EBuiltinError do
+            writeln('Builtin error: ', e.Message);
+         on e: EExecError do
+            writeln('Execution error: ', e.Message);
+         on e: Exception do
+            writeln('Weird error: ', e.Message);
+      end;      
    end;
    
    procedure TMyApplication.GoofyRepl;
