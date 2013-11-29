@@ -97,7 +97,7 @@ type
          exec.Execute(main);
       except
          on e: EExprParserException do
-            writeln('ExprParser error: ', e.Message);
+            writeln('Syntax error: ', e.Message);
          on e: EParseError do
             writeln('Parsing error: ', e.Message);
          on e: ETypeError do

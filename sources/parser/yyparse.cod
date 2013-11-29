@@ -253,7 +253,10 @@ error:
 
   (* error; start error recovery: *)
 
-  if yyerrflag=0 then raise EExprParserException.Create('syntax error');
+  if yyerrflag=0 then raise EExprParserException.Create('line: ' +
+                                                           IntToStr(lexer.yylineno) +
+                                                           ', faulty token is ''' +
+                                                           Chr(yychar) + '''');
 
 errlab:
 
