@@ -36,6 +36,13 @@ type
       constructor Create(v: Boolean);
    end;
    
+   TStringLiteral = class(TLiteral)
+   public
+      Value: String;
+      function ToStr: String; override;
+      constructor Create(v: String);
+   end;
+   
    TUnitLiteral = class(TLiteral)
    public
       function ToStr: String; override;
@@ -135,6 +142,7 @@ function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Integer): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
 function BooleanLiteral(v: Boolean): TBooleanLiteral;
+function StringLiteral(v: String): TStringLiteral;
 function PairLiteral(v1, v2: TExpression): TPairLiteral;
 function UnitLiteral: TUnitLiteral;
 function IfThenElse(c, t, e: TExpression): TIfThenElse;
@@ -161,6 +169,17 @@ end;
 function TIntegerLiteral.ToStr: String;
 begin
    Result := IntToStr(Self.Value);
+end;
+
+constructor TStringLiteral.Create(v: String);
+begin
+   Self.Value := v;
+   inherited Create;
+end;
+
+function TStringLiteral.ToStr: String;
+begin
+   Result := '"' + Self.Value + '"';
 end;
 
 constructor TBooleanLiteral.Create(v: Boolean);
@@ -340,6 +359,11 @@ end;
 function IntegerLiteral(v: String): TIntegerLiteral;
 begin
    Result := TIntegerLiteral.Create(v);
+end;
+
+function StringLiteral(v: String): TStringLiteral;
+begin
+   Result := TStringLiteral.Create(v);
 end;
 
 function UnitLiteral: TUnitLiteral;

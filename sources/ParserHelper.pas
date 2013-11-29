@@ -9,8 +9,9 @@ function PrependClause(c: TClause; cs: TClauseList): TClauseList;
 function GetClauses(decl: TValueDeclaration): TClauseList;
 function SingleStmt(s: TStatement): TStatementList;
 function PrependStmt(s: TStatement; ss: TStatementList): TStatementList;
-
-
+function CutStringLiteral(raw: String): String;
+function Unescape(raw: String): String;
+   
 implementation
 
 function SingleClause(c: TClause): TClauseList;
@@ -68,6 +69,17 @@ begin
       res[i + 1] := ss[i];
    Result := res;
 end;
+
+function CutStringLiteral(raw: String): String;
+begin
+   Result := System.Copy(raw, 2, Length(raw) - 2);   
+end;
+
+function Unescape(raw: String): String;
+begin
+   // TODO
+   Result := raw;
+end; 
 
 initialization
    

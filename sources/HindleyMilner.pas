@@ -31,6 +31,7 @@ type
    public
       Int: TParameterizedType;
       Bool: TParameterizedType;
+      StringType: TParameterizedType; { cannot name this one String }
       UnitType: TParameterizedType; { cannot name this one Unit }
       constructor Create;
       function Analyse(ast: TExpression; env: TTypeEnvironment): TType;
@@ -46,6 +47,7 @@ begin
    Self.Int := CreateType('Int');
    Self.Bool := CreateType('Bool');
    Self.UnitType := CreateType('Unit');
+   Self.StringType := CreateType('String');
 end;
 
 function THMTypeSystem.Analyse(ast: TExpression; env: TTypeEnvironment): TType;
@@ -79,6 +81,8 @@ begin
       Result := Self.UnitType
    else if (ast is TBooleanLiteral) then
       Result := Self.Bool
+   else if (ast is TStringLiteral) then
+      Result := Self.StringType
    else if (ast is TPairLiteral) then
    begin
       pair := ast as TPairLiteral;

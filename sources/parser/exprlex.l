@@ -1,5 +1,6 @@
 D				[0-9]
 ID                              [A-Za-z\-\+\*/%_\.][0-9A-Za-z\-\+\*/%_']*
+STR_LIT                         \"(\\.|[^"])*\"
 
 %start
 %%
@@ -8,6 +9,11 @@ ID                              [A-Za-z\-\+\*/%_\.][0-9A-Za-z\-\+\*/%_']*
 				  yylval.yyInteger := StrToInt(yytext);
 				  return(NUM);
 				end;
+
+{STR_LIT}                       begin
+                                  yylval.yyString := yytext;
+                                  return(STRINGLIT);
+                                end;
 
 fn                              return(LAMBDA_SYM);
 =>                              return(LAMBDA_ARROW_SYM);

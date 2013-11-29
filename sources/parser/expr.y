@@ -14,6 +14,7 @@ uses
 
 %token <Integer> NUM
 %token <String> IDENT
+%token <String> STRINGLIT
 %type <TExpression> expr
 %type <TExpression> expr2
 %type <TExpression> expr3
@@ -110,6 +111,7 @@ expr4   :  NUM					{ $$ := IntegerLiteral($1); }
 	|  '(' expr ',' expr ')'		{ $$ := PairLiteral($2, $4); }
 	|  '(' expr ')'         		{ $$ := $2; }
 	|  UNIT_SYM 				{ $$ := UnitLiteral; }
+	|  STRINGLIT				{ $$ := StringLiteral(Unescape(CutStringLiteral($1))); }
 
 lambda  :  LAMBDA_SYM IDENT LAMBDA_ARROW_SYM expr          { $$ := Lambda($2, $4); }
 	|  '(' lambda ')'                                  { $$ := $2; }
