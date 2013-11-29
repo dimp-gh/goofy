@@ -201,7 +201,9 @@ begin
          else
             newEnv := EnvInsert(env, id.Name, pairval.Fst);
          matchedFst := True;
-      end;
+      end
+      else
+         raise EEvalError.Create('Unknown type of pattern appeared in case-expression');
       
       if pair.Snd is TLiteral then
       begin
@@ -217,7 +219,9 @@ begin
          else
             newEnv := EnvInsert(newEnv, id.Name, pairval.Snd);
          matchedSnd := True;
-      end;
+      end
+      else
+         raise EEvalError.Create('Unknown type of pattern appeared in case-expression');
       
       if matchedFst and matchedSnd then
       begin
