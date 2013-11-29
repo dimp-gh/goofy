@@ -29,13 +29,15 @@ type
       function IsCommandQuit(s: String): Boolean;
       function IsCommandMan(s: String): Boolean;
       function IsCommandBuiltins(s: String): Boolean;
-      procedure CutCommand(var input: String);
+      function IsCommandLoad(s: String): Boolean;
+      procedure CutCommand(var input  : String);
    public
       constructor Create;
       procedure RunRepl;
       procedure PrintHelp;
       procedure PrintMan;
       procedure PrintBuiltins;
+      procedure LoadPrelude;
    end;
    
 implementation
@@ -77,11 +79,17 @@ begin
    Result := (s = ':builtins');
 end;
 
+function TGoofyRepl.IsCommandLoad(s: String): Boolean;      
+begin
+   Result := AnsiStartsStr(':load', s) or AnsiStartsStr(':l', s);
+end;
+
 procedure TGoofyRepl.PrintHelp;
 begin
    writeln('The followind commands are available:');
    writeln('  <expression>                     typecheck and evaluate given expression');
    writeln('  <statement>                      typecheck and evaluate given statement');
+   writeln('  :load <module name>              load given module from current dir');
    writeln('  :type <expr>, :t <expr>          infer type for given expression');
    writeln('  :show <expr>, :s <expr>          parse and prettyprint given expression');
    writeln('  :help, :h                        print that message');
@@ -119,7 +127,11 @@ var
    exprType: TType;
    value: TValue;
    input: String;
+   module: TModule;
 begin
+   write('Loading Prelude...');
+   Self.LoadPrelude;
+   writeln('done');
    writeln('Welcome to Goofy REPL.');
    writeln('Enter :help to list available commands.');
    while True do
@@ -155,6 +167,13 @@ begin
             ast := ParseString(input);
             writeln(ast.ToStr);
          end
+         else if IsCommandLoad(input) then
+         begin
+            CutCommand(input);
+            module := ParseModule('./' + input + '.gf');
+            Exec.LoadModule(module);
+            writeln('Loaded ', module.ToStr);
+         end            
          else // command is an expression or statement
          begin
             ast := ParseString(input);
@@ -221,6 +240,31 @@ begin
       end;
    end;
    Result := code;
+end;
+
+procedure TGoofyRepl.LoadPrelude;
+var
+   prelude: TModule;
+begin
+   try
+      prelude := ParseModule('./Prelude.gf');
+      Self.Exec.LoadModule(prelude);
+   except
+      on e: EExprParserException do
+         writeln('ExprParser error: ', e.Message);
+      on e: EParseError do
+         writeln('Parsing error: ', e.Message);
+      on e: ETypeError do
+         writeln('Typecheck error: ', e.Message);
+      on e: EEvalError do
+         writeln('Evaluation error: ', e.Message);
+      on e: EBuiltinError do
+         writeln('Builtin error: ', e.Message);
+      on e: EExecError do
+         writeln('Execution error: ', e.Message);
+      on e: Exception do
+         writeln('Weird error: ', e.Message);
+      end;      
 end;
 
 initialization

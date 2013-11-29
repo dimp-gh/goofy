@@ -85,38 +85,7 @@ type
       eval: TEvaluator;
       builtins: TGoofyBuiltins;
    begin
-      // TODO: fix that mess
-      try
-         // parsing
-         ast := ParseFile(path) as TExpression;
-         // typechecking
-         builtins := TGoofyBuiltins.Create;
-         typeSystem := TGoofyTypeSystem.Create(builtins);
-         typeSystem.GetExprType(ast);
-         // evaluating
-         eval := TEvaluator.Create(builtins);
-         eval.Evaluate(ast);
-      except
-         on e: EFOpenError do begin
-            writeln;
-            writeln('Cannot find file ', path);
-         end;
-         on e: ETypeError do
-         begin
-            writeln;
-            writeln('Typecheck error: ', e.Message);
-         end;
-         on e: EEvalError do
-         begin
-            writeln;
-            writeln('Evaluation error: ', e.Message);
-         end;
-         on e: EBuiltinError do
-         begin
-            writeln;
-            writeln('Builtin error" ', e.Message);
-         end;
-      end;
+       // TODO
    end;
    
    procedure TMyApplication.GoofyRepl;

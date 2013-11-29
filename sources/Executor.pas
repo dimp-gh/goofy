@@ -23,6 +23,7 @@ type
       procedure Execute(ast: TStatement);
       constructor Create(bs: TGoofyBuiltins);
       function GetValue(name: String): TValue;
+      procedure LoadModule(module: TModule);
       procedure PrintTypeEnv;
       procedure PrintValueEnv;
    end;
@@ -67,6 +68,14 @@ begin
       Result := EnvLookup(Self.ValueEnv, name)
    else
       raise EExecError.Create('Unbound identifier ' + name);
+end;
+
+procedure TGoofyExecutor.LoadModule(module: TModule);
+var
+   i: Integer;
+begin
+   for i := 0 to High(module.Stmts) do
+      Self.Execute(module.Stmts[i]);
 end;
 
 procedure TGoofyExecutor.PrintTypeEnv;
