@@ -17,6 +17,13 @@ type
       constructor Create(v: Integer);
    end;
    
+   TStringValue = class(TValue)
+   public
+      Value: String;
+      function ToStr: String; override;
+      constructor Create(v: String);
+   end;
+   
    TBooleanValue = class(TValue)
    public
       Value: Boolean; 
@@ -64,6 +71,7 @@ function BuiltinFunction(name: String): TBuiltinFunctionValue;
 function PABuiltinFunction(name: String; v: TValue): TPABuiltinFunctionValue;
 function PairV(v1, v2: TValue): TPairValue;
 function UnitV: TUnitValue;
+function StringV(v: String): TStringValue;
 
 function EqualValues(v1, v2: TValue): Boolean;
 
@@ -78,6 +86,17 @@ constructor TIntegerValue.Create(v: Integer);
 begin
    inherited Create;
    Self.Value := v;   
+end;
+
+function TStringValue.ToStr: String;
+begin
+   Result := '"' + Self.Value + '"';
+end;
+
+constructor TStringValue.Create(v: String);
+begin
+   inherited Create;
+   Self.Value := v;
 end;
 
 function TBooleanValue.ToStr: String;
@@ -166,6 +185,11 @@ end;
 function UnitV: TUnitValue;
 begin
    Result := TUnitValue.Create;
+end;
+
+function StringV(v: String): TStringValue;
+begin
+   Result := TStringValue.Create(v);
 end;
 
 function EqualValues(v1, v2: TValue): Boolean;
