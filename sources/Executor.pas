@@ -31,7 +31,6 @@ type
 implementation
 
 procedure TGoofyExecutor.Execute(ast: TStatement);
-// Assuming that AST is already typechecked
 var
    valDecl: TValueDeclaration;
    valType: TType;

@@ -14,6 +14,7 @@ type
    end;
    
    EBuiltinError = class(Exception);
+   EEvaluationStoppedError = class(Exception);
    
    TGoofyBuiltins = class
    private
@@ -65,16 +66,17 @@ end;
 
 constructor TGoofyBuiltins.Create;
 var
-   v1, v2, v3, v4, v5, v6, v7: TTypeVariable;
+   v1, v2, v3, v4, v5, v6, v7, v8, v9: TTypeVariable;
    // NOTE: there may be a huge bug, because type builtins are created
    // with name generator different from type system's one.
-   Int, Bool, UnitType: TType;
+   Int, Bool, UnitType, StringType: TType;
 begin
    VarGen := TVariableGenerator.Create;
    Builtins := nil;
    Int := CreateType('Int');
    Bool := CreateType('Bool');
    UnitType := CreateType('Unit');
+   StringType := CreateType('String');
    v1 := VarGen.GenerateVariable;
    v2 := VarGen.GenerateVariable;
    v3 := VarGen.GenerateVariable;
@@ -82,6 +84,7 @@ begin
    v5 := VarGen.GenerateVariable;
    v6 := VarGen.GenerateVariable;
    v7 := VarGen.GenerateVariable;
+   v8 := VarGen.GenerateVariable;
    // TODO: add method TVariableGenerator.GenerateNVars
    
    // built-in functions
@@ -105,14 +108,17 @@ begin
    Self.Insert(Builtin('mod', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
    Self.Insert(Builtin('%', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
    
-   Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Int, CreateFunType(Int, Bool))));
+   Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(v7, CreateFunType(v7, Bool))));
    //Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Bool, CreateFunType(Bool, Bool))));
    // NOTE: Previous line breaks compilation because in value environment keys are names and name 'eq' is allready taken
    // There are many ways to handle that:
    // * First is to create different comparison functions for different types
    // * Second is to implement fucntion overloading.
    //   (Probably through some sort of embedding function signature into environment key)
-   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v7, UnitType)));
+   // * Third is to assign type a -> a -> Bool to this function and then
+   //   use general comparison from Values unit
+   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v8, UnitType)));
+   Self.Insert(Builtin('error', BuiltinFunction('error'), CreateFunType(StringType, v9)));
    
    // built-ins for debugging purposes
    Self.Insert(Builtin('forty-two', IntegerV(42), Int));
@@ -162,6 +168,10 @@ begin
       writeln(arg.ToStr);
       Result := UnitV;
    end
+   else if (builtin = 'error') then
+      raise EEvaluationStoppedError((arg as TStringValue).Value)
+   else if (builtin = 'eq') then
+      Result := PABuiltinFunction('eq', arg)
    else
       raise EBuiltinError.Create('Built-in function ''' + builtin + ''' is not implemented yet');
 end;
@@ -183,6 +193,8 @@ begin
       Result := IntegerV((oldarg as TIntegerValue).Value div (arg as TIntegerValue).Value)
    else if (builtin = '%') then
       Result := IntegerV((oldarg as TIntegerValue).Value mod (arg as TIntegerValue).Value)
+   else if (builtin = 'eq') then
+      Result := BooleanV(EqualValues(oldarg, arg))
    else
       raise EBuiltinError.Create('Partially applied built-in function ''' + builtin + ''' is not implemented yet');
 end;

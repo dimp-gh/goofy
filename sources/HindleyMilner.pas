@@ -248,7 +248,7 @@ var
          Result := TParameterizedType.Create(oper.Name, newArgs); 
       end
       else
-         Raise Exception.Create('Cannot determine type of pruned type tree');
+         Raise ETypeError.Create('Cannot determine type of pruned type tree');
    end;
 begin
    maps := VarMapNew;
