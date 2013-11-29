@@ -85,6 +85,7 @@ begin
    v6 := VarGen.GenerateVariable;
    v7 := VarGen.GenerateVariable;
    v8 := VarGen.GenerateVariable;
+   v9 := VarGen.GenerateVariable;
    // TODO: add method TVariableGenerator.GenerateNVars
    
    // built-in functions
@@ -169,7 +170,7 @@ begin
       Result := UnitV;
    end
    else if (builtin = 'error') then
-      raise EEvaluationStoppedError((arg as TStringValue).Value)
+      raise EEvaluationStoppedError.Create((arg as TStringValue).Value)
    else if (builtin = 'eq') then
       Result := PABuiltinFunction('eq', arg)
    else

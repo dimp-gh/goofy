@@ -106,8 +106,8 @@ type
             writeln('Evaluation error: ', e.Message);
          on e: EBuiltinError do
             writeln('Builtin error: ', e.Message);
-	 on e: EEvaluationStoppedError do
-            writeln('Evaluattion stopped: ', e.Message);
+         on e: EEvaluationStoppedError do
+            writeln('Evaluation halted with message "' + e.Message + '"');
          on e: EExecError do
             writeln('Execution error: ', e.Message);
          on e: Exception do
