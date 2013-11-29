@@ -193,11 +193,15 @@ begin
 end;
 
 function EqualValues(v1, v2: TValue): Boolean;
+// Defines general equality rules for all values
+// Used heavilly, for example, in evaluation part of pattern matching
 begin
    if (v1 is TIntegerValue) and (v2 is TIntegerValue) then
       Result := (v1 as TIntegerValue).Value = (v2 as TIntegerValue).Value
    else if (v1 is TBooleanValue) and (v2 is TBooleanValue) then
       Result := (v1 as TBooleanValue).Value = (v2 as TBooleanValue).Value
+   else if (v1 is TStringValue) and (v2 is TStringValue) then
+      Result := (v1 as TStringValue).Value = (v2 as TStringValue).Value
    else Result := False;
 end;
 
