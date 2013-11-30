@@ -68,12 +68,14 @@ var
    funType, argType, resultType,
       defnType, condType, thenType,
       elseType, ftype, stype,
-      varType: TType;
+      varType, stmtType: TType;
    newTypeVar: TTypeVariable;
    newEnv : TTypeEnvironment;
    newNongen: TTypeVariableList;
    argTypeVar: TTypeVariable;
    i: Integer;
+   do_: TDoExpression;
+   ass: TValueDeclaration;
 begin
    if (ast is TIntegerLiteral) then
       Result := Self.Int
@@ -153,6 +155,18 @@ begin
       Self.Unify(newTypeVar, defnType);
       Result := analyse(letrec.Body, newEnv, nongen);
    end
+   else if (ast is TDoExpression) then
+   begin
+      do_ := ast as TDoExpression;
+      newEnv := env;
+      for i := 0 to High(do_.Stmts) do
+      begin
+         ass := do_.Stmts[i] as TValueDeclaration;
+         stmtType := analyse(ass.Expr, newEnv, nongen);
+         newEnv := EnvInsert(newEnv, ass.Name, stmtType);
+      end;
+      Result := analyse(do_.Return, newEnv, nongen);
+   end      
    else
       Raise ETypeError.Create('Cannot typecheck this kind of AST');
 end;
