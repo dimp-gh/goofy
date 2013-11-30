@@ -221,6 +221,7 @@ begin
       // save environments
       OldValueEnv := ValueEnvironment.EnvCopy(Self.ValueEnv);
       OldTypeEnv := HMDataStructures.EnvCopy(Self.TypeEnv);
+      Self.ValueEnv := env;
       // evaluate expression
       for i := 0 to High(do_.Stmts) do
          Self.Execute(do_.Stmts[i]);

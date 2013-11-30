@@ -78,7 +78,7 @@ begin
          Result := env[i].Value;
          Exit;
       end;
-   raise Exception.Create('Environment has no such key: ' + key + '. Use EnvFind before EnvLookup.');
+   raise Exception.Create('Value environment has no such key: ' + key + '. Use EnvFind before EnvLookup.');
 end;
 
 function EnvDelete(env: TValueEnvironment; key: String): TValueEnvironment;
