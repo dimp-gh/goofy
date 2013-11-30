@@ -30,6 +30,7 @@ function EnvFind(env: TTypeEnvironment; key: String): Boolean;
 function EnvLookup(env: TTypeEnvironment; key: String): TType;
 function EnvDelete(env: TTypeEnvironment; key: String): TTypeEnvironment;
 function EnvUpdate(env: TTypeEnvironment; key: String; value: TType): TTypeEnvironment;
+function EnvCopy(env: TTypeEnvironment): TTypeEnvironment;
 procedure EnvPrint(env: TTypeEnvironment);
 
 function VarListNew: TTypeVariableList;
@@ -138,6 +139,16 @@ begin
    Result := newEnv;
 end;
 
+function EnvCopy(env: TTypeEnvironment): TTypeEnvironment;
+var
+   newEnv: TTypeEnvironment;
+   i: Integer;
+begin
+   SetLength(newEnv, Length(env));
+   for i := 0 to High(Env) do
+      newEnv[i] := env[i];
+   Result := newEnv;
+end;
 
 procedure EnvPrint(env: TTypeEnvironment);
 var

@@ -112,7 +112,9 @@ var
    i: Integer;
    pair: TPairLiteral;
    v, fun: TValue;
-   newEnv: TValueEnvironment;
+   newEnv, oldValueEnv: TValueEnvironment;
+   oldTypeEnv: TTypeEnvironment;
+   do_: TDoExpression;
    fv: TFunctionValue;
    arg, fval, sval: TValue;
    cond: TBooleanValue;
@@ -212,6 +214,20 @@ begin
       // if no clause matched - report an error
       if not Matched then
          raise EEvalError.Create('Non-exhaustive patterns in case');
+   end
+   else if (ast is TDoExpression) then
+   begin
+      do_ := ast as TDoExpression;
+      // save environments
+      OldValueEnv := ValueEnvironment.EnvCopy(Self.ValueEnv);
+      OldTypeEnv := HMDataStructures.EnvCopy(Self.TypeEnv);
+      // evaluate expression
+      for i := 0 to High(do_.Stmts) do
+         Self.Execute(do_.Stmts[i]);
+      Result := Evaluate(do_.Return, Self.ValueEnv);
+      // restore good old environments
+      Self.ValueEnv := OldValueEnv;
+      Self.TypeEnv := OldTypeEnv;
    end
    else
       raise EEvalError.Create('Cannot evaluate this kind of AST');
