@@ -12,7 +12,6 @@ uses
    HMTypes,
    Values,
    Builtins,
-   Evaluator,
    Executor;
 
 type

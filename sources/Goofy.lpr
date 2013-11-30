@@ -8,7 +8,6 @@ uses
    expr in 'parser\expr.pas',
    AST, Parser,
    HMTypes,
-   Evaluator,
    Builtins,
    Repl,
    Executor;
