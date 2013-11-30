@@ -36,7 +36,8 @@ uses
 %type <TModule> module
 %type <String> module_header
 %type <TDoExpression> do_expression
-%type <TStatementList> do_stmts
+%type <TStatementList> do_inside
+%type <TStatement> do_subj
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -149,13 +150,15 @@ fun_clauses :  IDENT fun_clause '|' fun_clauses		   { $$ := FunctionDecl($1, Pre
 fun_clause  :  expr4 EQUALS_SYM expression		   { $$ := Clause($1, $3); }
 	    ;
 
-do_expression  :  DO_SYM '{' do_stmts expression '}'	   { $$ := DoExpression($3, $4); }
-/*	       |  DO_SYM '{' expression '}'	     	   { $$ := DoExpression(nil, $3); } */
+do_expression  :  DO_SYM '{' do_inside expression '}'	   { $$ := DoExpression($3, $4); }
 	       ;
 
-do_stmts    :  statement ',' do_stmts	         { $$ := PrependStmt($1, $3); }
-     	    |  statement ',' 			 { $$ := SingleStmt($1); }
+do_inside   :  do_subj do_inside			   { $$ := PrependStmt($1, $2); }
+     	    |  do_subj  				   { $$ := SingleStmt($1); }
      	    ;
+
+do_subj     :  statement ','				   { $$ := $1; }
+	    ;
 
 %%
 

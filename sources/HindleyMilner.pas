@@ -163,7 +163,8 @@ begin
       begin
          ass := do_.Stmts[i] as TValueDeclaration;
          stmtType := analyse(ass.Expr, newEnv, nongen);
-         newEnv := EnvInsert(newEnv, ass.Name, stmtType);
+         if ass.Name <> '_' then
+            newEnv := EnvInsert(newEnv, ass.Name, stmtType);
       end;
       Result := analyse(do_.Return, newEnv, nongen);
    end      

@@ -41,8 +41,11 @@ begin
       valDecl := ast as TValueDeclaration;
       valType := Typecheck(valDecl.Expr);
       value := Eval.Evaluate(valDecl.Expr, Self.ValueEnv);
-      Self.ValueEnv := ValueEnvironment.EnvInsert(Self.ValueEnv, valDecl.Name, value);
-      Self.TypeEnv := HMDataStructures.EnvInsert(Self.TypeEnv, valDecl.Name, valType);
+      if valDecl.Name <> '_' then
+      begin
+         Self.ValueEnv := ValueEnvironment.EnvInsert(Self.ValueEnv, valDecl.Name, value);
+         Self.TypeEnv := HMDataStructures.EnvInsert(Self.TypeEnv, valDecl.Name, valType);
+      end;
    end
    else
       Raise EExecError.Create('Cannot execute unknown type of AST');
