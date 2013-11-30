@@ -50,6 +50,8 @@ type
       function GenerateName: String;
    end;
    
+   TTypeVariableList = array of TTypeVariable;
+   
    TVariableGenerator = class(TObject)
    private
       NextVariableId: Integer;
@@ -57,6 +59,7 @@ type
    public
       constructor Create(initialName: Char = 'a');
       function GenerateVariable: TTypeVariable;
+      function GenerateNVars(n: Integer): TTypeVariableList;
       procedure ResetNameGenerator;
    end;
    
@@ -87,6 +90,17 @@ function TVariableGenerator.GenerateVariable: TTypeVariable;
 begin
    Result := TTypeVariable.Create(Self.NextVariableId, @(Self.NameGenerator));
    NextVariableId := NextVariableId + 1;
+end;
+
+function TVariableGenerator.GenerateNVars(n: Integer): TTypeVariableList;
+var
+   r: TTypeVariableList;
+   i: Integer;
+begin
+   SetLength(r, n);
+   for i := 0 to n - 1 do
+      r[i] := Self.GenerateVariable;
+   REsult := r;
 end;
 
 procedure TVariableGenerator.ResetNameGenerator;

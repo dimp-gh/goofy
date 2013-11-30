@@ -66,7 +66,7 @@ end;
 
 constructor TGoofyBuiltins.Create;
 var
-   v1, v2, v3, v4, v5, v6, v7, v8, v9: TTypeVariable;
+   vs: TTypeVariableList;
    // NOTE: there may be a huge bug, because type builtins are created
    // with name generator different from type system's one.
    Int, Bool, UnitType, StringType: TType;
@@ -77,23 +77,14 @@ begin
    Bool := CreateType('Bool');
    UnitType := CreateType('Unit');
    StringType := CreateType('String');
-   v1 := VarGen.GenerateVariable;
-   v2 := VarGen.GenerateVariable;
-   v3 := VarGen.GenerateVariable;
-   v4 := VarGen.GenerateVariable;
-   v5 := VarGen.GenerateVariable;
-   v6 := VarGen.GenerateVariable;
-   v7 := VarGen.GenerateVariable;
-   v8 := VarGen.GenerateVariable;
-   v9 := VarGen.GenerateVariable;
-   // TODO: add method TVariableGenerator.GenerateNVars
+   vs := VarGen.GenerateNVars(10);
    
    // built-in functions
    // pair constructor and deconstructors
-   Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
-   Self.Insert(Builtin('cons', BuiltinFunction('pair'), CreateFunType(v1, CreateFunType(v2, CreatePairType(v1, v2)))));
-   Self.Insert(Builtin('fst', BuiltinFunction('fst'), CreateFunType(CreatePairType(v3, v4), v3)));
-   Self.Insert(Builtin('snd', BuiltinFunction('snd'), CreateFunType(CreatePairType(v5, v6), v6)));
+   Self.Insert(Builtin('pair', BuiltinFunction('pair'), CreateFunType(vs[0], CreateFunType(vs[1], CreatePairType(vs[0], vs[1])))));
+   Self.Insert(Builtin('cons', BuiltinFunction('pair'), CreateFunType(vs[2], CreateFunType(vs[3], CreatePairType(vs[2], vs[3])))));
+   Self.Insert(Builtin('fst', BuiltinFunction('fst'), CreateFunType(CreatePairType(vs[3], vs[4]), vs[3])));
+   Self.Insert(Builtin('snd', BuiltinFunction('snd'), CreateFunType(CreatePairType(vs[5], vs[6]), vs[6])));
    // numeric functions
    Self.Insert(Builtin('zero', BuiltinFunction('zero'), CreateFunType(Int, Bool)));
    Self.Insert(Builtin('pred', BuiltinFunction('pred'), CreateFunType(Int, Int)));
@@ -109,7 +100,7 @@ begin
    Self.Insert(Builtin('mod', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
    Self.Insert(Builtin('%', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
    
-   Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(v7, CreateFunType(v7, Bool))));
+   Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(vs[7], CreateFunType(vs[7], Bool))));
    //Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Bool, CreateFunType(Bool, Bool))));
    // NOTE: Previous line breaks compilation because in value environment keys are names and name 'eq' is allready taken
    // There are many ways to handle that:
@@ -118,8 +109,8 @@ begin
    //   (Probably through some sort of embedding function signature into environment key)
    // * Third (this was actually used) is to assign type a -> a -> Bool to this function and then
    //   use general comparison from Values unit
-   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(v8, UnitType)));
-   Self.Insert(Builtin('error', BuiltinFunction('error'), CreateFunType(StringType, v9)));
+   Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(vs[8], UnitType)));
+   Self.Insert(Builtin('error', BuiltinFunction('error'), CreateFunType(StringType, vs[9])));
    
 end;
 
