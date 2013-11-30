@@ -15,7 +15,7 @@ uses
 %token <Integer> NUM
 %token <String> IDENT
 %token <String> STRINGLIT
-%type <TExpression> expr
+%type <TExpression> expression
 %type <TExpression> expr2
 %type <TExpression> expr3
 %type <TExpression> expr4
@@ -35,6 +35,8 @@ uses
 %type <TStatementList> statements
 %type <TModule> module
 %type <String> module_header
+%type <TDoExpression> do_expression
+%type <TStatementList> do_stmts
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -56,13 +58,14 @@ uses
 %token VAL_SYM
 %token MODULE_SYM
 %token WHERE_SYM
+%token DO_SYM
 
 %token ILLEGAL 		/* illegal token */
 
 %%
 
 input	: /* empty */
-        | input expr     	 { begin parsed := $2; yyaccept; end; }
+        | input expression     	 { begin parsed := $2; yyaccept; end; }
 	| input statement	 { begin parsed := $2; yyaccept; end; }
 	| input module     	 { begin parsed := $2; yyaccept; end; }
 	| error                  { yyerrok; }
@@ -72,9 +75,8 @@ statement  :  function_declaration		 { $$ := $1; }
 	   |  value_assignment			 { $$ := $1; }
 	   ;
 
-value_assignment : VAL_SYM IDENT EQUALS_SYM expr { $$ := ValueDecl($2, $4); }
+value_assignment : VAL_SYM IDENT EQUALS_SYM expression { $$ := ValueDecl($2, $4); }
 		 ;
-
 
 statements  :  statement statements	         { $$ := PrependStmt($1, $2); }
      	    |  statement 			 { $$ := SingleStmt($1); }
@@ -84,13 +86,14 @@ module  :  module_header statements		 { $$ := Module($1, $2); }
 	;
 
 /* Parses the LET, LETREC, FN, IF, CASE expressions */
-expr	:  lambda		                 { $$ := $1; }
-	|  let 	 				 { $$ := $1; }
-      	|  letrec   	 			 { $$ := $1; }
-        |  ifc					 { $$ := $1; }
-	|  casec				 { $$ := $1; }
-	|  expr2				 { $$ := $1; }
- 	;
+expression	:  lambda		                 { $$ := $1; }
+		|  let 	 				 { $$ := $1; }
+		|  letrec   	 			 { $$ := $1; }
+        	|  ifc					 { $$ := $1; }
+		|  casec				 { $$ := $1; }
+		|  do_expression			 { $$ := $1; }                     
+		|  expr2				 { $$ := $1; }
+ 		;
 
 module_header  :  MODULE_SYM IDENT WHERE_SYM	 { $$ := $2; }	 
 
@@ -108,32 +111,32 @@ expr4   :  NUM					{ $$ := IntegerLiteral($1); }
     	|  IDENT                        	{ $$ := Identifier($1); }
 	|  TRUE_SYM				{ $$ := BooleanLiteral(True); }
 	|  FALSE_SYM				{ $$ := BooleanLiteral(False); }
-	|  '(' expr ',' expr ')'		{ $$ := PairLiteral($2, $4); }
-	|  '(' expr ')'         		{ $$ := $2; }
+	|  '(' expression ',' expression ')'    { $$ := PairLiteral($2, $4); }
+	|  '(' expression ')'         		{ $$ := $2; }
 	|  UNIT_SYM 				{ $$ := UnitLiteral; }
 	|  STRINGLIT				{ $$ := StringLiteral(Unescape(CutStringLiteral($1))); }
 
-lambda  :  LAMBDA_SYM IDENT LAMBDA_ARROW_SYM expr          { $$ := Lambda($2, $4); }
+lambda  :  LAMBDA_SYM IDENT LAMBDA_ARROW_SYM expression    { $$ := Lambda($2, $4); }
 	|  '(' lambda ')'                                  { $$ := $2; }
 	;
 
-let     :  LET_SYM IDENT EQUALS_SYM expr IN_SYM expr 	   { $$ := Let($2, $4, $6); }
+let     :  LET_SYM IDENT EQUALS_SYM expression IN_SYM expression { $$ := Let($2, $4, $6); }
 	;
 
-letrec  :  LETREC_SYM IDENT EQUALS_SYM lambda IN_SYM expr  { $$ := LetRec($2, $4, $6); }
+letrec  :  LETREC_SYM IDENT EQUALS_SYM lambda IN_SYM expression  { $$ := LetRec($2, $4, $6); }
 	;
 
-ifc     :  IF_SYM expr THEN_SYM expr ELSE_SYM expr 	   { $$ := IfThenElse($2, $4, $6); }
+ifc     :  IF_SYM expression THEN_SYM expression ELSE_SYM expression  { $$ := IfThenElse($2, $4, $6); }
 	;
 
-casec   :  CASE_SYM expr OF_SYM clauses END_SYM 	   { $$ := CaseOf($2, $4); }
+casec   :  CASE_SYM expression OF_SYM clauses END_SYM 	   { $$ := CaseOf($2, $4); }
 	;
 
 clauses :  clause ';' clauses				   { $$ := PrependClause($1, $3); }
 	|  clause 					   { $$ := SingleClause($1); }
 	;
 
-clause  :  expr4 CASE_ARROW_SYM expr			   { $$ := Clause($1, $3) }
+clause  :  expr4 CASE_ARROW_SYM expression		   { $$ := Clause($1, $3) }
 	;
 
 function_declaration  :  FUN_SYM fun_clauses               { $$ := $2; }
@@ -143,9 +146,16 @@ fun_clauses :  IDENT fun_clause '|' fun_clauses		   { $$ := FunctionDecl($1, Pre
 	    |  IDENT fun_clause 			   { $$ := FunctionDecl($1, SingleClause($2)); }
 	    ;
 
-fun_clause  :  expr4 EQUALS_SYM expr			   { $$ := Clause($1, $3); }
+fun_clause  :  expr4 EQUALS_SYM expression		   { $$ := Clause($1, $3); }
 	    ;
 
+do_expression  :  DO_SYM '{' do_stmts expression '}'	   { $$ := DoExpression($3, $4); }
+/*	       |  DO_SYM '{' expression '}'	     	   { $$ := DoExpression(nil, $3); } */
+	       ;
+
+do_stmts    :  statement ',' do_stmts	         { $$ := PrependStmt($1, $3); }
+     	    |  statement ',' 			 { $$ := SingleStmt($1); }
+     	    ;
 
 %%
 

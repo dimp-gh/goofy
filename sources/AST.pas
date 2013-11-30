@@ -116,7 +116,7 @@ type
       function ToStr: String; override;
       constructor Create(v: String; defn: TLambda; b: TExpression);
    end;
-   
+      
    TStatement = class(TAST);
    
    TValueDeclaration = class(TStatement)
@@ -136,6 +136,14 @@ type
       function ToStr: String; override;
       constructor Create(n: String; ss: TStatementList);
    end;
+      
+   TDoExpression = class(TExpression)
+   public
+      Stmts: TStatementList;
+      Return: TExpression;
+      function ToStr: String; override;
+      constructor Create(s: TStatementList; r: TExpression);
+   end;
    
 // expressions   
 function Identifier(n: String): TIdentifier;
@@ -152,6 +160,7 @@ function Let(v: String; defn: TExpression; b: TExpression): TLet;
 function LetRec(v: String; defn: TLambda; b: TExpression): TLetRec;
 function CaseOf(x: TExpression; cs: TClauseList): TCaseOf;
 function Clause(p, t: TExpression): TClause;
+function DoExpression(stmts: TStatementList; ret: TExpression): TDoExpression;
 // statements
 function FunctionDecl(name: String; cs: TClauseList): TValueDeclaration;
 function ValueDecl(n: String; e: TExpression): TValueDeclaration;
@@ -245,11 +254,11 @@ function TCaseOf.ToStr: String;
 var
    i: Integer;
 begin
-   Result := '(case ' + Expr.ToStr + ' of' + #13#10;
+   Result := 'case ' + Expr.ToStr + ' of' + #13#10;
    for i := 0 to High(Clauses) - 1 do
       Result := Result + '  ' + Clauses[i].ToStr + ';' + #13#10;
    Result := Result + '  ' + Clauses[High(Clauses)].ToStr + #13#10;
-   Result := Result + 'end)';
+   Result := Result + 'end';
 end;
 
 constructor TCaseOf.Create(e: TExpression; cs: TClauseList);
@@ -345,6 +354,23 @@ begin
    Self.Stmts := ss;
 end;
 
+function TDoExpression.ToStr: String;
+var
+   i: Integer;
+begin
+   Result := 'do {' + #13#10;
+   for i := 0 to High(Self.Stmts) do
+      Result := Result + '  ' + Self.Stmts[i].ToStr + #13#10;
+   Result := Result + '  ' + Self.Return.ToStr + #13#10;
+   Result := Result + '}';
+end;
+
+constructor TDoExpression.Create(s: TStatementList; r: TExpression);
+begin
+   Self.Stmts := s;
+   Self.Return := r;
+end;
+
 // A few convenient functions for creating AST
 function Identifier(n: String): TIdentifier;
 begin
@@ -434,6 +460,11 @@ end;
 function Module(name: String; ss: TStatementList): TModule;
 begin
    Result := TModule.Create(name, ss);
+end;
+
+function DoExpression(stmts: TStatementList; ret: TExpression): TDoExpression;
+begin
+   Result := TDoExpression.Create(stmts, ret);
 end;
 
 initialization

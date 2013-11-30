@@ -255,8 +255,8 @@ error:
 
   if yyerrflag=0 then raise EExprParserException.Create('line: ' +
                                                            IntToStr(lexer.yylineno) +
-                                                           ', faulty token is ''' +
-                                                           Chr(yychar) + '''');
+                                                           ', faulty' +
+                                                           yycharsym(yychar));
 
 errlab:
 

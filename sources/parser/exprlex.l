@@ -34,6 +34,7 @@ fun                             return(FUN_SYM);
 val                             return(VAL_SYM);
 module                          return(MODULE_SYM);
 where                           return(WHERE_SYM);
+do                              return(DO_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;
