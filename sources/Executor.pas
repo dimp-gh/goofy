@@ -56,7 +56,7 @@ begin
       end;
    end
    else
-      Raise EExecError.Create('Cannot execute unknown type of AST');
+      Raise EExecError.Create('Cannot execute unknown kind of AST');
 end;
 
 constructor TGoofyExecutor.Create(bs: TGoofyBuiltins);

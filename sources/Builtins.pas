@@ -77,7 +77,7 @@ begin
    Bool := CreateType('Bool');
    UnitType := CreateType('Unit');
    StringType := CreateType('String');
-   vs := VarGen.GenerateNVars(10);
+   vs := VarGen.GenerateNVars(11);
    
    // built-in functions
    // pair constructor and deconstructors
@@ -99,9 +99,8 @@ begin
    Self.Insert(Builtin('/', BuiltinFunction('/'), CreateFunType(Int, CreateFunType(Int, Int))));
    Self.Insert(Builtin('mod', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
    Self.Insert(Builtin('%', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
-   
+   // general equality function
    Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(vs[7], CreateFunType(vs[7], Bool))));
-   //Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(Bool, CreateFunType(Bool, Bool))));
    // NOTE: Previous line breaks compilation because in value environment keys are names and name 'eq' is allready taken
    // There are many ways to handle that:
    // * First is to create different comparison functions for different types
@@ -109,9 +108,18 @@ begin
    //   (Probably through some sort of embedding function signature into environment key)
    // * Third (this was actually used) is to assign type a -> a -> Bool to this function and then
    //   use general comparison from Values unit
+   // I/O functions
    Self.Insert(Builtin('println', BuiltinFunction('println'), CreateFunType(vs[8], UnitType)));
-   Self.Insert(Builtin('error', BuiltinFunction('error'), CreateFunType(StringType, vs[9])));
-   
+   Self.Insert(Builtin('print', BuiltinFunction('print'), CreateFunType(vs[9], UnitType)));
+   Self.Insert(Builtin('read', BuiltinFunction('read'), CreateFunType(UnitType, StringType)));
+   // kind of uncatchable exception
+   Self.Insert(Builtin('error', BuiltinFunction('error'), CreateFunType(StringType, vs[10])));
+   // string functions
+   Self.Insert(Builtin('append', BuiltinFunction('append'), CreateFunType(StringType, CreateFunType(StringType, StringType))));
+   Self.Insert(Builtin('length', BuiltinFunction('length'), CreateFunType(StringType, Int)));
+   // these are more like generic list functions, but Goofy has no list type right now
+   Self.Insert(Builtin('head', BuiltinFunction('head'), CreateFunType(StringType, StringType)));   
+   Self.Insert(Builtin('tail', BuiltinFunction('tail'), CreateFunType(StringType, StringType)));   
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);
@@ -126,6 +134,8 @@ end;
 function TGoofyBuiltins.ApplyBuiltin(builtin: String;
                                      arg: TValue;
                                      env: TValueEnvironment): TValue;
+var
+   buffer, str, tail: String;
 begin
    // dispatching by builtin name
    if (builtin = 'zero') then
@@ -154,13 +164,35 @@ begin
       Result := PABuiltinFunction('%', arg)
    else if (builtin = 'println') then
    begin
-      writeln(arg.ToStr);
+      writeln(PrintishValue(arg));
+      Result := UnitV;
+   end
+   else if (builtin = 'print') then
+   begin
+      write(PrintishValue(arg));
       Result := UnitV;
    end
    else if (builtin = 'error') then
       raise EEvaluationStoppedError.Create((arg as TStringValue).Value)
    else if (builtin = 'eq') then
       Result := PABuiltinFunction('eq', arg)
+   else if (builtin = 'read') then
+   begin
+      readln(buffer);
+      Result := StringV(buffer);
+   end
+   else if (builtin = 'append') then
+      Result := PABuiltinFunction('append', arg)
+   else if (builtin = 'length') then
+      Result := IntegerV(Length((arg as TStringValue).Value)) 
+   else if (builtin = 'head') then
+      Result := StringV((arg as TStringValue).Value[1])
+   else if (builtin = 'tail') then
+   begin
+      str := (arg as TStringValue).Value;
+      tail := System.Copy(str, 2, Length(str) - 1);
+      Result := StringV(tail);
+   end
    else
       raise EBuiltinError.Create('Built-in function ''' + builtin + ''' is not implemented yet');
 end;
@@ -184,6 +216,8 @@ begin
       Result := IntegerV((oldarg as TIntegerValue).Value mod (arg as TIntegerValue).Value)
    else if (builtin = 'eq') then
       Result := BooleanV(EqualValues(oldarg, arg))
+   else if (builtin = 'append') then
+      Result := StringV((oldarg as TStringValue).Value + (arg as TStringValue).Value)
    else
       raise EBuiltinError.Create('Partially applied built-in function ''' + builtin + ''' is not implemented yet');
 end;

@@ -74,6 +74,7 @@ function UnitV: TUnitValue;
 function StringV(v: String): TStringValue;
 
 function EqualValues(v1, v2: TValue): Boolean;
+function PrintishValue(v: TValue): String;
 
 implementation
 
@@ -205,6 +206,14 @@ begin
    else if (v1 is TUnitValue) and (v2 is TUnitValue) then
       Result := True
    else Result := False;
+end;
+
+function PrintishValue(v: TValue): String;
+begin
+   if v is TStringValue then
+      Result := (v as TStringValue).Value
+   else
+      Result := v.ToStr;
 end;
 
 initialization
