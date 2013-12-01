@@ -1,13 +1,17 @@
 module Prelude where
 
+# Generic identity function, just because
 fun id x = x
 
+# Usage of pattern-matching to unpack pairs 
 fun f (x, _) = x
 fun s (_, x) = x
 
+# Function composition
 val compose = (fn f => fn g => (fn x => (g (f x))))
 val . = compose
 
+# Standard logic functions
 fun not true = false
   | not false = true
 
@@ -20,6 +24,7 @@ fun and true = fn x => x
 fun xor true = fn x => not x
   | xor false = fn x => x
 
+# Implementation of strings to numbers conversion
 fun charToInt' "0" = 0
   | charToInt' "1" = 1
   | charToInt' "2" = 2
@@ -31,6 +36,7 @@ fun charToInt' "0" = 0
   | charToInt' "8" = 8
   | charToInt' "9" = 9
   | charToInt' _ = error "charToInt' got non-digit character"
+# take a look, we used halting function `error` right above
 
 fun charToInt x =
   if (length x) `eq` 1 then
@@ -38,6 +44,7 @@ fun charToInt x =
   else
     error "charToInt can only handle 1-character strings"
 
+# example of tail recursion
 fun strToInt' (x, acc)  =
   if (length x) `eq` 0 then
     acc
@@ -47,3 +54,8 @@ fun strToInt' (x, acc)  =
 fun strToInt x = strToInt' (x, 0)
 
 val readInt = read `compose` strToInt
+# equivalent to: fun readInt () = strToInt (read ())
+
+# Function `read` has the following signature:
+# read :: Unit -> String
+# So, when you call it, you should not omit unit literal.
