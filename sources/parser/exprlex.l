@@ -9,7 +9,7 @@ COMMENT				#[^\n]*\n
 {COMMENT}			;
 
 {D}+                            begin
-				  yylval.yyInteger := StrToInt(yytext);
+				  yylval.yyInt64 := StrToInt(yytext);
 				  return(NUM);
 				end;
 

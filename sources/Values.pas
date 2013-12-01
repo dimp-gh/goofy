@@ -12,9 +12,9 @@ type
    
    TIntegerValue = class(TValue)
    public
-      Value: Integer;
+      Value: Int64;
       function ToStr: String; override;
-      constructor Create(v: Integer);
+      constructor Create(v: Int64);
    end;
    
    TStringValue = class(TValue)
@@ -65,7 +65,7 @@ type
       constructor Create(f, s: TValue);
    end;
       
-function IntegerV(v: Integer): TIntegerValue;
+function IntegerV(v: Int64): TIntegerValue;
 function BooleanV(v: Boolean): TBooleanValue;
 function BuiltinFunction(name: String): TBuiltinFunctionValue;
 function PABuiltinFunction(name: String; v: TValue): TPABuiltinFunctionValue;
@@ -83,7 +83,7 @@ begin
    Result := IntToStr(Self.Value);
 end;
 
-constructor TIntegerValue.Create(v: Integer);
+constructor TIntegerValue.Create(v: Int64);
 begin
    inherited Create;
    Self.Value := v;   
@@ -147,7 +147,7 @@ begin
    Result := '<partially applied built-in function ''' + Name + ''' with value ' + DefVal.ToStr + '>';
 end;
 
-function IntegerV(v: Integer): TIntegerValue;
+function IntegerV(v: Int64): TIntegerValue;
 begin
    Result := TIntegerValue.Create(v);
 end;

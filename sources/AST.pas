@@ -24,9 +24,10 @@ type
    
    TIntegerLiteral = class(TLiteral)
    public
-      Value: Integer;
+      Value: Int64;
       function ToStr: String; override;
       constructor Create(v: String);
+      // TODO: why the hell is numeric literal created from string?
    end;
    
    TBooleanLiteral = class(TLiteral)
@@ -147,7 +148,7 @@ type
    
 // expressions   
 function Identifier(n: String): TIdentifier;
-function IntegerLiteral(v: Integer): TIntegerLiteral;
+function IntegerLiteral(v: Int64): TIntegerLiteral;
 function IntegerLiteral(v: String): TIntegerLiteral;
 function BooleanLiteral(v: Boolean): TBooleanLiteral;
 function StringLiteral(v: String): TStringLiteral;
@@ -377,7 +378,7 @@ begin
    Result := TIdentifier.Create(n);
 end;
 
-function IntegerLiteral(v: Integer): TIntegerLiteral;
+function IntegerLiteral(v: Int64): TIntegerLiteral;
 begin
    Result := TIntegerLiteral.Create(IntToStr(v));
 end;

@@ -12,7 +12,7 @@ uses
 
 %}
 
-%token <Integer> NUM
+%token <Int64> NUM
 %token <String> IDENT
 %token <String> STRINGLIT
 %type <TExpression> expression
