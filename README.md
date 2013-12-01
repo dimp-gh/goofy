@@ -26,16 +26,16 @@ After building, the `goofy` binary is expected to appear in repo's root director
 Running Goofy REPL
 ------------------
 
-You can enter Goofy REPL by invoking Goofy interpreter binary with `-r` flag. So, it's `./goofy -r`. Alternatively,
+You can enter Goofy REPL by invoking Goofy interpreter binary with `-r` flag. That is, `./goofy -r`. Alternatively,
 you can invoke `make run`, which will rebuild Goofy interpreter and then run the REPL for you.
 
-When you are in REPL, you could enter `:help` command to get a instructions about how to use the REPL.
+When you are in REPL, you could enter `:help` command to get a bunch of instructions about how to use the REPL.
 
 Running your Goofy programs
 ---------------------------
 
 You can run your Goofy programs by invoking Goofy interpreter with path to your program as a parameter.
-So, it's `./goofy examples/Factorial.gf`.
+That is, `./goofy examples/Factorial.gf`.
 
 Language tutorial
 -----------------
