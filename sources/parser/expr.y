@@ -158,6 +158,7 @@ do_inside   :  do_subj do_inside			   { $$ := PrependStmt($1, $2); }
      	    ;
 
 do_subj     :  statement ','				   { $$ := $1; }
+	    |  DO_SYM expression ',' 			   { $$ := ValueDecl('_', $2); }
 	    ;
 
 %%
