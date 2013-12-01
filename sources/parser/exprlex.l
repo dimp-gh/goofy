@@ -1,9 +1,12 @@
 D				[0-9]
-ID                              [A-Za-z\-\+\*/%_\.][0-9A-Za-z\-\+\*/%_']*
+ID                              [A-Za-z\-\+\*%_\.][0-9A-Za-z\-\+\*%_']*
 STR_LIT                         \"(\\.|[^"])*\"
+COMMENT				#[^\n]*\n
 
 %start
 %%
+
+{COMMENT}			;
 
 {D}+                            begin
 				  yylval.yyInteger := StrToInt(yytext);
@@ -45,5 +48,5 @@ do                              return(DO_SYM);
 
 " "             		;
 
+\n				;
 .				returnc(yytext[1]);
-\n 				;
