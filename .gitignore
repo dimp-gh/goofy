@@ -15,6 +15,5 @@ lib/
 
 goofy
 Goofy
-tests
 bin/ndlex
 bin/ndyacc
