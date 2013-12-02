@@ -2,7 +2,7 @@ unit GoofyTypeSystemTests;
 {$ASSERTIONS ON}
 interface
 
-uses AST, HMTypes, GoofyTypeSystem, Builtins;
+uses AST, GoofyTypeSystem, Builtins, StrUtils;
 
 implementation
 
@@ -14,21 +14,16 @@ var
 begin
    fact := Letrec('fact', // letrec factorial =
                   Lambda('n',    // fn n =>
-                         Apply(
-                            Apply(   // if (zero n) 1
-                               Apply(Ident('if'),     // if (zero n)
-                                     Apply(Ident('zero'), Ident('n'))),
-                               IntegerLiteral(1)),
+                         IfThenElse(
+                            Apply(Identifier('zero'), Identifier('n')),
+                            IntegerLiteral(1),
                             Apply(    // times n
-                               Apply(Ident('times'), Ident('n')),
-                               Apply(Ident('fact'),
-                                     Apply(Ident('pred'), Ident('n')))
-                                 )
-                              )
-                        ),      // in
-                  Apply(Ident('fact'), IntegerLiteral(5))
+                               Apply(Identifier('times'), Identifier('n')),
+                               Apply(Identifier('fact'),
+                                     Apply(Identifier('pred'), Identifier('n')))
+                                 ))),
+                  Apply(Identifier('fact'), IntegerLiteral(5))
                  );
-   writeln(fact.ToStr);
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
    Assert(goofyTS.GetExprTypeStr(fact) = 'Int');
@@ -43,12 +38,12 @@ begin
    // fn x => (pair(x(3) (x(true))))
    pairfun := Lambda('x',
                   Apply(
-                     Apply(Ident('pair'),
-                           Apply(Ident('x'), IntegerLiteral(3))),
-                     Apply(Ident('x'), Ident('true'))));
+                     Apply(Identifier('pair'),
+                           Apply(Identifier('x'), IntegerLiteral(3))),
+                     Apply(Identifier('x'), BooleanLiteral(True))));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(pairfun) = 'Type error: Type mismatch: Bool /= Int');      
+   Assert(IsWild(goofyTS.GetExprTypeStr(pairfun),'*Bool /= Int*', False));
 end;
 
 procedure UndefinedSymbolTest;
@@ -59,11 +54,11 @@ var
 begin
    // fn x => (pair(x(3) (x(true))))
    pair := Apply(
-      Apply(Ident('pair'), Apply(Ident('f'), Ident('4'))), 
-      Apply(Ident('f'), Ident('true')));
+      Apply(Identifier('pair'), Apply(Identifier('f'), Identifier('4'))), 
+      Apply(Identifier('f'), BooleanLiteral(True)));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(pair) = 'Parse error: Undefined symbol f');      
+   Assert(IsWild(goofyTS.GetExprTypeStr(pair), '*Undefined symbol f*', False));      
 end;
 
 procedure PairTypeTest;
@@ -73,14 +68,14 @@ var
    bs: TGoofyBuiltins;
 begin
    // letrec f = (fn x => x) in ((pair (f 4)) (f true))
-   pair := Let('f', Lambda('x', Ident('x')),
+   pair := Let('f', Lambda('x', Identifier('x')),
                Apply(
-                  Apply(Ident('pair'),
-                        Apply(Ident('f'), IntegerLiteral(4))),
-                  Apply(Ident('f'), Ident('true'))));
+                  Apply(Identifier('pair'),
+                        Apply(Identifier('f'), IntegerLiteral(4))),
+                  Apply(Identifier('f'), BooleanLiteral(True))));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(pair) = '(Int * Bool)');      
+   Assert(goofyTS.GetExprTypeStr(pair) = '(Int, Bool)');      
 end;
          
 procedure RecursiveUnificationTest;
@@ -90,7 +85,7 @@ var
    bs: TGoofyBuiltins;
 begin
    // fn f => f f (fail)
-   ast := Lambda('f', Apply(Ident('f'), Ident('f')));
+   ast := Lambda('f', Apply(Identifier('f'), Identifier('f')));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
    Assert(goofyTS.GetExprTypeStr(ast) = 'Type error: Recursive unification');      
@@ -105,7 +100,7 @@ begin
    // let g = fn f => 5 in g g
    ast := Let('g',
                    Lambda('f', IntegerLiteral(5)),
-                   Apply(Ident('g'), Ident('g')));
+                   Apply(Identifier('g'), Identifier('g')));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
    Assert(goofyTS.GetExprTypeStr(ast) = 'Int');      
@@ -121,16 +116,16 @@ begin
    // fn g => let f = fn x => g in pair (f 3, f true)
    ast := Lambda('g',
                  Let('f',
-                     Lambda('x', Ident('g')),
+                     Lambda('x', Identifier('g')),
                      Apply(
-                        Apply(Ident('pair'),
-                              Apply(Ident('f'),
+                        Apply(Identifier('pair'),
+                              Apply(Identifier('f'),
                                     IntegerLiteral(3))),
-                        Apply(Ident('f'),
-                              Ident('true')))));
+                        Apply(Identifier('f'),
+                              BooleanLiteral(true)))));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(ast) = '(a -> (a * a))');      
+   Assert(goofyTS.GetExprTypeStr(ast) = '(a -> (a, a))');      
 end;
 
 procedure FunCompositionTest;
@@ -141,7 +136,7 @@ var
 begin      
    // Function composition
    // fn f (fn g (fn arg (f g arg)))
-   ast := Lambda('f', Lambda('g', Lambda('arg', Apply(Ident('g'), Apply(Ident('f'), Ident('arg'))))));
+   ast := Lambda('f', Lambda('g', Lambda('arg', Apply(Identifier('g'), Apply(Identifier('f'), Identifier('arg'))))));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
    Assert(goofyTS.GetExprTypeStr(ast) = '((a -> b) -> ((b -> c) -> (a -> c)))');      
@@ -154,7 +149,7 @@ var
    bs: TGoofyBuiltins;
 begin      
    // identity function
-   ast := Lambda('x', Ident('x'));
+   ast := Lambda('x', Identifier('x'));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
    Assert(goofyTS.GetExprTypeStr(ast) = '(a -> a)');      
@@ -169,7 +164,7 @@ begin
    ast := Apply(IntegerLiteral(5), IntegerLiteral(10));
    bs := TGoofyBuiltins.Create;
    goofyTS := TGoofyTypeSystem.Create(bs);
-   Assert(goofyTS.GetExprTypeStr(ast) = 'Type error: Type mismatch: (Int -> a) /= Int');
+   Assert(IsWild(goofyTS.GetExprTypeStr(ast),'*(Int -> a) /= Int*', False));
 end;
 
 initialization

@@ -14,6 +14,7 @@ lib/
 *.exe
 
 goofy
-Goofy
+sources/Goofy
+tests/Tests
 bin/ndlex
 bin/ndyacc
