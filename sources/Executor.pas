@@ -41,18 +41,18 @@ implementation
 procedure TGoofyExecutor.Execute(ast: TStatement);
 var
    valDecl: TValueDeclaration;
-   valType: TType;
    value: TValue;
 begin
    if ast is TValueDeclaration then
    begin
       valDecl := ast as TValueDeclaration;
-      valType := Typecheck(valDecl.Expr);
+      if not Assigned(valDecl.Expr.Type_) then
+         raise EExecError.Create('Cannot execute value declaration without type annotation');
       value := Self.Evaluate(valDecl.Expr, Self.ValueEnv);
       if valDecl.Name <> '_' then
       begin
          Self.ValueEnv := ValueEnvironment.EnvInsert(Self.ValueEnv, valDecl.Name, value);
-         Self.TypeEnv := HMDataStructures.EnvInsert(Self.TypeEnv, valDecl.Name, valType);
+         Self.TypeEnv := HMDataStructures.EnvInsert(Self.TypeEnv, valDecl.Name, valDecl.Expr.Type_);
       end;
    end
    else
@@ -84,9 +84,19 @@ end;
 procedure TGoofyExecutor.LoadModule(module: TModule);
 var
    i: Integer;
+   vd: TValueDeclaration;
 begin
    for i := 0 to High(module.Stmts) do
-      Self.Execute(module.Stmts[i]);
+   begin
+      if module.Stmts[i] is TValueDeclaration then
+      begin
+         vd := module.Stmts[i] as TValueDeclaration;
+         Self.TypeCheck(vd.Expr);
+         Self.Execute(vd);
+      end
+      else
+         raise EExecError.Create('Module contains unknown kind of statement');
+   end;
 end;
 
 procedure TGoofyExecutor.PrintTypeEnv;

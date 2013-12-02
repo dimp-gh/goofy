@@ -127,6 +127,7 @@ var
    value: TValue;
    input: String;
    module: TModule;
+   vd: TValueDeclaration;
 begin
    write('Loading Prelude...');
    Self.LoadPrelude;
@@ -152,13 +153,12 @@ begin
             // parsing
             ast := ParseString(input);
             // typechecking
-            if not(ast is TExpression) then
+            if not (ast is TExpression) then
                raise EInputError.Create('Command :type expects expression, not statement');
             expr := ast as TExpression;
+            Exec.Typecheck(expr);
+            writeln(expr.StrType);
             Exec.TypeSystem.ResetGeneratorNames;
-            exprType := Exec.Typecheck(expr);
-            write(input);
-            writeln(' :: ', exprType.ToStr);
          end
          else if IsCommandShow(input) then
          begin
@@ -181,18 +181,24 @@ begin
                expr := ast as TExpression;
                stmt := ValueDecl(resName, expr);
                Exec.TypeSystem.ResetGeneratorNames;
-               exprType := Exec.Typecheck(expr);
+               Exec.Typecheck(expr);
                // evaluating
                Exec.Execute(stmt);
                value := Exec.GetValue(resName);
                // printing results
-               write(resName, ' :: ', exprType.ToStr);
-               writeln(' ~> ', value.ToStr);
+               writeln(expr.StrType, ' ~> ', value.ToStr);
             end
             else if (ast is TStatement) then
             begin
                stmt := ast as TStatement;
-               Exec.Execute(stmt);
+               if stmt is TValueDeclaration then
+               begin
+                  vd := stmt as TValueDeclaration;
+                  Exec.Typecheck(vd.Expr);
+                  Exec.Execute(vd);
+               end
+               else
+                  raise EInputError.Create('Parsed statement has unknown type');
             end
             else
                Raise EInputError.Create('Parsed AST is neither expression nor statement');

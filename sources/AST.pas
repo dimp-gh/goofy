@@ -3,14 +3,19 @@ unit AST;
 interface
 
 uses
-   Sysutils;
+   Sysutils, HMTypes;
 
 type
    TAST = class abstract
+   public
       function ToStr: String; virtual; abstract;
    end;
    
-   TExpression = class(TAST);
+   TExpression = class(TAST)
+   public
+      Type_: TType;
+      function StrType: String;
+   end;
 
    TIdentifier = class(TExpression)
    public
@@ -169,6 +174,17 @@ function ValueDecl(n: String; e: TExpression): TValueDeclaration;
 function Module(name: String; ss: TStatementList): TModule;
 
 implementation
+
+function TExpression.StrType: String;
+var
+   t: String;
+begin
+   if Assigned(Self.Type_) then
+      t := ' :: ' + Self.Type_.ToStr
+   else
+      t := '';
+   Result := Self.ToStr + t;
+end;
 
 constructor TIntegerLiteral.Create(v: String);
 begin
