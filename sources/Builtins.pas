@@ -77,7 +77,7 @@ begin
    Bool := CreateType('Bool');
    UnitType := CreateType('Unit');
    StringType := CreateType('String');
-   vs := VarGen.GenerateNVars(11);
+   vs := VarGen.GenerateNVars(12);
    
    // built-in functions
    // pair constructor and deconstructors
@@ -121,7 +121,7 @@ begin
    Self.Insert(Builtin('head', BuiltinFunction('head'), CreateFunType(StringType, StringType)));   
    Self.Insert(Builtin('tail', BuiltinFunction('tail'), CreateFunType(StringType, StringType)));
    // assertions are kinda important
-   Self.Insert(Builtin('assertEquals', BuiltinFunction('assertEquals'), CreateFunType(Bool, UnitType)));   
+   Self.Insert(Builtin('assertEquals', BuiltinFunction('assertEquals'), CreateFunType(vs[11], CreateFunType(vs[11], UnitType))));
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);
