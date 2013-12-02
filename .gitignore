@@ -13,8 +13,12 @@ lib/
 #exclude executable output in windows
 *.exe
 
+# binaries
 goofy
 sources/Goofy
 tests/Tests
 bin/ndlex
 bin/ndyacc
+
+# out for language test files
+*.actual
