@@ -7,7 +7,7 @@ uses
    SysUtils,
    TypInfo,
    Classes,
-   expr in 'sources/parser/expr.pas';
+   expr;
 
 function ParseString(s: String): TAST;
 function ParseModule(path: String): TModule;

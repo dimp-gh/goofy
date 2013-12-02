@@ -24,7 +24,6 @@ type
                            env: TValueEnvironment;
                            var matched: Boolean): TValue;
    public
-      //Eval: TEvaluator;
       TypeSystem: TGoofyTypeSystem;
       function Typecheck(e: TExpression): TType;
       function Evaluate(ast: TExpression): TValue;
@@ -62,7 +61,6 @@ end;
 constructor TGoofyExecutor.Create(bs: TGoofyBuiltins);
 begin
    Self.Builtins := bs;
-   //Self.Eval := TEvaluator.Create(bs);
    Self.TypeSystem := TGoofyTypeSystem.Create(bs);
    Self.ValueEnv := bs.GetBuiltinValues;
    Self.TypeEnv := bs.GetBuiltinTypes;
