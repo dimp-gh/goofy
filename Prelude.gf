@@ -59,3 +59,9 @@ val readInt = read `compose` strToInt
 # Function `read` has the following signature:
 # read :: Unit -> String
 # So, when you call it, you should not omit unit literal.
+
+# This function is here for chaining Unit-typed functions.
+# Example of usage:
+# (print N) `andThen` (print " bottles of beer ") `andThen` (println "on the wall")
+# Not as powerful as do-expressions, but hey, we can write it in Goofy.
+fun andThen _ = fn _ => ()
