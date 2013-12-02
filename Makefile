@@ -26,14 +26,16 @@ lexyacc_clean:
 extraclean: clean lexyacc_clean
 	rm -rf *.bak *~
 
-#tests:
-#	echo "sorry, can't build tests right now"
-#	$(FPC) $(FPCOPTS) -otests tests.pas
+cleantests:
+	rm -rf  tests/*.o tests/*.ppu tests/*.compiled tests/Tests
+
+buildtests:
+	lazbuild tests/Tests.lpr
 
 run: Goofy
 	./goofy -r
 
-#runtests: clean tests
-#	./tests
+runtests: cleantests buildtests
+	./tests/Tests
 
 .PHONY: clean goofy
