@@ -119,7 +119,9 @@ begin
    Self.Insert(Builtin('length', BuiltinFunction('length'), CreateFunType(StringType, Int)));
    // these are more like generic list functions, but Goofy has no list type right now
    Self.Insert(Builtin('head', BuiltinFunction('head'), CreateFunType(StringType, StringType)));   
-   Self.Insert(Builtin('tail', BuiltinFunction('tail'), CreateFunType(StringType, StringType)));   
+   Self.Insert(Builtin('tail', BuiltinFunction('tail'), CreateFunType(StringType, StringType)));
+   // assertions are kinda important
+   Self.Insert(Builtin('assertEquals', BuiltinFunction('assertEquals'), CreateFunType(Bool, UnitType)));   
 end;
 
 procedure TGoofyBuiltins.Insert(b: TGoofyBuiltin);
@@ -193,6 +195,8 @@ begin
       tail := System.Copy(str, 2, Length(str) - 1);
       Result := StringV(tail);
    end
+   else if (builtin = 'assertEquals') then
+      Result := PABuiltinFunction('assertEquals', arg)
    else
       raise EBuiltinError.Create('Built-in function ''' + builtin + ''' is not implemented yet');
 end;
@@ -218,6 +222,13 @@ begin
       Result := BooleanV(EqualValues(oldarg, arg))
    else if (builtin = 'append') then
       Result := StringV((oldarg as TStringValue).Value + (arg as TStringValue).Value)
+   else if (builtin = 'assertEquals') then
+   begin
+      if EqualValues(oldarg, arg) then
+         Result := UnitV
+      else
+         raise EEvaluationStoppedError.Create('Assertion failed: ' + oldarg.ToStr + ' /= ' + arg.ToStr)
+   end
    else
       raise EBuiltinError.Create('Partially applied built-in function ''' + builtin + ''' is not implemented yet');
 end;
