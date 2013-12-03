@@ -1,0 +1,7 @@
+simple do example:
+  15
+nested do-expressions are fine:
+  outside1
+  inside1
+  inside2
+  outside2
