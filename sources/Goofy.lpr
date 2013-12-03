@@ -85,6 +85,7 @@ type
       prelude, module: TModule;
       main: TStatement;
       mainType: TType;
+      applyMain: TExpression;
    begin
       try
          builtins := TGoofyBuiltins.Create;
@@ -96,14 +97,16 @@ type
          exec.GetValue('main');
          mainType := exec.Typecheck(Identifier('main'));
          if (mainType is TParameterizedType) and
-               ((mainType as TParameterizedType).Args[0] is TParameterizedType) and
-               ((mainType as TParameterizedType).Args[1] is TParameterizedType) and
-               (((mainType as TParameterizedType).Args[0] as TParameterizedType).Name = 'Unit') and
-               (((mainType as TParameterizedType).Args[1] as TParameterizedType).Name = 'Unit') then
+            ((mainType as TParameterizedType).Args[0] is TParameterizedType) and
+            ((mainType as TParameterizedType).Args[1] is TParameterizedType) and
+            (((mainType as TParameterizedType).Args[0] as TParameterizedType).Name = 'Unit') and
+            (((mainType as TParameterizedType).Args[1] as TParameterizedType).Name = 'Unit') then
             // pass
          else
             raise EEvalError.Create('Main function has type other than (Unit -> Unit).');
-         main := ValueDecl('it', Apply(Identifier('main'), UnitLiteral));
+         applyMain := Apply(Identifier('main'), UnitLiteral);
+	 exec.Typecheck(applyMain);
+         main := ValueDecl('it', applyMain);
          exec.Execute(main);
       except
          on e: EExprParserException do

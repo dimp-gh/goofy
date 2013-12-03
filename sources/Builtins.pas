@@ -77,7 +77,7 @@ begin
    Bool := CreateType('Bool');
    UnitType := CreateType('Unit');
    StringType := CreateType('String');
-   vs := VarGen.GenerateNVars(12);
+   vs := VarGen.GenerateNVars(11);
    
    // built-in functions
    // pair constructor and deconstructors

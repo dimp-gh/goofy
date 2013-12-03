@@ -170,6 +170,7 @@ begin
    end      
    else
       Raise ETypeError.Create('Cannot typecheck this kind of AST');
+   ast.Type_ := Result;
 end;
 
 function THMTypeSystem.GetType(name: String; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
