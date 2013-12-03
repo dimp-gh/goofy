@@ -4,7 +4,7 @@ import os.path
 
 def run_test_sources():
 	failed = []
-	for root, dirs, files in os.walk('tests/lang'):
+	for root, dirs, files in os.walk('./lang'):
 		for f in files:
 			if f.endswith('.gf'):
 				source_path = os.path.join(root, f)
