@@ -86,6 +86,8 @@ var
    cond: TBooleanValue;
    bfv: TBuiltinFunctionValue;
    pabfv: TPABuiltinFunctionValue;
+   stmt: TStatement;
+   valDecl: TValueDeclaration;
 begin
    if (ast is TIntegerLiteral) then
       Result := IntegerV((ast as TIntegerLiteral).Value)
@@ -144,15 +146,15 @@ begin
    else if (ast is TApply) then
    begin
       apply := ast as TApply;
-      writeln(apply.Fun.StrType);
-      writeln(apply.Argument.StrType);
-      if EnvFind(valueE, 'println') then
-         writeln('println is in env')
-      else
-      begin
-         writeln('PANIC!! println is not in env');
-         ValueEnvironment.EnvPrint(valueE);
-      end;
+      // writeln(apply.Fun.StrType);
+      // writeln(apply.Argument.StrType);
+      // if EnvFind(valueE, 'println') then
+      //    writeln('println is in env')
+      // else
+      // begin
+      //    writeln('PANIC!! println is not in env');
+      //    ValueEnvironment.EnvPrint(valueE);
+      // end;
       fun := Evaluate(apply.Fun, valueE, typeE);
       arg := Evaluate(apply.Argument, valueE, typeE);
       if (fun is TFunctionValue) then
@@ -196,9 +198,24 @@ begin
       // fork environments
       forkedValueEnv := ValueEnvironment.EnvCopy(valueE);
       forkedTypeEnv := HMDataStructures.EnvCopy(typeE);
-      // evaluate expression
+      // evaluate all substatements
       for i := 0 to High(do_.Stmts) do
-         Execute(do_.Stmts[i], forkedValueEnv, forkedTypeEnv);
+      begin
+         stmt := do_.Stmts[i];
+         if (stmt is TValueDeclaration) then
+         begin
+            valDecl := stmt as TValueDeclaration;
+            if not Assigned(valDecl.Expr.Type_) then
+               raise EExecError.Create('Cannot execute value declaration without type annotation');
+            value := Evaluate(valDecl.Expr, forkedValueEnv, forkedTypeEnv);
+            if valDecl.Name <> '_' then
+            begin
+               forkedValueEnv := valueEnvironment.EnvInsert(forkedValueEnv, valDecl.Name, value);
+               forkedTypeEnv := HMDataStructures.EnvInsert(forkedTypeEnv, valDecl.Name, valDecl.Expr.Type_);
+            end;
+         end
+      end;
+      // evaluate last expression
       Result := Evaluate(do_.Return, forkedValueEnv, forkedTypeEnv);
    end
    else
@@ -262,7 +279,7 @@ function TGoofyExecutor.MatchClause(clause: TClause;
                                     var matched: Boolean): TValue;
 var
    litVal: TValue;
-   newEnv: TValueEnvironment;
+   tmpEnv, finalEnv: TValueEnvironment;
    id: TIdentifier;
    pair: TPairLiteral;
    pairval: TPairValue;
@@ -282,10 +299,10 @@ begin
    begin
       id := clause.Pattern as TIdentifier;
       if id.Name = '_' then
-         newEnv := valueE
+         finalEnv := valueE
       else
-         newEnv := EnvInsert(valueE, id.Name, value);
-      Result := Evaluate(clause.Then_, newEnv, typeE);
+         finalEnv := EnvInsert(valueE, id.Name, value);
+      Result := Evaluate(clause.Then_, finalEnv, typeE);
       matched := True;
    end
    else if clause.Pattern is TPairLiteral then
@@ -299,14 +316,15 @@ begin
          litVal := Evaluate(pair.Fst, valueE, typeE);
          if EqualValues(litVal, pairval.Fst) then
             matchedFst := True;
+         tmpEnv := valueE;
       end
       else if pair.Fst is TIdentifier then
       begin
          id := pair.Fst as TIdentifier;
          if id.Name = '_' then
-            newEnv := valueE
+            tmpEnv := valueE
          else
-            newEnv := EnvInsert(valueE, id.Name, pairval.Fst);
+            tmpEnv := EnvInsert(valueE, id.Name, pairval.Fst);
          matchedFst := True;
       end
       else
@@ -314,17 +332,18 @@ begin
       
       if pair.Snd is TLiteral then
       begin
-         litVal := Evaluate(pair.Snd, newEnv, typeE);
+         litVal := Evaluate(pair.Snd, tmpEnv, typeE);
          if EqualValues(litVal, pairval.Snd) then
             matchedSnd := True;
+         finalEnv := tmpEnv;
       end
       else if pair.Snd is TIdentifier then
       begin
          id := pair.Snd as TIdentifier;
          if id.Name = '_' then
-            newEnv := newEnv
+            finalEnv := tmpEnv
          else
-            newEnv := EnvInsert(newEnv, id.Name, pairval.Snd);
+            finalEnv := EnvInsert(tmpEnv, id.Name, pairval.Snd);
          matchedSnd := True;
       end
       else
@@ -333,7 +352,7 @@ begin
       if matchedFst and matchedSnd then
       begin
          matched := True;
-         Result := Evaluate(clause.Then_, newEnv, typeE);
+         Result := Evaluate(clause.Then_, finalEnv, typeE);
       end;
       // raise EEvalError.Create('Pair literals cannot appear in case-patterns');
    end;
