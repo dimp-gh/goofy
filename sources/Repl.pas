@@ -123,7 +123,6 @@ var
    ast: TAST;
    expr: TExpression;
    stmt: TStatement;
-   exprType: TType;
    value: TValue;
    input: String;
    module: TModule;

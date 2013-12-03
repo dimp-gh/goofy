@@ -26,12 +26,10 @@ type
       function GetBuiltinTypes: TTypeEnvironment;
       function GetBuiltinValues: TValueEnvironment;
       function ApplyBuiltin(builtin: String;
-                            arg: TValue;
-                            env: TValueEnvironment): TValue;
+                            arg: TValue): TValue;
       function ApplyPABuiltin(builtin: String;
                               oldarg: TValue;
-                              arg: TValue;
-                              env: TValueEnvironment): TValue;
+                              arg: TValue): TValue;
       procedure PrintBuiltins;
    end;
    
@@ -134,8 +132,7 @@ begin
 end;
 
 function TGoofyBuiltins.ApplyBuiltin(builtin: String;
-                                     arg: TValue;
-                                     env: TValueEnvironment): TValue;
+                                     arg: TValue): TValue;
 var
    buffer, str, tail: String;
 begin
@@ -203,8 +200,7 @@ end;
 
 function TGoofyBuiltins.ApplyPABuiltin(builtin: String;
                                        oldarg: TValue;
-                                       arg: TValue;
-                                       env: TValueEnvironment): TValue;
+                                       arg: TValue): TValue;
 begin
    if (builtin = 'pair') then
       Result := PairV(oldarg, arg)

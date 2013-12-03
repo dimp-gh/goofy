@@ -157,12 +157,12 @@ begin
       else if (fun is TBuiltinFunctionValue) then
       begin
          bfv := fun as TBuiltinFunctionValue;
-         Result := Self.Builtins.ApplyBuiltin(bfv.Name, arg, valueE);
+         Result := Self.Builtins.ApplyBuiltin(bfv.Name, arg);
       end
       else if (fun is TPABuiltinFunctionValue) then
       begin
          pabfv := fun as TPABuiltinFunctionValue;
-         Result := Self.Builtins.ApplyPABuiltin(pabfv.Name, pabfv.DefVal, arg, valueE); // TODO: builtins don't need environments
+         Result := Self.Builtins.ApplyPABuiltin(pabfv.Name, pabfv.DefVal, arg);
       end
       else
          raise EEvalError.Create('Value ' + fun.ToStr + ' is not a function and cannot be applied');
