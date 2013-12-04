@@ -133,6 +133,14 @@ type
       constructor Create(n: String; e: TExpression);
    end;
    
+   TTypeDeclaration = class(TStatement)
+      Name: String;
+      Params: TTypeVariableList;
+      Subs: TTypeList;
+      function ToStr: String; override;
+      constructor Create(n: String; ps: TTypeVariableList; tl: TTypeList);
+   end;
+   
    TStatementList = array of TStatement;
    
    TModule = class(TAST)
@@ -150,7 +158,7 @@ type
       function ToStr: String; override;
       constructor Create(s: TStatementList; r: TExpression);
    end;
-   
+
 // expressions   
 function Identifier(n: String): TIdentifier;
 function IntegerLiteral(v: Int64): TIntegerLiteral;
@@ -170,6 +178,7 @@ function DoExpression(stmts: TStatementList; ret: TExpression): TDoExpression;
 // statements
 function FunctionDecl(name: String; cs: TClauseList): TValueDeclaration;
 function ValueDecl(n: String; e: TExpression): TValueDeclaration;
+function TypeDecl(n: String; ps: TTypeVariableList; ts: TTypeList): TTypeDeclaration;
 // modules
 function Module(name: String; ss: TStatementList): TModule;
 
@@ -388,6 +397,22 @@ begin
    Self.Return := r;
 end;
 
+function TTypeDeclaration.ToStr: String;
+var
+   i: Integer;
+begin
+   Result := 'data ' + Self.Name + ' = ' + Self.Subs[0].ToStr;
+   for i := 1 to High(Self.Subs) do
+      Result := Result + ' | ' + Self.Subs[i].ToStr;
+end;
+
+constructor TTypeDeclaration.Create(n: String; ps: TTypeVariableList; tl: TTypeList);
+begin
+   Self.Name := n;
+   Self.Params := ps;
+   Self.Subs := tl;
+end;
+
 // A few convenient functions for creating AST
 function Identifier(n: String): TIdentifier;
 begin
@@ -472,6 +497,11 @@ end;
 function ValueDecl(n: String; e: TExpression): TValueDeclaration;
 begin
    Result := TValueDeclaration.Create(n, e);
+end;
+
+function TypeDecl(n: String; ps: TTypeVariableList; ts: TTypeList): TTypeDeclaration;
+begin
+   Result := TTypeDeclaration.Create(n, ps, ts);
 end;
 
 function Module(name: String; ss: TStatementList): TModule;

@@ -8,12 +8,14 @@ uses
 	yacclib,
 	lexlib,
         AST,
+	HMTypes,
 	ParserHelper;
 
 %}
 
 %token <Int64> NUM
 %token <String> IDENT
+%token <String> TYPEIDENT
 %token <String> STRINGLIT
 %type <TExpression> expression
 %type <TExpression> expr2
@@ -38,6 +40,12 @@ uses
 %type <TDoExpression> do_expression
 %type <TStatementList> do_inside
 %type <TStatement> do_subj
+%type <String> type_id
+%type <TTypeDeclaration> type_declaration
+%type <TTypeList> union_type
+%type <TType> type_expr
+%type <TTypeList> type_components
+%type <TTypeVariable> type_var
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -60,12 +68,13 @@ uses
 %token MODULE_SYM
 %token WHERE_SYM
 %token DO_SYM
+%token DATA_SYM
 
 %token ILLEGAL 		/* illegal token */
 
 %%
 
-input	: /* empty */
+input	: /* empty */ /* NOTE: why match empty input? */
         | input expression     	 { begin parsed := $2; yyaccept; end; }
 	| input statement	 { begin parsed := $2; yyaccept; end; }
 	| input module     	 { begin parsed := $2; yyaccept; end; }
@@ -74,6 +83,7 @@ input	: /* empty */
 
 statement  :  function_declaration		 { $$ := $1; }
 	   |  value_assignment			 { $$ := $1; }
+	   |  type_declaration			 { $$ := $1; }
 	   ;
 
 value_assignment : VAL_SYM IDENT EQUALS_SYM expression { $$ := ValueDecl($2, $4); }
@@ -96,7 +106,7 @@ expression	:  lambda		                 { $$ := $1; }
 		|  expr2				 { $$ := $1; }
  		;
 
-module_header  :  MODULE_SYM IDENT WHERE_SYM	 { $$ := $2; }	 
+module_header  :  MODULE_SYM TYPEIDENT WHERE_SYM	 { $$ := $2; }	 
 
 
 /* Parses Function Application expressions */
@@ -160,6 +170,25 @@ do_inside   :  do_subj do_inside			   { $$ := PrependStmt($1, $2); }
 do_subj     :  statement ','				   { $$ := $1; }
 	    |  DO_SYM expression ',' 			   { $$ := ValueDecl('_', $2); }
 	    ;
+
+type_id     :  TYPEIDENT				   { $$ := $1; }
+
+type_decl : DATA_SYM type_id type_vars
+	    EQUALS_SYM union_type			   { $$ := TypeDecl($2, $3, $4); }
+	  ;
+
+union_type  :  type_expr '|' union_type			   { $$ := PrependType($1, $3); }
+	    |  type_expr 				   { $$ := SingleType($1); }
+	    ;
+
+type_expr   :  type_id type_components			   { $$ := TParameterizedType.Create($1, $2); }
+	    |  type_id					   { $$ := CreateType($1); }
+
+type_components  : type_var type_components		   { $$ := PrependType($1, $2); }
+		 | type_var				   { $$ := SingleType($1); }
+
+type_var  :  IDENT 					   { $$ := TTypeVariable.Create($1); }
+	  ;
 
 %%
 

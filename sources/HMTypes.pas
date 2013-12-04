@@ -18,24 +18,28 @@ type
    TTypeVariable = class(TType)
    private
       Namegen: PNameGenerator;
+   protected
       Instance: TType;      
    public
       Id: Integer;
       Name: String;
       IsDefined: Boolean;
       function GetName: String;
-      constructor Create(id_: Integer; ng: PNameGenerator);
+      constructor Create(id_: Integer; ng: PNameGenerator); overload;
+      constructor Create(name: String); overload;
       function ToStr: String; override;
       procedure SetInstance(inst: TType);
       function GetInstance: TType;
    end;
-
+   
+   TTypeList = array of TType;
+   
    TParameterizedType = class(TType)
    public
       Name: String;
       Args: array of TType;
       function ToStr: String; override;
-      constructor Create(n: String; a: array of TType);
+      constructor Create(n: String; a: TTypeList);
    end;
 
    // Name generator for type variables
@@ -118,6 +122,15 @@ begin
    inherited Create;
 end;
 
+constructor TTypeVariable.Create(name: String);
+begin
+   Self.Id := 0;
+   Self.Namegen := nil;
+   Self.Name := name;
+   Self.IsDefined := False;
+   inherited Create;
+end;
+
 function TTypeVariable.GetName: String;
 begin
    if Self.Name = '' then
@@ -181,7 +194,7 @@ begin
    end;
 end;
 
-constructor TParameterizedType.Create(n: String; a: array of TType);
+constructor TParameterizedType.Create(n: String; a: TTypeList);
 var i: Integer;
 begin
    Self.Name := n;
@@ -194,7 +207,7 @@ end;
 
 function CreateFunType(from: TType; into: TType): TParameterizedType;
 var
-   args: array of TType;
+   args: TTypeList;
 begin
    SetLength(args, 2);
    args[0] := from;
@@ -204,7 +217,7 @@ end;
 
 function CreatePairType(t1,t2: TType): TParameterizedType;
 var
-   args: array of TType;
+   args: TTypeList;
 begin
    SetLength(args, 2);
    args[0] := t1;
@@ -213,8 +226,11 @@ begin
 end;
 
 function CreateType(name: String): TParameterizedType;
+var
+   args: TTypeList;
 begin
-   Result := TParameterizedType.Create(name, []);
+   SetLength(args, 0);
+   Result := TParameterizedType.Create(name, args);
 end;
 
 initialization

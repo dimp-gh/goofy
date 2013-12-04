@@ -196,6 +196,8 @@ begin
                   Exec.Typecheck(vd.Expr);
                   Exec.Execute(vd);
                end
+               else if stmt is TTypeDeclaration then
+		  writeln('cannot execute type declarations')
                else
                   raise EInputError.Create('Parsed statement has unknown type');
             end

@@ -1,5 +1,6 @@
 D				[0-9]
 ID                              [a-z\-\+\*%_\.][0-9A-Za-z\-\+\*%_']*
+TYPEID                          [A-Z][a-zA-Z]*
 STR_LIT                         \"(\\.|[^"])*\"
 COMMENT				#[^\n]*\n
 
@@ -38,10 +39,16 @@ val                             return(VAL_SYM);
 module                          return(MODULE_SYM);
 where                           return(WHERE_SYM);
 do                              return(DO_SYM);
+data                            return(DATA_SYM);
 
 {ID}				begin
 				  yylval.yyString := yytext;
 				  return(IDENT);
+				end;
+
+{TYPEID}			begin
+				  yylval.yyString := yytext;
+				  return(TYPEIDENT);
 				end;
 
 "()"                            return(UNIT_SYM);
