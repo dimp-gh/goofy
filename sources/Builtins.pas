@@ -97,6 +97,11 @@ begin
    Self.Insert(Builtin('/', BuiltinFunction('/'), CreateFunType(Int, CreateFunType(Int, Int))));
    Self.Insert(Builtin('mod', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
    Self.Insert(Builtin('%', BuiltinFunction('%'), CreateFunType(Int, CreateFunType(Int, Int))));
+   // numeric comparison
+   Self.Insert(Builtin('lt', BuiltinFunction('<'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('<', BuiltinFunction('<'), CreateFunType(Int, CreateFunType(Int, Int))));   
+   Self.Insert(Builtin('gt', BuiltinFunction('>'), CreateFunType(Int, CreateFunType(Int, Int))));
+   Self.Insert(Builtin('>', BuiltinFunction('>'), CreateFunType(Int, CreateFunType(Int, Int))));   
    // general equality function
    Self.Insert(Builtin('eq', BuiltinFunction('eq'), CreateFunType(vs[7], CreateFunType(vs[7], Bool))));
    // NOTE: Previous line breaks compilation because in value environment keys are names and name 'eq' is allready taken
@@ -192,6 +197,10 @@ begin
       tail := System.Copy(str, 2, Length(str) - 1);
       Result := StringV(tail);
    end
+   else if (builtin = '<') then
+      Result := PABuiltinFunction('<', arg)
+   else if (builtin = '>') then
+      Result := PABuiltinFunction('>', arg)
    else if (builtin = 'assertEquals') then
       Result := PABuiltinFunction('assertEquals', arg)
    else
@@ -225,6 +234,10 @@ begin
       else
          raise EEvaluationStoppedError.Create('Assertion failed: ' + oldarg.ToStr + ' /= ' + arg.ToStr)
    end
+   else if (builtin = '<') then
+      Result := BooleanV((oldarg as TIntegerValue).Value < (arg as TIntegerValue).Value)
+   else if (builtin = '>') then
+      Result := BooleanV((oldarg as TIntegerValue).Value > (arg as TIntegerValue).Value)
    else
       raise EBuiltinError.Create('Partially applied built-in function ''' + builtin + ''' is not implemented yet');
 end;
