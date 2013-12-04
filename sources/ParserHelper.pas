@@ -13,7 +13,10 @@ function CutStringLiteral(raw: String): String;
 function Unescape(raw: String): String;
 function SingleType(s: TType): TTypeList;
 function PrependType(s: TType; ss: TTypeList): TTypeList;
-   
+function SingleTypeVar(s: TTypeVariable): TTypeVariableList;
+function PrependTypeVar(s: TTypeVariable; ss: TTypeVariableList): TTypeVariableList;
+function NoTypeVars: TTypeVariableList;   
+
 implementation
 
 function SingleClause(c: TClause): TClauseList;
@@ -103,6 +106,36 @@ begin
    for i := 0 to High(ss) do
       res[i + 1] := ss[i];
    Result := res;
+end;
+
+function SingleTypeVar(s: TTypeVariable): TTypeVariableList;
+var
+   r: TTypeVariableList;
+begin
+   SetLength(r, 1);
+   r[0] := s;
+   Result := r;
+end;
+
+function PrependTypeVar(s: TTypeVariable; ss: TTypeVariableList): TTypeVariableList;
+var
+   i, len: Integer;
+   res: TTypeVariableList;
+begin
+   len := Length(ss);
+   SetLength(res, len + 1);
+   res[0] := s;
+   for i := 0 to High(ss) do
+      res[i + 1] := ss[i];
+   Result := res;
+end;
+
+function NoTypeVars: TTypeVariableList;   
+var
+   r: TTypeVariableList;
+begin
+   SetLength(r, 0);
+   Result := r;
 end;
 
 initialization

@@ -401,7 +401,10 @@ function TTypeDeclaration.ToStr: String;
 var
    i: Integer;
 begin
-   Result := 'data ' + Self.Name + ' = ' + Self.Subs[0].ToStr;
+   Result := 'data ' + Self.Name;
+   for i := 0 to High(Self.Params) do
+      Result := Result + ' ' + Self.Params[i].ToStr;
+   Result := Result  + ' = ' + Self.Subs[0].ToStr;
    for i := 1 to High(Self.Subs) do
       Result := Result + ' | ' + Self.Subs[i].ToStr;
 end;

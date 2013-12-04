@@ -41,11 +41,13 @@ uses
 %type <TStatementList> do_inside
 %type <TStatement> do_subj
 %type <String> type_id
-%type <TTypeDeclaration> type_declaration
+%type <TTypeDeclaration> type_decl
 %type <TTypeList> union_type
 %type <TType> type_expr
 %type <TTypeList> type_components
+%type <TType> type_comp
 %type <TTypeVariable> type_var
+%type <TTypeVariableList> type_vars
 
 %token LAMBDA_SYM
 %token LAMBDA_ARROW_SYM
@@ -83,7 +85,7 @@ input	: /* empty */ /* NOTE: why match empty input? */
 
 statement  :  function_declaration		 { $$ := $1; }
 	   |  value_assignment			 { $$ := $1; }
-	   |  type_declaration			 { $$ := $1; }
+	   |  type_decl				 { $$ := $1; }
 	   ;
 
 value_assignment : VAL_SYM IDENT EQUALS_SYM expression { $$ := ValueDecl($2, $4); }
@@ -96,6 +98,9 @@ statements  :  statement statements	         { $$ := PrependStmt($1, $2); }
 module  :  module_header statements		 { $$ := Module($1, $2); }
 	;
 
+module_header  :  MODULE_SYM TYPEIDENT WHERE_SYM	 { $$ := $2; }	 
+	       ;
+
 /* Parses the LET, LETREC, FN, IF, CASE expressions */
 expression	:  lambda		                 { $$ := $1; }
 		|  let 	 				 { $$ := $1; }
@@ -105,9 +110,6 @@ expression	:  lambda		                 { $$ := $1; }
 		|  do_expression			 { $$ := $1; }                     
 		|  expr2				 { $$ := $1; }
  		;
-
-module_header  :  MODULE_SYM TYPEIDENT WHERE_SYM	 { $$ := $2; }	 
-
 
 /* Parses Function Application expressions */
 expr2   :  expr2 expr3				 { $$ := Apply($1, $2); }
@@ -172,9 +174,9 @@ do_subj     :  statement ','				   { $$ := $1; }
 	    ;
 
 type_id     :  TYPEIDENT				   { $$ := $1; }
+	    ;
 
-type_decl : DATA_SYM type_id type_vars
-	    EQUALS_SYM union_type			   { $$ := TypeDecl($2, $3, $4); }
+type_decl : DATA_SYM type_id type_vars EQUALS_SYM union_type  { $$ := TypeDecl($2, $3, $5); }
 	  ;
 
 union_type  :  type_expr '|' union_type			   { $$ := PrependType($1, $3); }
@@ -183,11 +185,22 @@ union_type  :  type_expr '|' union_type			   { $$ := PrependType($1, $3); }
 
 type_expr   :  type_id type_components			   { $$ := TParameterizedType.Create($1, $2); }
 	    |  type_id					   { $$ := CreateType($1); }
+	    ;
 
-type_components  : type_var type_components		   { $$ := PrependType($1, $2); }
-		 | type_var				   { $$ := SingleType($1); }
+type_components  : type_comp type_components		   { $$ := PrependType($1, $2); }
+		 | type_comp				   { $$ := SingleType($1); }
+		 ;
+
+type_comp   :  type_var					   { $$ := $1; }
+	    |  '(' type_expr ')'			   { $$ := $2; }
+	    ;
 
 type_var  :  IDENT 					   { $$ := TTypeVariable.Create($1); }
+	  ;
+
+type_vars :  type_var type_vars				   { $$ := PrependTypeVar($1 ,$2); }
+	  |  type_var 					   { $$ := SingleTypeVar($1); }
+	  |  						   { $$ := NoTypeVars; }
 	  ;
 
 %%

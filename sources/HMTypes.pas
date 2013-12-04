@@ -170,14 +170,23 @@ var
    i, len: Integer;
    t1, t2: String;
    acc: String;
+   
+   function ToParendStr(t: TType): String;
+   begin
+      if t is TTypeVariable then
+         Result := t.ToStr
+      else
+         Result := '(' + t.ToStr + ')';
+   end;
+   
 begin
    len := Length(Self.Args);
    if len = 0 then
       Result := Self.Name
    else if len = 2 then
    begin
-      t1 := Self.Args[0].ToStr;
-      t2 := Self.Args[1].ToStr;
+      t1 := ToParendStr(Self.Args[0]);
+      t2 := ToParendStr(Self.Args[1]);
       if (Self.Name = '->') then
          Result := '(' + t1 + ' -> ' + t2 + ')'
       else if (Self.Name = '*') then
@@ -189,7 +198,7 @@ begin
    begin
       acc := Self.Name;
       for i := 0 to len - 1 do
-         acc := acc + ' ' + Self.Args[i].ToStr;
+         acc := acc + ' ' + ToParendStr(Self.Args[i]);
       Result := acc;
    end;
 end;
