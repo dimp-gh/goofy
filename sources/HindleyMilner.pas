@@ -36,6 +36,7 @@ type
       constructor Create;
       function Analyse(ast: TExpression; env: TTypeEnvironment): TType;
       function Analyse(ast: TExpression; env: TTypeEnvironment; nongen: TTypeVariableList): TType;
+      procedure AnalyseTypeDecl(td: TTypeDeclaration);
       procedure ResetGeneratorNames;
    end;
    
@@ -404,6 +405,11 @@ begin
       raise ETypeError.Create('Cannot determine type of case-pattern');
    bodyType := analyse(body, newEnv, nongen);
    Self.Unify(resultType, bodyType);
+end;
+
+procedure THMTypeSystem.AnalyseTypeDecl(td: TTypeDeclaration);
+begin
+   
 end;
 
 initialization   
