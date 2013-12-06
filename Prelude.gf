@@ -53,6 +53,18 @@ fun strToInt' (x, acc)  =
 
 fun strToInt x = strToInt' (x, 0)
 
+fun intToStr 0 = "0"
+  | intToStr 1 = "1"
+  | intToStr 2 = "2"
+  | intToStr 3 = "3"
+  | intToStr 4 = "4"
+  | intToStr 5 = "5"
+  | intToStr 6 = "6"
+  | intToStr 7 = "7"
+  | intToStr 8 = "8"
+  | intToStr 9 = "9"
+  | intToStr x = (intToStr (x `div` 10)) `append` (intToStr (x `mod` 10)) 
+
 val readInt = read `compose` strToInt
 # equivalent to: fun readInt () = strToInt (read ())
 
