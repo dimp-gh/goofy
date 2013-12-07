@@ -2,6 +2,7 @@ D				[0-9]
 ID                              [a-z\-\+\*%_\.<>=][0-9A-Za-z\-\+\*%_'<>=]*
 STR_LIT                         \"(\\.|[^"])*\"
 COMMENT				#[^\n]*\n
+MODULEID                        [A-Z][A-Za-z0-9]*
 
 %start
 %%
@@ -42,6 +43,11 @@ do                              return(DO_SYM);
 {ID}				begin
 				  yylval.yyString := yytext;
 				  return(IDENT);
+				end;
+
+{MODULEID}			begin
+				  yylval.yyString := yytext;
+				  return(MODULE_IDENT);
 				end;
 
 "()"                            return(UNIT_SYM);

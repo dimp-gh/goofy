@@ -14,6 +14,7 @@ uses
 
 %token <Int64> NUM
 %token <String> IDENT
+%token <String> MODULE_IDENT
 %token <String> STRINGLIT
 %type <TExpression> expression
 %type <TExpression> expr2
@@ -96,7 +97,7 @@ expression	:  lambda		                 { $$ := $1; }
 		|  expr2				 { $$ := $1; }
  		;
 
-module_header  :  MODULE_SYM IDENT WHERE_SYM	 { $$ := $2; }	 
+module_header  :  MODULE_SYM MODULE_IDENT WHERE_SYM	 { $$ := $2; }	 
 
 
 /* Parses Function Application expressions */
