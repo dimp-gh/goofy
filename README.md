@@ -35,12 +35,12 @@ Running your Goofy programs
 ---------------------------
 
 You can run your Goofy programs by invoking Goofy interpreter with path to your program as a parameter.
-That is, `./goofy examples/Factorial.gf`.
+That is, `./goofy lang/Factorial.gf`.
 
 Language tutorial
 -----------------
 
 There is no comprehensive description of Goofy's syntax and semantics at the moment. The only thing you can
-do is to read sources from `examples`-folder. If you are familiar with Haskell or Standard ML, examples should be
+do is to read sources from `lang` folder. If you are familiar with Haskell or Standard ML, examples should be
 pretty straightforward for you to understand. You can also read `Prelude.gf`, which is automatically imported
 at the very beginning of the interpretation process.
